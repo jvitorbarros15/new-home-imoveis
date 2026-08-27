@@ -46,7 +46,7 @@ const PROP = {
     { name: "Hospital Copa D'Or", cat: "Saúde", dist: "2,2 km" },
   ],
   images: [
-    { src: "https://images.unsplash.com/photo-1600210492493-0946911123c4?w=1600&q=80&auto=format&fit=crop", caption: "Living integrado ao terraço", room: "Sala de estar" },
+    { src: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1600&q=80&auto=format&fit=crop", caption: "Living integrado ao terraço", room: "Sala de estar" },
     { src: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1600&q=80&auto=format&fit=crop", caption: "Vista frontal da Lagoa", room: "Varanda" },
     { src: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=1600&q=80&auto=format&fit=crop", caption: "Sala de jantar", room: "Sala" },
     { src: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1600&q=80&auto=format&fit=crop", caption: "Cozinha planejada", room: "Cozinha" },

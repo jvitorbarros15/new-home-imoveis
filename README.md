@@ -31,7 +31,9 @@ Open <http://localhost:8080>. No build step is required.
 
 ## Configuration
 
-The browser client requires a Supabase project URL and public anonymous key. Supabase anonymous keys are designed for client use, but database Row Level Security policies must enforce access control. Service-role keys must never be added to browser code or committed.
+The public deployment runs cleanly with sample properties and no database dependency. To enable live listings and the admin workflow, set `supabaseUrl` and `supabaseAnonKey` in `v1/config.js`.
+
+Supabase anonymous keys are designed for client use, but database Row Level Security policies must enforce access control. Service-role keys must never be added to browser code or committed.
 
 ## Repository structure
 

@@ -41,6 +41,12 @@ function Login() {
     if (locked) return;
     setLoading(true); setError("");
 
+    if (!window.sb) {
+      setLoading(false);
+      setError("Supabase não está configurado para esta demonstração.");
+      return;
+    }
+
     const { error: err } = await window.sb.auth.signInWithPassword({
       email: email.trim().toLowerCase(),
       password: pass,
@@ -159,6 +165,11 @@ function AdminApp() {
   const [editProp, setEditProp] = React.useState(null);
 
   React.useEffect(() => {
+    if (!window.sb) {
+      setChecking(false);
+      return;
+    }
+
     window.sb.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setChecking(false);
@@ -170,6 +181,7 @@ function AdminApp() {
   }, []);
 
   async function logout() {
+    if (!window.sb) return;
     await window.sb.auth.signOut();
     setView(ADM_VIEWS.listings);
     setEditProp(null);
