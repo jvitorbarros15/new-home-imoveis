@@ -1,3 +1,5 @@
+create extension if not exists vector with schema extensions;
+
 create table if not exists documents (
   id         bigint primary key generated always as identity,
   content    text not null,

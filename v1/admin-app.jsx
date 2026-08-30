@@ -17,7 +17,7 @@ const ILogout = () => <AIcon d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-
 const IHome   = () => <AIcon d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10" />;
 
 /* ------ Login form ------ */
-function Login() {
+function Login({ notice = "" }) {
   const [email, setEmail]     = React.useState("");
   const [pass, setPass]       = React.useState("");
   const [error, setError]     = React.useState("");
@@ -102,6 +102,7 @@ function Login() {
               disabled={locked || loading}
             />
           </div>
+          {notice && <div className="adm-error" role="alert">{notice}</div>}
           {error && <div className="adm-error" role="alert">{error}</div>}
           {lockout > 0 && (
             <div className="adm-error" role="alert" aria-live="polite">
@@ -161,23 +162,48 @@ function Sidebar({ view, setView, onLogout }) {
 function AdminApp() {
   const [session, setSession]   = React.useState(null);
   const [checking, setChecking] = React.useState(true);
+  const [accessError, setAccessError] = React.useState("");
   const [view, setView]         = React.useState(ADM_VIEWS.listings);
   const [editProp, setEditProp] = React.useState(null);
 
   React.useEffect(() => {
     if (!window.sb) {
+      setAccessError("Configure o Supabase antes de usar o painel.");
       setChecking(false);
       return;
     }
 
-    window.sb.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    let active = true;
+    async function verify(candidate) {
+      if (!active) return;
+      if (!candidate) {
+        setSession(null);
+        setChecking(false);
+        return;
+      }
+      setChecking(true);
+      const { data, error } = await window.sb
+        .from("admin_users")
+        .select("user_id")
+        .eq("user_id", candidate.user.id)
+        .maybeSingle();
+      if (!active) return;
+      if (error || !data) {
+        setAccessError("Esta conta não tem permissão de administrador.");
+        await window.sb.auth.signOut();
+        setSession(null);
+      } else {
+        setAccessError("");
+        setSession(candidate);
+      }
       setChecking(false);
+    }
+
+    window.sb.auth.getSession().then(({ data }) => verify(data.session));
+    const { data: { subscription } } = window.sb.auth.onAuthStateChange((_event, candidate) => {
+      verify(candidate);
     });
-    const { data: { subscription } } = window.sb.auth.onAuthStateChange((_e, s) => {
-      setSession(s);
-    });
-    return () => subscription.unsubscribe();
+    return () => { active = false; subscription.unsubscribe(); };
   }, []);
 
   async function logout() {
@@ -210,7 +236,7 @@ function AdminApp() {
     );
   }
 
-  if (!session) return <Login />;
+  if (!session) return <Login notice={accessError} />;
 
   return (
     <div className="adm-shell">

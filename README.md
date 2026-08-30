@@ -1,49 +1,59 @@
 # New Home Imóveis
 
-Responsive Portuguese-language real-estate experience for discovering, filtering, and managing property listings.
+Responsive Portuguese-language real-estate website for New Home Imóveis, with public property pages, WhatsApp conversion flows, a financing estimator and a Supabase-backed administration area.
 
-[Live demo](https://new-home-imoveis.vercel.app) · [Portfolio](https://joao-vitor-barros-da-silva-portfoli.vercel.app)
+[Portfolio deployment](https://new-home-imoveis.vercel.app) · [Official New Home website](https://www.imoveisnewhome.com.br/)
 
-![New Home Imóveis landing page](docs/preview.jpg)
+## What is included
 
-## What it demonstrates
-
-- Mobile-friendly property discovery and listing detail flows
-- Supabase-backed authentication and listing data
-- Administrative screens for content and media management
-- Conversion paths designed around WhatsApp contact
-- A lightweight React implementation that can be served as static assets
-
-## Stack
-
-React 18, React Router, Tailwind CSS, Supabase, and browser-native JavaScript. The current portfolio build lives in `v1/` and loads its runtime dependencies from CDNs.
+- Public home, company, financing and property-detail pages
+- Verified company contact details and links to the official inventory
+- Responsive navigation, accessible dialogs and keyboard-friendly controls
+- Working WhatsApp contact, visit-request, share, favorite and print actions
+- Supabase authentication, listings CRUD and image storage
+- Row Level Security that limits writes to an explicit administrator allowlist
+- Production JSX compilation with esbuild instead of Babel in the browser
 
 ## Run locally
 
-Requirements: Python 3 (or any static file server).
+Requirements: Node.js 20+.
 
 ```bash
-cd v1
-python -m http.server 8080
+npm install
+npm run build
+npx serve v1
 ```
 
-Open <http://localhost:8080>. No build step is required.
+Open the local URL printed by `serve`. Re-run `npm run build` after editing a JSX source file.
 
-## Configuration
+## Supabase setup
 
-The public deployment runs cleanly with sample properties and no database dependency. To enable live listings and the admin workflow, set `supabaseUrl` and `supabaseAnonKey` in `v1/config.js`.
+1. Create a Supabase project and run every SQL file in `supabase/migrations/` in numeric order.
+2. Create the administrator in Supabase Authentication.
+3. Copy that user's UUID and run:
 
-Supabase anonymous keys are designed for client use, but database Row Level Security policies must enforce access control. Service-role keys must never be added to browser code or committed.
+```sql
+insert into public.admin_users (user_id)
+values ('YOUR-AUTH-USER-UUID');
+```
+
+4. Put the project URL and public anonymous key in `v1/config.js`.
+
+The anonymous key is expected in browser code; a service-role key is not. Database and Storage policies are the security boundary. Never put a service-role key in this repository or in a frontend environment variable.
+
+## Data behavior
+
+The local default property is listing `AP9680-NHB`, using details checked against New Home's current advertising. Its gallery is explicitly labeled illustrative and links to the official listing for current photos and availability. Other database-backed property URLs fail safely instead of silently showing unrelated fallback content.
 
 ## Repository structure
 
 ```text
-v1/                 Static React application
-v1/admin/           Administrative screens
-v1/components/      Shared interface components
-v1/data/            Demo property data
-supabase/            Database configuration and migrations
-docs/preview.jpg    Recruiter-facing product preview
+scripts/build.mjs       Production bundle build
+v1/                     Static site and JSX source
+v1/dist/                Generated bundles (ignored by Git)
+supabase/migrations/    Database, Storage and RLS setup
 ```
 
-This repository is a portfolio demonstration; property records and contact flows should be treated as sample data unless explicitly configured for production.
+## Deployment
+
+`vercel.json` builds the bundles, serves `v1/`, enables clean URLs and adds baseline security headers. Configure the public Supabase values before deploying the admin workflow.

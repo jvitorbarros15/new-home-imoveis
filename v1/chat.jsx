@@ -8,18 +8,29 @@ function Chat({ brand }) {
   const [messages, setMessages] = React.useState([
     {
       from: "agent",
-      text: "Olá! Sou a Beatriz, consultora da New Home. Posso te ajudar a encontrar o imóvel ideal — comprar, alugar ou anunciar?",
+      text: "Olá! Este é o atendimento da New Home. Posso te ajudar a comprar, alugar ou anunciar um imóvel?",
       time: "agora",
     },
   ]);
   const scrollRef = React.useRef(null);
+  const inputRef = React.useRef(null);
 
   React.useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, typing, open]);
 
   React.useEffect(() => {
-    if (open) setUnread(0);
+    if (open) {
+      setUnread(0);
+      requestAnimationFrame(() => inputRef.current?.focus());
+    }
+  }, [open]);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
   }, [open]);
 
   const QUICK = [
@@ -37,26 +48,21 @@ function Chat({ brand }) {
     setMessages(next);
     setTyping(true);
 
-    // Build conversational prompt
-    const history = next
-      .map((m) => `${m.from === "agent" ? "Beatriz" : "Cliente"}: ${m.text}`)
-      .join("\n");
-
-    const prompt =
-      "Você é Beatriz, consultora imobiliária da New Home Imóveis, uma imobiliária de alto padrão no Rio de Janeiro. " +
-      "Atende clientes em busca de imóveis de luxo (apartamentos, coberturas, casas em condomínio) em bairros como Barra da Tijuca, Leblon, Ipanema, Lagoa, Joá, Itanhangá. " +
-      "Tom: cordial, profissional, discreto, em português brasileiro. Curto: 1 a 2 frases por resposta. Faça uma única pergunta de qualificação por vez (região? quartos? orçamento? momento?). " +
-      "Nunca invente preços ou imóveis específicos. Se o cliente pedir para falar com humano, diga que vai conectar via WhatsApp +55 21 99999-9999.\n\n" +
-      "Conversa até aqui:\n" + history + "\n\nBeatriz:";
-
-    let reply = "";
-    try {
-      reply = await window.claude.complete(prompt);
-      reply = (reply || "").replace(/^Beatriz:\s*/i, "").trim();
-    } catch (e) {
-      reply = "Desculpe, tive um problema técnico. Pode me chamar no WhatsApp +55 21 99999-9999?";
+    const normalized = trimmed.toLocaleLowerCase("pt-BR");
+    let reply;
+    if (normalized.includes("humano") || normalized.includes("corretor") || normalized.includes("whatsapp")) {
+      reply = `Claro. Fale com a equipe pelo WhatsApp ${NH.primaryPhoneDisplay}; o botão está logo abaixo.`;
+    } else if (normalized.includes("alugar")) {
+      reply = "Temos opções para locação. Qual região e faixa de valor você procura?";
+    } else if (normalized.includes("anunciar") || normalized.includes("vender meu")) {
+      reply = "Podemos ajudar a anunciar seu imóvel. Em qual bairro ele fica?";
+    } else if (normalized.includes("comprar")) {
+      reply = "Ótimo. Qual região e faixa de valor você tem em mente?";
+    } else if (normalized.includes("barra") || normalized.includes("recreio") || normalized.includes("olímpica")) {
+      reply = "Essa é uma das regiões de atuação da New Home. Quantos quartos você precisa?";
+    } else {
+      reply = "Obrigado pelas informações. Para receber opções atuais, continue pelo WhatsApp com a equipe New Home.";
     }
-    if (!reply) reply = "Pode me contar um pouco mais sobre o que você procura?";
 
     // small natural delay
     await new Promise((r) => setTimeout(r, 350));
@@ -86,14 +92,14 @@ function Chat({ brand }) {
         {unread > 0 && !open && <span className="chat-badge">{unread}</span>}
       </button>
 
-      <div className={`chat-panel ${open ? "show" : ""}`} role="dialog" aria-label="Chat com consultor">
+      {open && <div className="chat-panel show" role="dialog" aria-modal="true" aria-label="Atendimento New Home">
         <header className="chat-head">
           <div className="chat-avatar">
             <span>BS</span>
             <span className="chat-status" />
           </div>
           <div className="chat-who">
-            <div className="chat-name">Beatriz Sá <span className="chat-creci">CRECI-RJ 78.402</span></div>
+            <div className="chat-name">Equipe New Home <span className="chat-creci">CRECI {NH.creci}</span></div>
             <div className="chat-role">
               <span className="chat-dot" /> Online agora · responde em poucos minutos
             </div>
@@ -135,6 +141,7 @@ function Chat({ brand }) {
           onSubmit={(e) => { e.preventDefault(); send(input); }}
         >
           <input
+            ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Escreva uma mensagem…"
@@ -149,13 +156,13 @@ function Chat({ brand }) {
           </button>
         </form>
 
-        <footer className="chat-foot">
+        <div className="chat-foot">
           Prefere outro canal?
-          <a href="https://wa.me/5521999999999" target="_blank" rel="noopener">WhatsApp</a>
+          <a href={NH.whatsapp()} target="_blank" rel="noopener noreferrer">WhatsApp</a>
           ·
-          <a href="tel:+5521999999999">Ligar</a>
-        </footer>
-      </div>
+          <a href={`tel:${NH.primaryPhone}`}>Ligar</a>
+        </div>
+      </div>}
     </>
   );
 }

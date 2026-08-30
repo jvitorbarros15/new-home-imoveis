@@ -1,4 +1,4 @@
-// New Home Imóveis — app shell + Tweaks
+// New Home Imóveis — public app shell
 
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "brand": "aurum",
@@ -8,7 +8,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 }/*EDITMODE-END*/;
 
 function App() {
-  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [t] = React.useState(TWEAK_DEFAULTS);
 
   // apply to <html>
   React.useEffect(() => {
@@ -35,36 +35,6 @@ function App() {
       <CTA />
       <Footer brand={t.brand} />
       <Chat brand={t.brand} />
-
-      <TweaksPanel>
-        <TweakSection label="Identidade" />
-        <TweakRadio
-          label="Logo / paleta"
-          value={t.brand}
-          options={[
-            { value: "aurum", label: "Aurum" },
-            { value: "insignia", label: "Insignia" },
-          ]}
-          onChange={(v) => setTweak("brand", v)}
-        />
-
-        <TweakSection label="Movimento" />
-        <TweakRadio
-          label="Animações"
-          value={t.motion}
-          options={[
-            { value: "on", label: "Ativadas" },
-            { value: "off", label: "Sutis" },
-          ]}
-          onChange={(v) => setTweak("motion", v)}
-        />
-        <TweakSlider
-          label="Intensidade do acento"
-          value={t.accentIntensity}
-          min={60} max={120} step={5} unit="%"
-          onChange={(v) => setTweak("accentIntensity", v)}
-        />
-      </TweaksPanel>
     </>
   );
 }

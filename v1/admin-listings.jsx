@@ -9,7 +9,7 @@ function ListingsView({ onEdit }) {
     setLoading(true); setError("");
     const { data, error: err } = await window.sb
       .from("properties")
-      .select("id,code,title,region,price_brl,status,created_at,images")
+      .select("*")
       .order("created_at", { ascending: false });
     if (err) { setError("Erro ao carregar imóveis. Tente novamente."); setLoading(false); return; }
     setProps(data || []);
@@ -18,7 +18,7 @@ function ListingsView({ onEdit }) {
 
   React.useEffect(() => { load(); }, []);
 
-  async function remove(id, code, status) {
+  async function remove(id, code, status, images = []) {
     const msg = status === "active"
       ? `Excluir o imóvel ${code}? Esta ação é permanente e não pode ser desfeita.`
       : `Excluir ${code}? Esta ação é permanente.`;
@@ -27,6 +27,13 @@ function ListingsView({ onEdit }) {
 
     const { error: err } = await window.sb.from("properties").delete().eq("id", id);
     if (err) { alert("Não foi possível excluir. Tente novamente."); return; }
+    const marker = "/storage/v1/object/public/property-images/";
+    const storagePaths = images
+      .filter(url => typeof url === "string" && url.includes(marker))
+      .map(url => decodeURIComponent(url.split(marker)[1]));
+    if (storagePaths.length) {
+      await window.sb.storage.from("property-images").remove(storagePaths);
+    }
     setProps(p => p.filter(x => x.id !== id));
   }
 
@@ -123,7 +130,7 @@ function ListingsView({ onEdit }) {
                       </button>
                       <button
                         className="adm-btn adm-btn-danger adm-btn-sm"
-                        onClick={() => remove(p.id, p.code, p.status)}
+                        onClick={() => remove(p.id, p.code, p.status, p.images)}
                         aria-label={`Excluir ${p.code}`}
                       >
                         Excluir

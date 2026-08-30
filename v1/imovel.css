@@ -992,3 +992,42 @@
     linear-gradient(oklch(0.18 0.015 85 / 0.06) 1px, transparent 1px),
     linear-gradient(90deg, oklch(0.18 0.015 85 / 0.06) 1px, transparent 1px);
 }
+
+button.gal-main,
+button.gal-thumb {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.visit-day,
+.visit-time {
+  font: inherit;
+  color: inherit;
+}
+
+.loc-map { color: inherit; text-decoration: none; }
+
+@media print {
+  .nav, .side, .footer, .chat-fab, .gal-actions, .similar { display: none !important; }
+  .imovel-page { padding-top: 0; }
+  .body-grid { display: block; }
+}
+
+.gal-all,
+.gal-tabs,
+.gal-action,
+.lb-top,
+.agent-card,
+.visit {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.gal-all,
+.gal-tabs,
+.gal-action { background: color-mix(in oklab, var(--bg) 94%, transparent); }
+.ripple { animation: none !important; opacity: 0.3; }

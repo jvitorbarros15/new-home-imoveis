@@ -1,5 +1,6 @@
 .env
 node_modules/
+v1/dist/
 docs/superpowers/
 skills-lock.json
 .agents/
