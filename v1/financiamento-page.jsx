@@ -121,13 +121,12 @@ function FAQ() {
 }
 
 function FinanciamentoApp() {
-  const [theme] = React.useState({ brand: "aurum", motion: "on" });
+  const [theme] = React.useState({ motion: "on" });
   React.useEffect(() => {
-    document.documentElement.setAttribute("data-brand", theme.brand);
     document.documentElement.setAttribute("data-motion", theme.motion);
-  }, [theme.brand, theme.motion]);
+  }, [theme.motion]);
   useReveal();
-  return <><div className="grain"/><Nav brand={theme.brand}/>
+  return <><div className="grain"/><Nav/>
     <main className="page">
       <section className="ph-hero">
         <div><span className="eyebrow ph-hero-eyebrow">Planejamento financeiro</span><h1>Entenda os números<br/>antes das <em>chaves</em>.</h1><p>Faça uma estimativa inicial, compare propostas oficiais e avalie o custo total antes de contratar um financiamento.</p></div>
@@ -140,7 +139,7 @@ function FinanciamentoApp() {
       <section className="page-cta reveal"><div><h3>Vai comprar um imóvel <em>financiado</em>?</h3><p>Fale com a New Home sobre o imóvel e as etapas da negociação. A análise e a aprovação do crédito são feitas exclusivamente pelo banco.</p></div>
         <div className="page-cta-actions"><a className="primary" href={NH.whatsapp("Olá! Gostaria de orientação sobre a compra de um imóvel financiado.")} target="_blank" rel="noopener noreferrer">Falar com a New Home</a><a className="ghost" href="quem-somos.html">Sobre a empresa</a></div>
       </section>
-    </main><Footer brand={theme.brand}/><Chat brand={theme.brand}/></>;
+    </main><Footer/><Chat/></>;
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<FinanciamentoApp/>);

@@ -1,6 +1,6 @@
 // New Home Imóveis — floating chat with consultor
 
-function Chat({ brand }) {
+function Chat() {
   const [open, setOpen] = React.useState(false);
   const [input, setInput] = React.useState("");
   const [typing, setTyping] = React.useState(false);

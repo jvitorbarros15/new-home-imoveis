@@ -28,7 +28,7 @@ for (const [name, files] of Object.entries(entries)) {
     outfile: join(outDir, `${name}.js`),
     bundle: false,
     minify: true,
-    sourcemap: true,
+    sourcemap: false,
     target: ["es2019"],
     legalComments: "none",
   });

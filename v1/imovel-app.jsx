@@ -2,7 +2,7 @@
 
 function NotFoundProperty({ code }) {
   const officialUrl = `${NH.inventoryUrl}?codigo=${encodeURIComponent(code)}`;
-  return <><div className="grain"/><Nav brand="aurum"/><main className="imovel-page" style={{minHeight:"70vh",display:"grid",placeItems:"center"}}>
+  return <><div className="grain"/><Nav/><main className="imovel-page" style={{minHeight:"70vh",display:"grid",placeItems:"center"}}>
     <section className="blk" style={{maxWidth:720,textAlign:"center"}}>
       <span className="eyebrow">Imóvel {code}</span><h1>Não foi possível carregar este imóvel.</h1>
       <p>A listagem pode ter sido removida, vendida ou ainda não estar sincronizada com este site.</p>
@@ -11,7 +11,7 @@ function NotFoundProperty({ code }) {
         <a className="ghost" href={NH.whatsapp(`Olá! Gostaria de informações sobre o imóvel ${code}.`)} target="_blank" rel="noopener noreferrer">Perguntar no WhatsApp</a>
       </div>
     </section>
-  </main><Footer brand="aurum"/><Chat brand="aurum"/></>;
+  </main><Footer/><Chat/></>;
 }
 
 function mapDatabaseProperty(data) {
@@ -56,7 +56,7 @@ function mapDatabaseProperty(data) {
 }
 
 function ImovelApp() {
-  const [theme] = React.useState({brand:"aurum",motion:"on"});
+  const [theme] = React.useState({motion:"on"});
   const [lightboxOpen,setLightboxOpen] = React.useState(false);
   const [lightboxIndex,setLightboxIndex] = React.useState(0);
   const [prop,setProp] = React.useState(PROP);
@@ -64,9 +64,8 @@ function ImovelApp() {
   const [notFound,setNotFound] = React.useState("");
 
   React.useEffect(() => {
-    document.documentElement.setAttribute("data-brand",theme.brand);
     document.documentElement.setAttribute("data-motion",theme.motion);
-  },[theme.brand,theme.motion]);
+  },[theme.motion]);
   useReveal();
 
   React.useEffect(() => {
@@ -93,7 +92,7 @@ function ImovelApp() {
   if (notFound) return <NotFoundProperty code={notFound}/>;
   const openLightbox = (index) => { setLightboxIndex(index); setLightboxOpen(true); };
 
-  return <><div className="grain"/><Nav brand={theme.brand}/>
+  return <><div className="grain"/><Nav/>
     <main className="imovel-page">
       <nav className="crumb" aria-label="Navegação estrutural"><a href="index.html">Home</a><span className="crumb-sep">›</span><a href={NH.inventoryUrl} target="_blank" rel="noopener noreferrer">Imóveis</a><span className="crumb-sep">›</span><span className="crumb-now">{prop.code}</span></nav>
       <GalleryHero prop={prop} onOpen={openLightbox}/><Identity prop={prop}/>
@@ -106,7 +105,7 @@ function ImovelApp() {
       </div><Sidebar prop={prop}/></div>
       <Similar prop={prop}/>
     </main>
-    <Footer brand={theme.brand}/><Chat brand={theme.brand}/>
+    <Footer/><Chat/>
     <Lightbox open={lightboxOpen} idx={lightboxIndex} setIdx={setLightboxIndex} onClose={() => setLightboxOpen(false)} images={prop.images}/>
   </>;
 }

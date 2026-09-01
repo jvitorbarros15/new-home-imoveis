@@ -94,13 +94,12 @@ function QuemSomos() {
 }
 
 function QuemSomosApp() {
-  const [t] = React.useState({ brand: "aurum", motion: "on" });
+  const [t] = React.useState({ motion: "on" });
   React.useEffect(() => {
-    document.documentElement.setAttribute("data-brand", t.brand);
     document.documentElement.setAttribute("data-motion", t.motion);
-  }, [t.brand, t.motion]);
+  }, [t.motion]);
   useReveal();
-  return <><div className="grain"/><Nav brand={t.brand}/><QuemSomos/><Footer brand={t.brand}/><Chat brand={t.brand}/></>;
+  return <><div className="grain"/><Nav/><QuemSomos/><Footer/><Chat/></>;
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<QuemSomosApp/>);

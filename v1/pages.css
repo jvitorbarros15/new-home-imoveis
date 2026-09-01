@@ -141,27 +141,6 @@
 }
 .valor p { font-size: 13px; line-height: 1.65; color: var(--ink-2); }
 
-/* equipe ------------------------------------------------------- */
-.equipe-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
-.team-card {
-  display: flex; flex-direction: column; gap: 14px;
-}
-.team-photo {
-  aspect-ratio: 3 / 4;
-  border-radius: 2px;
-  background-size: cover; background-position: center;
-  background-color: var(--bg-2);
-  filter: grayscale(0.4) brightness(0.95);
-  transition: filter 0.5s ease, transform 0.5s ease;
-}
-.team-card:hover .team-photo { filter: none; transform: translateY(-3px); }
-.team-name { font-family: var(--serif); font-size: 22px; line-height: 1; }
-.team-role {
-  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--ink-3);
-}
-.team-creci { font-family: var(--mono); font-size: 10px; color: var(--ink-3); margin-top: 4px; }
-
 /* matriz card -------------------------------------------------- */
 .matriz {
   display: grid; grid-template-columns: 1fr 1fr; gap: 0;
@@ -456,7 +435,6 @@
   .valores { grid-template-columns: 1fr 1fr; }
   .valor { border-right: 0; border-bottom: 1px solid var(--line); }
   .valor:nth-child(odd) { border-right: 1px solid var(--line); }
-  .equipe-grid { grid-template-columns: 1fr 1fr; }
   .matriz { grid-template-columns: 1fr; }
   .steps { grid-template-columns: 1fr; }
   .step { border-right: 0; border-bottom: 1px solid var(--line); }
@@ -472,7 +450,6 @@
   .timeline { grid-template-columns: 1fr; }
   .valores { grid-template-columns: 1fr; }
   .valor:nth-child(odd) { border-right: 0; }
-  .equipe-grid { grid-template-columns: 1fr 1fr; }
   .banks { grid-template-columns: 1fr; }
 }
 
@@ -484,5 +461,4 @@
 }
 [data-theme="light"] .matriz-map .road {
   background: oklch(0.18 0.015 85 / 0.08);
-}
 }

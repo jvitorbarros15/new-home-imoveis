@@ -87,155 +87,6 @@
   display: flex; gap: 8px;
 }
 
-/* gallery placeholders (Tour 360 / Planta) ----------------------- */
-.gal[data-tab="tour"], .gal[data-tab="planta"] { grid-template-columns: 1fr; }
-.ph {
-  position: relative;
-  overflow: hidden;
-  border-radius: 4px;
-  background: var(--bg-2);
-  color: var(--ink);
-  display: grid;
-}
-.ph-bg {
-  position: absolute; inset: 0;
-  background-size: cover; background-position: center;
-  filter: grayscale(0.6) brightness(0.45) saturate(0.85);
-  transform: scale(1.05);
-}
-.ph-veil {
-  position: absolute; inset: 0;
-  background:
-    radial-gradient(60% 80% at 30% 50%, color-mix(in oklab, var(--bg) 70%, transparent), transparent 80%),
-    linear-gradient(120deg, color-mix(in oklab, var(--bg) 80%, transparent), color-mix(in oklab, var(--bg) 20%, transparent) 60%, transparent);
-}
-.ph-grid {
-  position: absolute; inset: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-  background-size: 32px 32px;
-  mask-image: radial-gradient(80% 70% at 50% 50%, #000, transparent 85%);
-  -webkit-mask-image: radial-gradient(80% 70% at 50% 50%, #000, transparent 85%);
-}
-
-.ph-stage {
-  position: relative; z-index: 3;
-  height: 100%;
-  display: grid; grid-template-columns: 1fr 1fr; align-items: center;
-  padding: 60px;
-  gap: 60px;
-}
-.ph-eyebrow {
-  font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
-  color: var(--accent);
-  display: inline-flex; align-items: center; gap: 10px;
-}
-.ph-eyebrow::before {
-  content: ""; width: 24px; height: 1px; background: var(--accent);
-}
-.ph-meta { display: flex; flex-direction: column; gap: 14px; max-width: 460px; }
-.ph-meta h3 {
-  font-family: var(--serif); font-weight: 400;
-  font-size: clamp(28px, 3.2vw, 42px);
-  line-height: 1.06; letter-spacing: -0.015em;
-}
-.ph-meta h3 em { font-style: italic; color: var(--accent); }
-.ph-meta p { color: var(--ink-2); font-size: 14px; line-height: 1.7; max-width: 44ch; }
-.ph-meta p em { font-style: italic; color: var(--ink); }
-.ph-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
-.ph-btn {
-  padding: 13px 22px; border-radius: 999px;
-  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
-  display: inline-flex; align-items: center; gap: 8px;
-  transition: all 0.3s ease;
-}
-.ph-btn.primary { background: var(--accent); color: var(--accent-ink); font-weight: 500; }
-.ph-btn.primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
-.ph-btn.ghost { border: 1px solid var(--line-2); color: var(--ink-2); }
-.ph-btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
-
-/* tour placeholder specifics */
-.ph-tour .ph-ring {
-  position: relative;
-  width: min(360px, 80%);
-  aspect-ratio: 1;
-  margin-inline: auto;
-  display: grid; place-items: center;
-  color: var(--accent);
-}
-.ph-tour .ph-ring-svg {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  animation: ph-spin 22s linear infinite;
-}
-@keyframes ph-spin { to { transform: rotate(360deg); } }
-[data-motion="off"] .ph-tour .ph-ring-svg { animation: none; }
-.ph-tour .ph-glyph {
-  width: 86px; height: 86px;
-  border-radius: 999px;
-  background: var(--accent); color: var(--accent-ink);
-  display: grid; place-items: center;
-  box-shadow: 0 0 0 12px color-mix(in oklab, var(--accent) 14%, transparent);
-}
-.ph-tour .ph-360 {
-  position: absolute;
-  font-family: var(--serif); font-style: italic;
-  font-size: 22px;
-  bottom: 14%;
-  right: 8%;
-  color: var(--ink);
-}
-
-/* planta placeholder specifics */
-.ph-planta { background: var(--bg); }
-.ph-planta .ph-floor {
-  position: relative;
-  width: min(520px, 90%);
-  aspect-ratio: 5 / 3;
-  margin-inline: auto;
-  color: var(--ink-2);
-  display: grid; place-items: center;
-}
-.ph-planta .ph-floor svg { width: 100%; height: 100%; opacity: 0.85; }
-.ph-floor-tag {
-  position: absolute;
-  font-family: var(--mono);
-  font-size: 10px; letter-spacing: 0.12em;
-  color: var(--accent);
-  padding: 4px 8px;
-  border: 1px solid var(--accent);
-  border-radius: 3px;
-}
-.ph-floor-tag.tl { top: 10px; left: 10px; }
-.ph-floor-tag.br { bottom: 10px; right: 10px; }
-
-.ph-planta-meta {
-  position: absolute;
-  right: 60px; top: 50%; transform: translateY(-50%);
-  z-index: 3;
-  max-width: 360px;
-  display: flex; flex-direction: column; gap: 14px;
-}
-.ph-planta-meta h3 {
-  font-family: var(--serif); font-weight: 400;
-  font-size: clamp(26px, 2.8vw, 36px);
-  line-height: 1.08; letter-spacing: -0.015em;
-}
-.ph-planta-meta p { color: var(--ink-2); font-size: 13px; line-height: 1.7; }
-.ph-planta-meta .ph-eyebrow { color: var(--accent); }
-.ph-planta-meta .ph-actions { margin-top: 4px; }
-
-@media (max-width: 1100px) {
-  .ph-stage { grid-template-columns: 1fr; padding: 40px; gap: 30px; align-content: center; }
-  .ph-tour .ph-ring { width: min(260px, 60%); }
-  .ph-planta-meta {
-    position: relative; right: auto; top: auto; transform: none;
-    text-align: center; max-width: none; padding: 0 24px 32px;
-    align-items: center;
-  }
-  .ph-planta-meta .ph-actions { justify-content: center; }
-  .ph-planta .ph-floor { width: 70%; }
-}
 .gal-action {
   width: 44px; height: 44px;
   border-radius: 999px;
@@ -533,42 +384,6 @@
   color: var(--accent);
 }
 
-/* planta --------------------------------------------------------- */
-.planta {
-  position: relative;
-  aspect-ratio: 16 / 9;
-  background: linear-gradient(135deg, var(--bg-2), var(--bg));
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  overflow: hidden;
-  display: grid; place-items: center;
-}
-.planta-svg { width: 80%; height: 80%; color: var(--ink-2); }
-.planta-hot {
-  position: absolute; width: 22px; height: 22px;
-  border-radius: 999px;
-  background: var(--accent); color: var(--accent-ink);
-  display: grid; place-items: center;
-  font: 600 11px/1 var(--sans);
-  cursor: pointer;
-  box-shadow: 0 0 0 8px color-mix(in oklab, var(--accent) 18%, transparent);
-  transition: transform 0.3s ease;
-}
-.planta-hot:hover { transform: scale(1.18); }
-.planta-legend {
-  position: absolute; left: 24px; bottom: 24px;
-  display: flex; gap: 16px; flex-wrap: wrap;
-  font-size: 11px; letter-spacing: 0.1em; color: var(--ink-2);
-}
-.planta-legend span { display: flex; align-items: center; gap: 8px; }
-.planta-legend i {
-  width: 22px; height: 22px; border-radius: 999px;
-  background: var(--accent); color: var(--accent-ink);
-  display: grid; place-items: center;
-  font: 600 11px/1 var(--sans);
-  font-style: normal;
-}
-
 /* localização ---------------------------------------------------- */
 .loc {
   display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px;
@@ -797,34 +612,11 @@
 }
 .agent-top {
   padding: 28px 24px 20px;
-  display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center;
+  display: block;
   border-bottom: 1px solid var(--line);
-}
-.agent-photo {
-  width: 64px; height: 64px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, color-mix(in oklab, var(--accent) 50%, var(--bg-2)), var(--bg-2));
-  position: relative; overflow: hidden;
-  border: 1px solid var(--line-2);
-}
-.agent-photo img { width: 100%; height: 100%; object-fit: cover; }
-.agent-photo::after {
-  content: ""; position: absolute; bottom: 1px; right: 1px;
-  width: 14px; height: 14px;
-  background: #29c067; border-radius: 999px;
-  border: 2px solid var(--bg);
 }
 .agent-name { font-family: var(--serif); font-size: 22px; line-height: 1; }
 .agent-meta { font: 500 10px/1.4 var(--sans); letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); margin-top: 6px; }
-
-.agent-rating {
-  padding: 14px 24px;
-  display: flex; align-items: center; justify-content: space-between;
-  font-size: 11px; color: var(--ink-3); letter-spacing: 0.06em;
-  border-bottom: 1px solid var(--line);
-}
-.agent-stars { color: var(--accent); letter-spacing: 2px; }
-.agent-rating b { color: var(--ink); font-family: var(--mono); font-weight: 400; }
 
 .agent-actions { padding: 16px 20px; display: flex; flex-direction: column; gap: 8px; }
 .agent-btn {
@@ -982,11 +774,6 @@
 }
 
 /* ── light mode ──────────────────────────────────────────── */
-[data-theme="light"] .ph-grid {
-  background-image:
-    linear-gradient(oklch(0.18 0.015 85 / 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, oklch(0.18 0.015 85 / 0.06) 1px, transparent 1px);
-}
 [data-theme="light"] .loc-map-grid {
   background-image:
     linear-gradient(oklch(0.18 0.015 85 / 0.06) 1px, transparent 1px),

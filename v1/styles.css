@@ -1,5 +1,4 @@
 /* New Home Imóveis — landing
-   Brand variants set via [data-brand="aurum" | "insignia"]
    Motion toggled via [data-motion="off"]                          */
 
 :root {
@@ -20,20 +19,6 @@
   --pad: clamp(20px, 4vw, 64px);
 }
 
-[data-brand="insignia"] {
-  --bg: #07091a;
-  --bg-2: #0d1130;
-  --line: rgba(220, 230, 255, 0.08);
-  --line-2: rgba(220, 230, 255, 0.16);
-  --ink: #eef0fb;
-  --ink-2: rgba(238, 240, 251, 0.80);
-  --ink-3: rgba(238, 240, 251, 0.64);
-  --accent: oklch(0.62 0.22 25);          /* red */
-  --accent-ink: #fff;
-  --accent-glow: oklch(0.62 0.22 25 / 0.35);
-  --navy: oklch(0.32 0.12 270);
-}
-
 /* ── light theme ──────────────────────────────────────────── */
 [data-theme="light"] {
   --bg: oklch(0.97 0.008 85);
@@ -46,19 +31,6 @@
   --accent: oklch(0.68 0.14 85);
   --accent-ink: oklch(0.97 0.008 85);
   --accent-glow: oklch(0.68 0.14 85 / 0.22);
-}
-
-[data-theme="light"][data-brand="insignia"] {
-  --bg: oklch(0.97 0.004 260);
-  --bg-2: oklch(0.93 0.006 260);
-  --line: oklch(0.15 0.02 260 / 0.1);
-  --line-2: oklch(0.15 0.02 260 / 0.18);
-  --ink: oklch(0.15 0.02 260);
-  --ink-2: oklch(0.32 0.015 260);
-  --ink-3: oklch(0.42 0.01 260);
-  --accent: oklch(0.52 0.22 25);
-  --accent-ink: oklch(0.97 0.004 260);
-  --accent-glow: oklch(0.52 0.22 25 / 0.22);
 }
 
 /* base ------------------------------------------------------------- */

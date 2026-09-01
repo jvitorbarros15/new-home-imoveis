@@ -43,7 +43,7 @@ function Login({ notice = "" }) {
 
     if (!window.sb) {
       setLoading(false);
-      setError("Supabase não está configurado para esta demonstração.");
+      setError("Supabase não está configurado. Consulte as instruções de instalação.");
       return;
     }
 

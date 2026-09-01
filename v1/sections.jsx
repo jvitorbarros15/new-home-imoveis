@@ -150,7 +150,7 @@ function CountUp({ to, suffix = "" }) {
 }
 
 /* ------ Nav ------------------------------------------------------- */
-function Nav({ brand }) {
+function Nav() {
   const [scrolled, setScrolled] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [theme, toggleTheme] = useTheme();
@@ -196,7 +196,7 @@ function Nav({ brand }) {
     <>
       <nav className={`nav ${scrolled ? "scrolled" : ""}`}>
         <a className="nav-logo" href="index.html">
-          <img src={brand === "insignia" ? "assets/logo-navy.jpg" : "assets/logo-gold.png"} alt="New Home Imóveis" />
+          <img src="assets/logo-gold.png" alt="New Home Imóveis" />
         </a>
         <div className="nav-links">
           {navLinks.map(({ href, label, page }) => (
@@ -637,12 +637,12 @@ function CTA() {
 }
 
 /* ------ Footer ---------------------------------------------------- */
-function Footer({ brand }) {
+function Footer() {
   return (
     <footer>
       <div className="ft-grid">
         <div className="ft-brand">
-          <img src={brand === "insignia" ? "assets/logo-navy.jpg" : "assets/logo-gold.png"} alt="New Home Imóveis" />
+          <img src="assets/logo-gold.png" alt="New Home Imóveis" />
           <p>Desde 2010 intermediando imóveis na Barra da Tijuca, Recreio e Região Olímpica.</p>
         </div>
         <div className="ft-col">
