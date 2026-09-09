@@ -11,7 +11,8 @@
       auth: {
         persistSession: true,
         autoRefreshToken: true,
-        detectSessionInUrl: false,
+        // The admin page consumes password-recovery links from the URL.
+        detectSessionInUrl: document.documentElement.dataset.authRedirect === "on",
       },
     }
   );

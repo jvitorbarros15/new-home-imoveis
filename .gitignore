@@ -6,3 +6,5 @@ skills-lock.json
 .agents/
 .claude/
 .vscode/
+v1/config.js
+v1/imovel.html

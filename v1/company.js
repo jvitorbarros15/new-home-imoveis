@@ -1,5 +1,6 @@
-// Verified public company information shared by every page.
-// Source: https://www.imoveisnewhome.com.br/
+// Company information used by this portfolio build. This site is an
+// independent demonstration project and is not operated by, affiliated with or
+// endorsed by the company it takes its visual reference from.
 window.NH = Object.freeze({
   name: "New Home Imóveis",
   legalName: "New Home 2013 Imóveis LTDA",
@@ -22,7 +23,11 @@ window.NH = Object.freeze({
   rentUrl: "https://www.imoveisnewhome.com.br/imoveis/para-alugar",
   listPropertyUrl: "https://www.imoveisnewhome.com.br/cadastre-seu-imovel",
   contactUrl: "https://www.imoveisnewhome.com.br/fale-conosco",
-  privacyUrl: "https://www.imoveisnewhome.com.br/politica-de-privacidade",
+  privacyUrl: "privacidade.html",
+  externalPrivacyUrl: "https://www.imoveisnewhome.com.br/politica-de-privacidade",
+  listingsUrl: "imoveis.html",
+  favoritesUrl: "favoritos.html",
+  isDemo: true,
   mapUrl: "https://www.google.com/maps/search/?api=1&query=Avenida+Embaixador+Abelardo+Bueno+3500+Rio+de+Janeiro",
   siteUrl: "https://new-home-imoveis.vercel.app",
   whatsapp(message = "Olá! Gostaria de falar com a New Home Imóveis.") {

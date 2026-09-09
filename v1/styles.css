@@ -1059,3 +1059,28 @@ footer {
 .chat-panel { background: color-mix(in oklab, var(--bg) 98%, transparent); }
 .bairro .pin { background: color-mix(in oklab, var(--bg) 92%, transparent); }
 .chat-fab::before { animation: none; opacity: 0.22; }
+
+/* ------ Portfolio disclosure -------------------------------------- */
+.demo-notice {
+  position: relative; z-index: 40;
+  margin-top: 72px;
+  padding: 10px var(--pad);
+  background: color-mix(in oklch, var(--accent) 12%, var(--bg));
+  border-bottom: 1px solid var(--line-2);
+  color: var(--ink-2);
+  font-size: 12.5px; line-height: 1.6; text-align: center;
+}
+.demo-notice strong { color: var(--ink); font-weight: 600; }
+.demo-notice a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+
+.ft-demo {
+  max-width: var(--maxw); margin: 0 auto;
+  padding: 18px var(--pad) 0;
+  color: var(--ink-3); font-size: 12px; line-height: 1.7;
+}
+.ft-demo a { color: var(--ink-2); text-decoration: underline; text-underline-offset: 2px; }
+
+/* ------ Contact form status --------------------------------------- */
+.cta-status { font-size: 13px; line-height: 1.6; margin: 4px 0; }
+.cta-status.error { color: oklch(0.72 0.17 25); }
+.cta-status.ok { color: var(--accent); }

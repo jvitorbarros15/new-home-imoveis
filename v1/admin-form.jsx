@@ -5,6 +5,8 @@ const STATUSES = [{ v: "active", l: "Ativo" }, { v: "sold", l: "Vendido" }, { v:
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const ALLOWED_EXTS  = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
 const MAX_FILE_SIZE = 10485760; // 10 MB
+const WEBP_MAX_EDGE = 2200;
+const WEBP_QUALITY = 0.82;
 
 function sanitizeUrl(url) {
   const s = url.trim();
@@ -24,6 +26,27 @@ function validateFiles(files) {
     }
   });
   return errors;
+}
+
+// Photos come off phones as multi-megabyte JPEGs. Re-encoding to WebP in the
+// browser cuts transfer and storage without a server-side pipeline.
+async function toWebp(file) {
+  if (file.type === "image/webp") return file;
+  if (typeof createImageBitmap !== "function") return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, WEBP_MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close?.();
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/webp", WEBP_QUALITY));
+    if (!blob || blob.size >= file.size) return file;
+    return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".webp", { type: "image/webp" });
+  } catch (e) {
+    return file;
+  }
 }
 
 function clamp(v, min, max) {
@@ -53,6 +76,7 @@ function PropertyForm({ prop, onSaved }) {
     description:    prop?.description   || "",
     tour_url:       prop?.tour_url      || "",
     pet_friendly:   prop?.pet_friendly  ?? false,
+    featured:       prop?.featured      ?? false,
   });
 
   const [images, setImages]       = React.useState(prop?.images || []);
@@ -72,7 +96,8 @@ function PropertyForm({ prop, onSaved }) {
     const codeSlug = (fields.code || "temp").replace(/[^a-zA-Z0-9-]/g, "_");
     const urls = [];
 
-    for (const file of Array.from(files)) {
+    for (const original of Array.from(files)) {
+      const file = await toWebp(original);
       const ext  = file.name.split(".").pop().toLowerCase();
       const rand = Math.random().toString(16).slice(2, 10);
       const path = `${codeSlug}/${Date.now()}-${rand}.${ext}`;
@@ -92,6 +117,16 @@ function PropertyForm({ prop, onSaved }) {
   }
 
   function removeImage(url) { setImages(prev => prev.filter(u => u !== url)); }
+
+  function moveImage(index, delta) {
+    setImages(prev => {
+      const target = index + delta;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = prev.slice();
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  }
 
   function validate() {
     if (!fields.code.trim())   return "Código é obrigatório.";
@@ -134,6 +169,7 @@ function PropertyForm({ prop, onSaved }) {
       description:    fields.description.trim() || null,
       tour_url:       sanitizeUrl(fields.tour_url) || null,
       pet_friendly:   fields.pet_friendly,
+      featured:       fields.featured,
       images:         images.length > 0 ? images : null,
     };
 
@@ -219,11 +255,15 @@ function PropertyForm({ prop, onSaved }) {
               </select>
             </Field>
             <div className="adm-field" style={{ justifyContent: "flex-end" }}>
-              <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", paddingBottom: 6 }}>
+              <label className="adm-check">
                 <input type="checkbox" id="f-pet" checked={fields.pet_friendly}
-                  onChange={e => set("pet_friendly", e.target.checked)}
-                  style={{ width: 16, height: 16 }} />
+                  onChange={e => set("pet_friendly", e.target.checked)} />
                 Aceita pets
+              </label>
+              <label className="adm-check">
+                <input type="checkbox" id="f-featured" checked={fields.featured}
+                  onChange={e => set("featured", e.target.checked)} />
+                Destacar na home
               </label>
             </div>
           </div>
@@ -292,7 +332,7 @@ function PropertyForm({ prop, onSaved }) {
 
         {/* Images */}
         <div className="adm-card" style={{ padding: 24 }}>
-          <p className="adm-section-label">Fotos (JPG, PNG, WebP · máx 10 MB por arquivo)</p>
+          <p className="adm-section-label">Fotos (JPG, PNG, WebP · máx 10 MB por arquivo · convertidas para WebP no envio)</p>
           <div
             className={`adm-upload-area ${drag ? "drag" : ""}`}
             onClick={() => fileRef.current.click()}
@@ -304,13 +344,13 @@ function PropertyForm({ prop, onSaved }) {
           >
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-                 style={{ margin: "0 auto", color: "var(--adm-ink2)" }} aria-hidden="true">
+                 style={{ margin: "0 auto", color: "var(--ink-3)" }} aria-hidden="true">
               <rect x="3" y="3" width="18" height="18" rx="2" />
               <circle cx="8.5" cy="8.5" r="1.5" />
               <polyline points="21 15 16 10 5 21" />
             </svg>
             <p><span>Clique para enviar</span> ou arraste as fotos aqui</p>
-            {uploading && <p style={{ color: "var(--adm-accent)", marginTop: 8 }}>Enviando...</p>}
+            {uploading && <p style={{ color: "var(--accent)", marginTop: 8 }}>Enviando...</p>}
             <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif"
                    multiple style={{ display: "none" }} tabIndex={-1}
                    onChange={e => { uploadFiles(e.target.files); e.target.value = ""; }} />
@@ -318,8 +358,15 @@ function PropertyForm({ prop, onSaved }) {
           {images.length > 0 && (
             <div className="adm-img-grid" role="list" aria-label="Fotos do imóvel">
               {images.map((url, i) => (
-                <div key={i} className="adm-img-thumb" role="listitem">
-                  <img src={url} alt={`Foto ${i + 1}`} loading="lazy" />
+                <div key={url} className="adm-img-thumb" role="listitem">
+                  <img src={url} alt={`Foto ${i + 1}${i === 0 ? " (capa)" : ""}`} loading="lazy" />
+                  {i === 0 && <span className="adm-img-cover">Capa</span>}
+                  <div className="adm-img-order">
+                    <button type="button" onClick={() => moveImage(i, -1)} disabled={i === 0}
+                            aria-label={`Mover foto ${i + 1} para trás`}>←</button>
+                    <button type="button" onClick={() => moveImage(i, 1)} disabled={i === images.length - 1}
+                            aria-label={`Mover foto ${i + 1} para frente`}>→</button>
+                  </div>
                   <button
                     type="button" className="adm-img-remove"
                     onClick={() => removeImage(url)}

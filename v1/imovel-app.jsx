@@ -2,7 +2,7 @@
 
 function NotFoundProperty({ code }) {
   const officialUrl = `${NH.inventoryUrl}?codigo=${encodeURIComponent(code)}`;
-  return <><div className="grain"/><Nav/><main className="imovel-page" style={{minHeight:"70vh",display:"grid",placeItems:"center"}}>
+  return <><div className="grain"/><Nav/><DemoNotice/><main className="imovel-page" style={{minHeight:"70vh",display:"grid",placeItems:"center"}}>
     <section className="blk" style={{maxWidth:720,textAlign:"center"}}>
       <span className="eyebrow">Imóvel {code}</span><h1>Não foi possível carregar este imóvel.</h1>
       <p>A listagem pode ter sido removida, vendida ou ainda não estar sincronizada com este site.</p>
@@ -83,6 +83,10 @@ function ImovelApp() {
   },[]);
 
   React.useEffect(() => {
+    track("property_view", { code: prop.code });
+  }, [prop.code]);
+
+  React.useEffect(() => {
     document.title = `${prop.title} | New Home Imóveis`;
     const description = `${prop.type} em ${prop.region}. Código ${prop.code}. Consulte disponibilidade e condições com a New Home Imóveis.`;
     document.querySelector('meta[name="description"]')?.setAttribute("content",description);
@@ -92,9 +96,9 @@ function ImovelApp() {
   if (notFound) return <NotFoundProperty code={notFound}/>;
   const openLightbox = (index) => { setLightboxIndex(index); setLightboxOpen(true); };
 
-  return <><div className="grain"/><Nav/>
+  return <><div className="grain"/><Nav/><DemoNotice/>
     <main className="imovel-page">
-      <nav className="crumb" aria-label="Navegação estrutural"><a href="index.html">Home</a><span className="crumb-sep">›</span><a href={NH.inventoryUrl} target="_blank" rel="noopener noreferrer">Imóveis</a><span className="crumb-sep">›</span><span className="crumb-now">{prop.code}</span></nav>
+      <nav className="crumb" aria-label="Navegação estrutural"><a href="index.html">Home</a><span className="crumb-sep">›</span><a href={NH.listingsUrl}>Imóveis</a><span className="crumb-sep">›</span><span className="crumb-now">{prop.code}</span></nav>
       <GalleryHero prop={prop} onOpen={openLightbox}/><Identity prop={prop}/>
       <div className="body-grid"><div className="body-main">
         <div className="reveal"><Description prop={prop}/></div>

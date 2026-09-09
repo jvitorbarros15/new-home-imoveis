@@ -7,13 +7,18 @@
   <title>Página não encontrada — New Home Imóveis</title>
   <link rel="icon" href="/assets/logo-gold.png" type="image/png">
   <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/pages.css">
+  <script src="/theme-init.js"></script>
 </head>
-<body style="min-height:100vh;display:grid;place-items:center;padding:24px;background:#0c0a06;color:#f6efe2;text-align:center">
-  <main>
-    <p style="letter-spacing:.18em;text-transform:uppercase;color:#c9a45c">Erro 404</p>
-    <h1 style="font:400 clamp(42px,8vw,76px)/1.05 Georgia,serif;margin:16px 0">Esta página não existe.</h1>
-    <p style="opacity:.7;margin-bottom:28px">O endereço pode ter mudado ou a página foi removida.</p>
-    <a href="/" style="display:inline-block;padding:13px 20px;background:#c9a45c;color:#0c0a06;text-decoration:none">Voltar ao início</a>
+<body class="nf-body">
+  <main class="nf-main">
+    <p class="nf-eyebrow">Erro 404</p>
+    <h1 class="nf-title">Esta página não existe.</h1>
+    <p class="nf-text">O endereço pode ter mudado ou a página foi removida.</p>
+    <div class="nf-actions">
+      <a class="nf-btn" href="/">Voltar ao início</a>
+      <a class="nf-btn ghost" href="/imoveis">Ver imóveis</a>
+    </div>
   </main>
 </body>
 </html>

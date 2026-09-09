@@ -43,7 +43,6 @@ const FEATURED = [
     area: "92 m²", rooms: "3 Quartos", baths: "3", parking: "1 Vaga",
     region: "Barra Olímpica · Rio de Janeiro",
     price: "R$ 1.100.000",
-    externalUrl: NH.saleUrl,
     img: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&q=80&auto=format&fit=crop",
   },
   {
@@ -53,7 +52,6 @@ const FEATURED = [
     area: "110 m²", rooms: "3 Quartos", baths: "3", parking: "2 Vagas",
     region: "Barra da Tijuca · Rio de Janeiro",
     price: "R$ 1.200.000",
-    externalUrl: NH.saleUrl,
     img: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800&q=80&auto=format&fit=crop",
   },
   {
@@ -63,7 +61,6 @@ const FEATURED = [
     area: "136 m²", rooms: "4 Quartos", baths: "—", parking: "2 Vagas",
     region: "Barra Olímpica · Rio de Janeiro",
     price: "R$ 1.470.000",
-    externalUrl: NH.inventoryUrl,
     img: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80&auto=format&fit=crop",
   },
 ];
@@ -75,14 +72,14 @@ const HERO_IMAGES = [
 ];
 
 const BAIRROS = [
-  { name: "Barra da Tijuca", url: `${NH.saleUrl}/apartamento/rio-de-janeiro/barra-da-tijuca`, img: "https://images.unsplash.com/photo-1518391846015-55a9cc003b25?w=720&q=68&auto=format&fit=crop" },
-  { name: "Barra Olímpica", url: `${NH.saleUrl}/apartamento/rio-de-janeiro/barra-olimpica`, img: "https://images.unsplash.com/photo-1604014237800-1c9102c219da?w=720&q=68&auto=format&fit=crop" },
-  { name: "Recreio dos Bandeirantes", url: `${NH.saleUrl}/rio-de-janeiro/recreio-dos-bandeirantes`, img: "https://images.unsplash.com/photo-1542856391-010fb87dcfed?w=720&q=68&auto=format&fit=crop" },
-  { name: "Jacarepaguá", url: `${NH.saleUrl}/rio-de-janeiro/jacarepagua`, img: "https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=720&q=68&auto=format&fit=crop" },
-  { name: "Ilha Pura", url: `${NH.inventoryUrl}/rio-de-janeiro/ilha-pura`, img: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=720&q=68&auto=format&fit=crop" },
-  { name: "Lagoa", url: `${NH.saleUrl}/apartamento/rio-de-janeiro/lagoa`, img: "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=720&q=68&auto=format&fit=crop" },
-  { name: "Rio 2", url: `${NH.inventoryUrl}/rio-de-janeiro/rio-2`, img: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=720&q=68&auto=format&fit=crop" },
-];
+  { name: "Barra da Tijuca", img: "https://images.unsplash.com/photo-1518391846015-55a9cc003b25?w=720&q=68&auto=format&fit=crop" },
+  { name: "Barra Olímpica", img: "https://images.unsplash.com/photo-1604014237800-1c9102c219da?w=720&q=68&auto=format&fit=crop" },
+  { name: "Recreio dos Bandeirantes", img: "https://images.unsplash.com/photo-1542856391-010fb87dcfed?w=720&q=68&auto=format&fit=crop" },
+  { name: "Jacarepaguá", img: "https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=720&q=68&auto=format&fit=crop" },
+  { name: "Ilha Pura", img: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=720&q=68&auto=format&fit=crop" },
+  { name: "Lagoa", img: "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=720&q=68&auto=format&fit=crop" },
+  { name: "Rio 2", img: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=720&q=68&auto=format&fit=crop" },
+].map((item) => ({ ...item, url: `${NH.listingsUrl}?q=${encodeURIComponent(item.name)}` }));
 
 const SERVICE_PILLARS = [
   { title: "Atendimento exclusivo", text: "Uma equipe preparada para entender o perfil do cliente e conduzir cada etapa com atenção." },
@@ -90,35 +87,16 @@ const SERVICE_PILLARS = [
   { title: "Processo acompanhado", text: "Apoio em contratos, documentação e eventual assessoria jurídica e de financiamento." },
 ];
 
-function officialSearchUrl({ pretensao, tipo, busca }) {
+function listingsSearchUrl({ pretensao, tipo, busca }) {
   const clean = (busca || "").trim();
-  if (/^[A-Z]{2}\d{4}-NHB$/i.test(clean)) {
-    return `${NH.inventoryUrl}?codigo=${encodeURIComponent(clean.toUpperCase())}`;
-  }
-
-  const purpose = pretensao === "Alugar" ? "para-alugar" : pretensao === "Comprar" ? "a-venda" : "";
-  const typeMap = {
-    Apartamento: "apartamento",
-    Cobertura: "cobertura",
-    Casa: "casa",
-    "Casa em condomínio": "casa",
-    Terreno: "terreno",
-    Comercial: "sala",
-  };
-  const locationMap = {
-    "barra da tijuca": "barra-da-tijuca",
-    "barra olímpica": "barra-olimpica",
-    "recreio dos bandeirantes": "recreio-dos-bandeirantes",
-    recreio: "recreio-dos-bandeirantes",
-    jacarepaguá: "jacarepagua",
-    lagoa: "lagoa",
-    "ilha pura": "ilha-pura",
-    "rio 2": "rio-2",
-  };
-  const parts = [NH.inventoryUrl, purpose, typeMap[tipo] || ""].filter(Boolean);
-  const location = locationMap[clean.toLocaleLowerCase("pt-BR")];
-  if (location) parts.push("rio-de-janeiro", location);
-  return parts.join("/");
+  const params = new URLSearchParams();
+  if (pretensao === "Alugar") params.set("status", "rented");
+  else if (pretensao === "Comprar") params.set("status", "active");
+  if (tipo) params.set("tipo", tipo);
+  if (/^[A-Z]{2}\d{4}-NHB$/i.test(clean)) params.set("code", clean.toUpperCase());
+  else if (clean) params.set("q", clean);
+  const query = params.toString();
+  return query ? `${NH.listingsUrl}?${query}` : NH.listingsUrl;
 }
 
 /* ------ Helpers --------------------------------------------------- */
@@ -142,7 +120,7 @@ function useReveal() {
     }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
     els.forEach(el => io.observe(el));
     return () => io.disconnect();
-  });
+  }, []);
 }
 
 function CountUp({ to, suffix = "" }) {
@@ -185,8 +163,8 @@ function Nav() {
   }, []);
 
   const navLinks = [
-    { href: "index.html#destaques", label: "Imóveis",      page: "index" },
-    { href: "index.html#bairros",   label: "Bairros",       page: "index" },
+    { href: NH.listingsUrl,         label: "Imóveis",       page: "imoveis" },
+    { href: NH.favoritesUrl,        label: "Favoritos",     page: "favoritos" },
     { href: "financiamento.html",   label: "Financiamento", page: "financiamento" },
     { href: "quem-somos.html",      label: "Quem somos",    page: "quem-somos" },
     { href: "index.html#contato",   label: "Contato",       page: "index" },
@@ -294,7 +272,7 @@ function Hero({ motion }) {
   const TIPOS = ["Apartamento", "Cobertura", "Casa", "Casa em condomínio", "Terreno", "Comercial"];
   const submitSearch = (e) => {
     e.preventDefault();
-    window.location.href = officialSearchUrl({ pretensao, tipo, busca });
+    window.location.href = listingsSearchUrl({ pretensao, tipo, busca });
   };
 
   return (
@@ -369,7 +347,7 @@ function Hero({ motion }) {
               <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Bairro, condomínio ou código" aria-label="Localização ou código do imóvel" />
             </span>
           </div>
-          <button type="button" className="hs-filter" onClick={() => { window.location.href = NH.inventoryUrl; }}><IconFilter size={14} /> Mais filtros</button>
+          <button type="button" className="hs-filter" onClick={() => { window.location.href = NH.listingsUrl; }}><IconFilter size={14} /> Mais filtros</button>
           <button type="submit" className="hs-btn">Encontrar <IconArrow size={14} /></button>
         </form>
       </div>
@@ -389,8 +367,9 @@ function Destaques() {
     if (!window.sb) return;
     window.sb
       .from("properties")
-      .select("code,title,type,region,price_brl,area_m2,bedrooms,bathrooms,parking,images,status")
+      .select("code,title,type,region,price_brl,area_m2,bedrooms,bathrooms,parking,images,status,featured")
       .eq("status", "active")
+      .order("featured", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(8)
       .then(({ data, error }) => {
@@ -424,7 +403,8 @@ function Destaques() {
             {["Venda", "Aluguel", "Lançamentos"].map(t => (
               <button key={t} className={tab === t ? "on" : ""} onClick={() => {
                 setTab(t);
-                window.location.href = t === "Venda" ? NH.saleUrl : t === "Aluguel" ? NH.rentUrl : NH.inventoryUrl;
+                const status = t === "Venda" ? "active" : t === "Aluguel" ? "rented" : "";
+                window.location.href = status ? `${NH.listingsUrl}?status=${status}` : NH.listingsUrl;
               }}>{t}</button>
             ))}
           </div>
@@ -432,7 +412,8 @@ function Destaques() {
       </div>
 
       <div className="destaques">
-        <a className="dest-hero dest-hero-link" href={featured?.externalUrl || `imovel.html?code=${encodeURIComponent(featured?.code || "")}`}>
+        <a className="dest-hero dest-hero-link" href={`imovel.html?code=${encodeURIComponent(featured?.code || "")}`}
+              onClick={() => track("listing_click", { code: featured?.code, detail: "hero" })}>
           <div className="img" style={{ backgroundImage: `url("${featured?.img}")` }} />
           <div className="meta">
             <div>
@@ -454,7 +435,8 @@ function Destaques() {
 
         <div className="dest-list">
           {items.slice(1, 4).map((p, i) => (
-            <a key={p.code || i} className="dest-card" href={p.externalUrl || `imovel.html?code=${encodeURIComponent(p.code || "")}`}
+            <a key={p.code || i} className="dest-card" href={`imovel.html?code=${encodeURIComponent(p.code || "")}`}
+               onClick={() => track("listing_click", { code: p.code, detail: "destaques" })}
                onMouseEnter={() => setHover(i + 1)}
                onFocus={() => setHover(i + 1)}>
               <div className="dc-imgwrap"><div className="dc-img" style={{ backgroundImage: `url("${p.img}")` }} /></div>
@@ -591,16 +573,37 @@ function Depoimentos() {
 
 /* ------ CTA ------------------------------------------------------- */
 function CTA() {
-  const submit = (e) => {
+  const [state, setState] = React.useState("");
+
+  const submit = async (e) => {
     e.preventDefault();
-    const data = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const data = new FormData(form);
+    const lead = {
+      name: String(data.get("name") || "").trim().slice(0, 120),
+      phone: String(data.get("phone") || "").trim().slice(0, 40),
+      email: String(data.get("email") || "").trim().slice(0, 200),
+      interest: String(data.get("interest") || "").slice(0, 60),
+      source_path: location.pathname.slice(0, 200),
+    };
+
+    setState("sending");
+    // Stored before the hand-off so an abandoned WhatsApp window loses nothing.
+    if (window.sb) {
+      const { error } = await window.sb.from("leads").insert(lead);
+      if (error) { setState("error"); return; }
+    }
+    track("lead_submit", { detail: lead.interest });
+
     const message = [
       "Olá! Gostaria de atendimento da New Home Imóveis.",
-      `Nome: ${data.get("name")}`,
-      `WhatsApp: ${data.get("phone")}`,
-      `E-mail: ${data.get("email")}`,
-      `Interesse: ${data.get("interest")}`,
+      `Nome: ${lead.name}`,
+      `WhatsApp: ${lead.phone}`,
+      `E-mail: ${lead.email}`,
+      `Interesse: ${lead.interest}`,
     ].join("\n");
+    setState("sent");
+    form.reset();
     window.open(NH.whatsapp(message), "_blank", "noopener,noreferrer");
   };
   return (
@@ -628,11 +631,67 @@ function CTA() {
         </label>
         <label className="cta-consent">
           <input name="consent" type="checkbox" required />
-          <span>Concordo com a <a href={NH.privacyUrl} target="_blank" rel="noopener noreferrer">política de privacidade</a> e autorizo o contato.</span>
+          <span>Concordo com a <a href={NH.privacyUrl}>política de privacidade</a> e autorizo o contato da equipe.</span>
         </label>
-        <button type="submit">Solicitar contato</button>
+        {state === "error" && (
+          <p className="cta-status error" role="alert">
+            Não foi possível registrar o contato. Fale direto no WhatsApp {NH.primaryPhoneDisplay}.
+          </p>
+        )}
+        {state === "sent" && (
+          <p className="cta-status ok" role="status">
+            Contato registrado. Abrimos o WhatsApp para continuar a conversa.
+          </p>
+        )}
+        <button type="submit" disabled={state === "sending"}>
+          {state === "sending" ? "Enviando..." : "Solicitar contato"}
+        </button>
       </form>
     </section>
+  );
+}
+
+/* ------ Listing card (shared by search and favourites) ------------ */
+function ListingCard({ item }) {
+  const price = typeof item.price_brl === "number" ? BRL_FMT(item.price_brl / 100) : "Consulte";
+  const cover = item.images && item.images[0];
+  const badge = item.status === "rented" ? "Locação" : item.status === "sold" ? "Vendido" : "Venda";
+  return (
+    <a
+      className="lst-card"
+      href={`imovel.html?code=${encodeURIComponent(item.code)}`}
+      onClick={() => track("listing_click", { code: item.code, detail: "busca" })}
+    >
+      <div className="lst-cover">
+        {cover
+          ? <img src={cover} alt={`Foto de ${item.title}`} loading="lazy" decoding="async" />
+          : <div className="lst-cover-empty" aria-hidden="true" />}
+        <span className="lst-badge">{badge}</span>
+      </div>
+      <div className="lst-body">
+        <span className="lst-type">{item.type} · {item.region}</span>
+        <h3>{item.title}</h3>
+        <div className="lst-specs">
+          {item.area_m2 ? <span>{item.area_m2} m²</span> : null}
+          {item.bedrooms ? <span>{item.bedrooms} quartos</span> : null}
+          {item.suites ? <span>{item.suites} suítes</span> : null}
+          {item.parking ? <span>{item.parking} vagas</span> : null}
+        </div>
+        <div className="lst-price">{price}</div>
+      </div>
+    </a>
+  );
+}
+
+/* ------ Demo disclosure ------------------------------------------- */
+function DemoNotice() {
+  if (!NH.isDemo) return null;
+  return (
+    <div className="demo-notice" role="note">
+      <strong>Projeto de portfólio.</strong> Site demonstrativo criado para fins de estudo, sem
+      vínculo, afiliação ou endosso da empresa de mesmo nome. Para atendimento real, use o{" "}
+      <a href={NH.officialSite} target="_blank" rel="noopener noreferrer">site oficial</a>.
+    </div>
   );
 }
 
@@ -648,10 +707,10 @@ function Footer() {
         <div className="ft-col">
           <h5>Navegue</h5>
           <ul>
-            <li><a href="index.html#destaques">Imóveis em destaque</a></li>
-            <li><a href="index.html#bairros">Por bairro</a></li>
-            <li><a href={NH.saleUrl}>Imóveis à venda</a></li>
-            <li><a href={NH.rentUrl}>Imóveis para alugar</a></li>
+            <li><a href={NH.listingsUrl}>Todos os imóveis</a></li>
+            <li><a href={`${NH.listingsUrl}?status=active`}>Imóveis à venda</a></li>
+            <li><a href={`${NH.listingsUrl}?status=rented`}>Imóveis para alugar</a></li>
+            <li><a href={NH.favoritesUrl}>Meus favoritos</a></li>
           </ul>
         </div>
         <div className="ft-col">
@@ -659,7 +718,7 @@ function Footer() {
           <ul>
             <li><a href="quem-somos.html">Quem somos</a></li>
             <li><a href="financiamento.html">Financiamento</a></li>
-            <li><a href={NH.listPropertyUrl}>Cadastre seu imóvel</a></li>
+            <li><a href={NH.listPropertyUrl} target="_blank" rel="noopener noreferrer">Cadastre seu imóvel</a></li>
             <li><a href={NH.privacyUrl}>Política de privacidade</a></li>
           </ul>
         </div>
@@ -673,8 +732,13 @@ function Footer() {
           </ul>
         </div>
       </div>
+      <div className="ft-demo">
+        Projeto de portfólio, sem vínculo com a empresa de mesmo nome. Dados de contato e imóveis
+        são ilustrativos. <a href={NH.officialSite} target="_blank" rel="noopener noreferrer">Site oficial</a>
+        {" · "}<a href={NH.privacyUrl}>Privacidade e LGPD</a>
+      </div>
       <div className="ft-bot">
-        <span>© {new Date().getFullYear()} New Home Imóveis · Todos os direitos reservados</span>
+        <span>© {new Date().getFullYear()} New Home Imóveis · projeto demonstrativo</span>
         <div className="ft-social">
           <a href={NH.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram"><IconIG /></a>
           <a href={NH.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook"><IconFB /></a>
@@ -685,4 +749,4 @@ function Footer() {
   );
 }
 
-Object.assign(window, { Nav, Hero, Destaques, Bairros, Stats, Sobre, Depoimentos, CTA, Footer, useReveal, useTheme, SVG });
+Object.assign(window, { Nav, Hero, Destaques, Bairros, Stats, Sobre, Depoimentos, CTA, Footer, DemoNotice, ListingCard, useReveal, useTheme, SVG, BRL_FMT: (v) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }) });

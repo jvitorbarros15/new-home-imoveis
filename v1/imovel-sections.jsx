@@ -68,6 +68,10 @@ const I = {
   X: (p) => <SVG {...p}><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></SVG>,
 };
 
+function readFavorite(code) {
+  try { return localStorage.getItem(`favorite:${code}`) === "1"; } catch (e) { return false; }
+}
+
 function Lightbox({ open, idx, setIdx, onClose, images }) {
   const closeRef = React.useRef(null);
   React.useEffect(() => {
@@ -93,12 +97,18 @@ function Lightbox({ open, idx, setIdx, onClose, images }) {
 }
 
 function GalleryHero({ prop, onOpen }) {
-  const [favorite, setFavorite] = React.useState(() => localStorage.getItem(`favorite:${prop.code}`) === "1");
-  React.useEffect(() => setFavorite(localStorage.getItem(`favorite:${prop.code}`) === "1"), [prop.code]);
+  const [favorite, setFavorite] = React.useState(() => readFavorite(prop.code));
+  React.useEffect(() => setFavorite(readFavorite(prop.code)), [prop.code]);
   const toggleFavorite = () => {
     const next = !favorite;
     setFavorite(next);
-    localStorage.setItem(`favorite:${prop.code}`, next ? "1" : "0");
+    try {
+      if (next) localStorage.setItem(`favorite:${prop.code}`, "1");
+      else localStorage.removeItem(`favorite:${prop.code}`);
+    } catch (e) {
+      // Private browsing blocks storage; the toggle stays session-only.
+    }
+    track(next ? "favorite_add" : "favorite_remove", { code: prop.code });
   };
   const share = async () => {
     const data = { title: prop.title, text: `Imóvel ${prop.code} — ${prop.title}`, url: location.href };
@@ -190,7 +200,7 @@ function Sidebar({ prop }) {
   return <aside className="side"><div className="agent-card">
     <div className="agent-top"><div><div className="agent-name">{prop.agent.name}</div><div className="agent-meta">Corretor · CRECI-RJ {prop.agent.creci}</div></div></div>
     <div className="agent-actions">
-      <a className="agent-btn primary" href={propertyWhatsapp(prop)} target="_blank" rel="noopener noreferrer"><I.WA size={16}/>Conversar no WhatsApp</a>
+      <a className="agent-btn primary" href={propertyWhatsapp(prop)} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click", { code: prop.code, detail: "sidebar" })}><I.WA size={16}/>Conversar no WhatsApp</a>
       <a className="agent-btn ghost" href={`tel:${prop.agent.phone}`}><I.Phone size={14}/>{prop.agent.phoneDisplay}</a>
       <a className="agent-btn ghost" href={`mailto:${NH.email}?subject=${encodeURIComponent("Imóvel " + prop.code)}`}><I.Mail size={14}/>Enviar e-mail</a>
     </div>
@@ -222,7 +232,7 @@ function VisitScheduler({ prop }) {
 function Similar({ prop }) {
   if (!prop.similar?.length) return null;
   return <section className="similar"><div className="sec-head" style={{paddingTop:0}}><h2>Outras <em>opções</em></h2><p>Consulte disponibilidade, endereço e valores atualizados no portal oficial.</p></div>
-    <div className="similar-rail">{prop.similar.map((item) => <a key={item.code} className="sim-card" href={`${NH.inventoryUrl}?codigo=${encodeURIComponent(item.code)}`} target="_blank" rel="noopener noreferrer">
+    <div className="similar-rail">{prop.similar.map((item) => <a key={item.code} className="sim-card" href={`imovel.html?code=${encodeURIComponent(item.code)}`} onClick={() => track("listing_click", { code: item.code, detail: "similares" })}>
       <div className="sim-body"><span className="sim-type">{item.type} · {item.region}</span><span className="sim-title">{item.title}</span>
         <div className="sim-specs"><span>{item.area} m²</span><span>·</span><span>{item.rooms} quartos</span><span>·</span><span>{item.parking} vaga{item.parking===1?"":"s"}</span></div><span className="sim-price">{BRL(item.price)}</span>
       </div></a>)}</div>

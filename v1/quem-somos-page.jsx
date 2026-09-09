@@ -99,7 +99,7 @@ function QuemSomosApp() {
     document.documentElement.setAttribute("data-motion", t.motion);
   }, [t.motion]);
   useReveal();
-  return <><div className="grain"/><Nav/><QuemSomos/><Footer/><Chat/></>;
+  return <><div className="grain"/><Nav/><DemoNotice/><QuemSomos/><Footer/><Chat/></>;
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<QuemSomosApp/>);

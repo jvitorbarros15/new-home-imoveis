@@ -64,6 +64,16 @@ function Simulator() {
     : 0;
   const totalPago = parcela * months;
   const juros = Math.max(0, totalPago - principal);
+  const money = (value) => `R$ ${Math.round(value).toLocaleString("pt-BR")}`;
+  const simulationMessage = [
+    "Olá! Fiz uma simulação de financiamento no site e gostaria de orientação.",
+    `Valor do imóvel: ${money(valor)}`,
+    `Entrada: ${money(valor * entrada)} (${Math.round(entrada * 100)}%)`,
+    `Valor financiado: ${money(principal)}`,
+    `Prazo: ${anos} anos (${months} parcelas)`,
+    `Taxa considerada: ${taxa.toFixed(1)}% a.a.`,
+    `Parcela estimada: ${money(parcela)}/mês`,
+  ].join("\n");
 
   return <section className="page-section reveal" id="simulador">
     <div className="page-section-head"><h2>Estime sua <em>parcela</em></h2><p>Cálculo educativo pelo sistema Price, sem seguros, tarifas ou indexadores.</p></div>
@@ -96,7 +106,8 @@ function Simulator() {
         </div>
         <div className="sim-result-actions">
           <a className="btn-primary" href="#bancos">Comparar nos bancos</a>
-          <a className="btn-ghost" href={NH.whatsapp("Olá! Gostaria de orientação sobre a compra de um imóvel financiado.")} target="_blank" rel="noopener noreferrer">Falar com a New Home</a>
+          <a className="btn-ghost" href={NH.whatsapp(simulationMessage)} target="_blank" rel="noopener noreferrer"
+             onClick={() => track("whatsapp_click", { detail: "simulador" })}>Falar sobre esta simulação</a>
         </div>
         <div className="sim-fine">Estimativa pelo sistema Price com conversão de taxa anual efetiva. Não inclui TR ou outro indexador, seguros MIP/DFI, tarifas, avaliação, cartório, impostos nem CET. Bancos podem usar outros sistemas, como SAC. Confirme todos os valores na proposta oficial.</div>
       </aside>
@@ -126,7 +137,7 @@ function FinanciamentoApp() {
     document.documentElement.setAttribute("data-motion", theme.motion);
   }, [theme.motion]);
   useReveal();
-  return <><div className="grain"/><Nav/>
+  return <><div className="grain"/><Nav/><DemoNotice/>
     <main className="page">
       <section className="ph-hero">
         <div><span className="eyebrow ph-hero-eyebrow">Planejamento financeiro</span><h1>Entenda os números<br/>antes das <em>chaves</em>.</h1><p>Faça uma estimativa inicial, compare propostas oficiais e avalie o custo total antes de contratar um financiamento.</p></div>
@@ -137,7 +148,7 @@ function FinanciamentoApp() {
       </section>
       <div className="page-wrap"><HowItWorks/><BanksGrid/><Simulator/><FAQ/></div>
       <section className="page-cta reveal"><div><h3>Vai comprar um imóvel <em>financiado</em>?</h3><p>Fale com a New Home sobre o imóvel e as etapas da negociação. A análise e a aprovação do crédito são feitas exclusivamente pelo banco.</p></div>
-        <div className="page-cta-actions"><a className="primary" href={NH.whatsapp("Olá! Gostaria de orientação sobre a compra de um imóvel financiado.")} target="_blank" rel="noopener noreferrer">Falar com a New Home</a><a className="ghost" href="quem-somos.html">Sobre a empresa</a></div>
+        <div className="page-cta-actions"><a className="primary" href={NH.whatsapp("Olá! Gostaria de orientação sobre a compra de um imóvel financiado.")} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click", { detail: "financiamento_cta" })}>Falar com a New Home</a><a className="ghost" href="quem-somos.html">Sobre a empresa</a></div>
       </section>
     </main><Footer/><Chat/></>;
 }

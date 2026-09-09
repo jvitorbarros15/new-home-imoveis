@@ -5,10 +5,11 @@ function Chat() {
   const [input, setInput] = React.useState("");
   const [typing, setTyping] = React.useState(false);
   const [unread, setUnread] = React.useState(1);
+  const lastFocus = React.useRef(null);
   const [messages, setMessages] = React.useState([
     {
       from: "agent",
-      text: "Olá! Este é o atendimento da New Home. Posso te ajudar a comprar, alugar ou anunciar um imóvel?",
+      text: "Olá! Sou um assistente automático. Posso indicar o caminho para comprar, alugar ou anunciar um imóvel — e te levar até a equipe.",
       time: "agora",
     },
   ]);
@@ -21,8 +22,12 @@ function Chat() {
 
   React.useEffect(() => {
     if (open) {
+      lastFocus.current = document.activeElement;
       setUnread(0);
       requestAnimationFrame(() => inputRef.current?.focus());
+    } else if (lastFocus.current) {
+      lastFocus.current.focus?.();
+      lastFocus.current = null;
     }
   }, [open]);
 
@@ -61,7 +66,7 @@ function Chat() {
     } else if (normalized.includes("barra") || normalized.includes("recreio") || normalized.includes("olímpica")) {
       reply = "Essa é uma das regiões de atuação da New Home. Quantos quartos você precisa?";
     } else {
-      reply = "Obrigado pelas informações. Para receber opções atuais, continue pelo WhatsApp com a equipe New Home.";
+      reply = "Não consigo responder isso automaticamente. Para falar com uma pessoa da equipe, use o WhatsApp abaixo.";
     }
 
     // small natural delay
@@ -92,16 +97,15 @@ function Chat() {
         {unread > 0 && !open && <span className="chat-badge">{unread}</span>}
       </button>
 
-      {open && <div className="chat-panel show" role="dialog" aria-modal="true" aria-label="Atendimento New Home">
+      {open && <div className="chat-panel show" role="dialog" aria-label="Assistente automático New Home">
         <header className="chat-head">
-          <div className="chat-avatar">
-            <span>BS</span>
-            <span className="chat-status" />
+          <div className="chat-avatar" aria-hidden="true">
+            <span>NH</span>
           </div>
           <div className="chat-who">
-            <div className="chat-name">Equipe New Home <span className="chat-creci">CRECI {NH.creci}</span></div>
+            <div className="chat-name">Assistente automático</div>
             <div className="chat-role">
-              <span className="chat-dot" /> Online agora · responde em poucos minutos
+              Respostas pré-programadas · fale com a equipe no WhatsApp
             </div>
           </div>
           <button className="chat-x" onClick={() => setOpen(false)} aria-label="Fechar">
@@ -158,7 +162,8 @@ function Chat() {
 
         <div className="chat-foot">
           Prefere outro canal?
-          <a href={NH.whatsapp()} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+          <a href={NH.whatsapp()} target="_blank" rel="noopener noreferrer"
+             onClick={() => track("whatsapp_click", { detail: "chat" })}>WhatsApp</a>
           ·
           <a href={`tel:${NH.primaryPhone}`}>Ligar</a>
         </div>

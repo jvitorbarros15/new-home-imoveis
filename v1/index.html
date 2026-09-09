@@ -4,12 +4,13 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>New Home Imóveis — Imóveis selecionados no Rio de Janeiro</title>
-<meta name="description" content="Imóveis de alto padrão no Rio de Janeiro. Curadoria, discrição e atendimento personalizado." />
+<meta name="description" content="Projeto de portfólio: site imobiliário responsivo com busca, painel administrativo e integração Supabase." />
+<meta name="robots" content="noindex, nofollow" />
 <link rel="canonical" href="https://new-home-imoveis.vercel.app/" />
 <meta property="og:type" content="website" />
 <meta property="og:locale" content="pt_BR" />
-<meta property="og:title" content="New Home Imóveis — Rio de Janeiro" />
-<meta property="og:description" content="Imóveis à venda e para alugar na Barra da Tijuca, Recreio e Região Olímpica." />
+<meta property="og:title" content="New Home Imóveis — projeto de portfólio" />
+<meta property="og:description" content="Site imobiliário demonstrativo, sem vínculo com a empresa homônima." />
 <meta property="og:url" content="https://new-home-imoveis.vercel.app/" />
 <meta property="og:image" content="https://new-home-imoveis.vercel.app/assets/logo-gold.png" />
 <meta name="twitter:card" content="summary_large_image" />
@@ -18,18 +19,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="styles.css" />
-<script>(function(){var t=localStorage.getItem('nh-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"RealEstateAgent","name":"New Home Imóveis","url":"https://www.imoveisnewhome.com.br","email":"erickleonardocorretor@gmail.com","telephone":"+55 21 99722-0589","address":{"@type":"PostalAddress","streetAddress":"Avenida Embaixador Abelardo Bueno, 3500, Sala 1022","postalCode":"22775-040","addressLocality":"Rio de Janeiro","addressRegion":"RJ","addressCountry":"BR"},"areaServed":["Barra da Tijuca","Recreio dos Bandeirantes","Barra Olímpica","Jacarepaguá"],"sameAs":["https://www.instagram.com/imoveisnewhome/","https://www.facebook.com/imoveisnewhome","https://www.tiktok.com/@newhomeimoveis?lang=pt-BR"]}</script>
+<script src="theme-init.js"></script>
 </head>
 <body>
 <a class="skip-link" href="#destaques">Ir para o conteúdo</a>
 <div id="root"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4/dist/umd/supabase.js"></script>
+<script src="dist/vendor-react.js"></script>
+<script src="dist/vendor-supabase.js"></script>
 <script src="config.js"></script>
 <script src="supabase.js"></script>
-<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
 <script src="dist/home.js"></script>
 </body>
 </html>

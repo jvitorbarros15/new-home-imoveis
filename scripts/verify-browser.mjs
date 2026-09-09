@@ -26,6 +26,9 @@ const browser = await chromium.launch({ executablePath, headless: true });
 const pages = [
   { name: "home", path: "/" },
   { name: "about", path: "/quem-somos.html" },
+  { name: "listings", path: "/imoveis.html" },
+  { name: "favorites", path: "/favoritos.html" },
+  { name: "privacy", path: "/privacidade.html" },
   { name: "finance", path: "/financiamento.html" },
   { name: "property", path: "/imovel.html?code=AP9680-NHB" },
   { name: "admin", path: "/admin.html" },
