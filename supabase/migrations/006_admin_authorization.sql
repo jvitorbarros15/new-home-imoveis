@@ -53,21 +53,6 @@ create policy "admin delete" on public.properties
   for delete to authenticated
   using (public.is_admin());
 
-drop policy if exists "public read" on public.documents;
-drop policy if exists "admin read documents" on public.documents;
-drop policy if exists "admin insert documents" on public.documents;
-drop policy if exists "admin update documents" on public.documents;
-drop policy if exists "admin delete documents" on public.documents;
-
-create policy "admin read documents" on public.documents
-  for select to authenticated using (public.is_admin());
-create policy "admin insert documents" on public.documents
-  for insert to authenticated with check (public.is_admin());
-create policy "admin update documents" on public.documents
-  for update to authenticated using (public.is_admin()) with check (public.is_admin());
-create policy "admin delete documents" on public.documents
-  for delete to authenticated using (public.is_admin());
-
 drop policy if exists "admin upload images" on storage.objects;
 drop policy if exists "admin delete images" on storage.objects;
 drop policy if exists "admin update images" on storage.objects;
