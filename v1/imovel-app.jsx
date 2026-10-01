@@ -21,7 +21,7 @@ function mapDatabaseProperty(data) {
   const images = Array.isArray(data.images) && data.images.length
     ? data.images.map((src,index) => ({src,caption:`Foto ${index + 1} do imóvel`,room:""}))
     : defaultImages;
-  const status = {active:"À venda",sold:"Vendido",rented:"Alugado"}[data.status] || "Consulte";
+  const status = data.status === "sold" ? "Vendido" : data.status === "rented" ? "Alugado" : data.purpose === "rent" ? "Para alugar" : data.status === "active" ? "À venda" : "Consulte";
   return {
     ...PROP,
     code: data.code,

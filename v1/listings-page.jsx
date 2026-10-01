@@ -1,11 +1,10 @@
 // Public listing browser: filters, pagination and links into the property page.
 
 const LIST_TYPES = PROPERTY_TYPES;
-const LIST_STATUS = [
-  { v: "", l: "Todos" },
-  { v: "active", l: "À venda" },
-  { v: "rented", l: "Para alugar" },
-  { v: "sold", l: "Vendidos" },
+const LIST_PURPOSE = [
+  { v: "", l: "Todas" },
+  { v: "sale", l: "Venda" },
+  { v: "rent", l: "Aluguel" },
 ];
 const PAGE_SIZE = 12;
 
@@ -15,7 +14,7 @@ function readFilters() {
     q: params.get("q") || "",
     code: params.get("code") || "",
     tipo: params.get("tipo") || "",
-    status: params.get("status") || "active",
+    purpose: params.get("purpose") || (params.get("status") === "rented" ? "rent" : ""),
     minPrice: params.get("min") || "",
     maxPrice: params.get("max") || "",
     bedrooms: params.get("quartos") || "",
@@ -28,7 +27,7 @@ function writeFilters(filters) {
   if (filters.q) params.set("q", filters.q);
   if (filters.code) params.set("code", filters.code);
   if (filters.tipo) params.set("tipo", filters.tipo);
-  if (filters.status) params.set("status", filters.status);
+  if (filters.purpose) params.set("purpose", filters.purpose);
   if (filters.minPrice) params.set("min", filters.minPrice);
   if (filters.maxPrice) params.set("max", filters.maxPrice);
   if (filters.bedrooms) params.set("quartos", filters.bedrooms);
@@ -61,12 +60,12 @@ function ListingsPage() {
     const from = (filters.page - 1) * PAGE_SIZE;
     let query = window.sb
       .from("properties")
-      .select("code,title,type,region,price_brl,area_m2,bedrooms,suites,parking,images,status,featured", { count: "exact" })
+      .select("code,title,type,region,price_brl,area_m2,bedrooms,suites,parking,images,status,purpose,featured", { count: "exact" })
       .order("featured", { ascending: false })
       .order("created_at", { ascending: false })
       .range(from, from + PAGE_SIZE - 1);
 
-    if (filters.status) query = query.eq("status", filters.status);
+    if (filters.purpose) query = query.eq("purpose", filters.purpose);
     if (filters.tipo) query = query.eq("type", filters.tipo);
     if (filters.code) query = query.ilike("code", `%${filters.code}%`);
     if (filters.bedrooms) query = query.gte("bedrooms", parseInt(filters.bedrooms, 10));
@@ -115,9 +114,9 @@ function ListingsPage() {
                    placeholder="Barra da Tijuca, varanda gourmet..." />
           </div>
           <div className="lst-field">
-            <label htmlFor="f-status">Finalidade</label>
-            <select id="f-status" value={filters.status} onChange={e => update({ status: e.target.value })}>
-              {LIST_STATUS.map(s => <option key={s.l} value={s.v}>{s.l}</option>)}
+            <label htmlFor="f-purpose">Finalidade</label>
+            <select id="f-purpose" value={filters.purpose} onChange={e => update({ purpose: e.target.value })}>
+              {LIST_PURPOSE.map(s => <option key={s.l} value={s.v}>{s.l}</option>)}
             </select>
           </div>
           <div className="lst-field">
@@ -145,7 +144,7 @@ function ListingsPage() {
                    onChange={e => update({ maxPrice: e.target.value })} placeholder="3000000" />
           </div>
           <button type="button" className="lst-clear"
-                  onClick={() => setFilters({ q: "", code: "", tipo: "", status: "active", minPrice: "", maxPrice: "", bedrooms: "", page: 1 })}>
+                  onClick={() => setFilters({ q: "", code: "", tipo: "", purpose: "", minPrice: "", maxPrice: "", bedrooms: "", page: 1 })}>
             Limpar filtros
           </button>
         </form>

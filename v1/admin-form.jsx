@@ -1,6 +1,7 @@
 // Admin — create / edit property form
 
 const TIPOS = PROPERTY_TYPES;
+const PURPOSES = [{ v: "sale", l: "Venda" }, { v: "rent", l: "Aluguel" }];
 const STATUSES = [{ v: "active", l: "Ativo" }, { v: "sold", l: "Vendido" }, { v: "rented", l: "Alugado" }];
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const ALLOWED_EXTS  = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
@@ -63,6 +64,7 @@ function PropertyForm({ prop, onSaved }) {
     title:          prop?.title         || "",
     type:           prop?.type          || "Apartamento",
     status:         prop?.status        || "active",
+    purpose:        prop?.purpose       || "sale",
     region:         prop?.region        || "",
     address:        prop?.address       || "",
     price_brl:      prop ? (prop.price_brl / 100).toString() : "",
@@ -156,6 +158,7 @@ function PropertyForm({ prop, onSaved }) {
       title:          fields.title.trim(),
       type:           fields.type,
       status:         fields.status,
+      purpose:        fields.purpose,
       region:         fields.region.trim(),
       address:        fields.address.trim() || null,
       price_brl:      Math.round(parseFloat(fields.price_brl) * 100),
@@ -249,6 +252,11 @@ function PropertyForm({ prop, onSaved }) {
             </Field>
           </div>
           <div className="adm-form-row" style={{ marginTop: 16 }}>
+            <Field label="Finalidade" id="f-purpose">
+              <select id="f-purpose" value={fields.purpose} onChange={e => set("purpose", e.target.value)}>
+                {PURPOSES.map(s => <option key={s.v} value={s.v}>{s.l}</option>)}
+              </select>
+            </Field>
             <Field label="Status" id="f-status">
               <select id="f-status" value={fields.status} onChange={e => set("status", e.target.value)}>
                 {STATUSES.map(s => <option key={s.v} value={s.v}>{s.l}</option>)}

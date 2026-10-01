@@ -32,7 +32,7 @@ function FavoritesPage() {
     setLoading(true);
     window.sb
       .from("properties")
-      .select("code,title,type,region,price_brl,area_m2,bedrooms,suites,parking,images,status")
+      .select("code,title,type,region,price_brl,area_m2,bedrooms,suites,parking,images,status,purpose")
       .in("code", codes)
       .then(({ data, error: err }) => {
         if (!active) return;

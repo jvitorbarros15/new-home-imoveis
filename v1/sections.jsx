@@ -90,8 +90,8 @@ const SERVICE_PILLARS = [
 function listingsSearchUrl({ pretensao, tipo, busca }) {
   const clean = (busca || "").trim();
   const params = new URLSearchParams();
-  if (pretensao === "Alugar") params.set("status", "rented");
-  else if (pretensao === "Comprar") params.set("status", "active");
+  if (pretensao === "Alugar") params.set("purpose", "rent");
+  else if (pretensao === "Comprar") params.set("purpose", "sale");
   if (tipo) params.set("tipo", tipo);
   if (/^[A-Z]{2}\d{4}-NHB$/i.test(clean)) params.set("code", clean.toUpperCase());
   else if (clean) params.set("q", clean);
@@ -367,7 +367,7 @@ function Destaques() {
     if (!window.sb) return;
     window.sb
       .from("properties")
-      .select("code,title,type,region,price_brl,area_m2,bedrooms,bathrooms,parking,images,status,featured")
+      .select("code,title,type,region,price_brl,area_m2,bedrooms,bathrooms,parking,images,status,purpose,featured")
       .eq("status", "active")
       .order("featured", { ascending: false })
       .order("created_at", { ascending: false })
@@ -403,8 +403,8 @@ function Destaques() {
             {["Venda", "Aluguel", "Lançamentos"].map(t => (
               <button key={t} className={tab === t ? "on" : ""} onClick={() => {
                 setTab(t);
-                const status = t === "Venda" ? "active" : t === "Aluguel" ? "rented" : "";
-                window.location.href = status ? `${NH.listingsUrl}?status=${status}` : NH.listingsUrl;
+                const purpose = t === "Venda" ? "sale" : t === "Aluguel" ? "rent" : "";
+                window.location.href = purpose ? `${NH.listingsUrl}?purpose=${purpose}` : NH.listingsUrl;
               }}>{t}</button>
             ))}
           </div>
@@ -653,9 +653,10 @@ function CTA() {
 
 /* ------ Listing card (shared by search and favourites) ------------ */
 function ListingCard({ item }) {
-  const price = typeof item.price_brl === "number" ? BRL_FMT(item.price_brl / 100) : "Consulte";
+  const isRent = item.purpose === "rent";
+  const price = typeof item.price_brl === "number" ? BRL_FMT(item.price_brl / 100) + (isRent ? "/mês" : "") : "Consulte";
   const cover = item.images && item.images[0];
-  const badge = item.status === "rented" ? "Locação" : item.status === "sold" ? "Vendido" : "Venda";
+  const badge = item.status === "sold" ? "Vendido" : item.status === "rented" ? "Alugado" : isRent ? "Aluguel" : "Venda";
   return (
     <a
       className="lst-card"
@@ -708,8 +709,8 @@ function Footer() {
           <h5>Navegue</h5>
           <ul>
             <li><a href={NH.listingsUrl}>Todos os imóveis</a></li>
-            <li><a href={`${NH.listingsUrl}?status=active`}>Imóveis à venda</a></li>
-            <li><a href={`${NH.listingsUrl}?status=rented`}>Imóveis para alugar</a></li>
+            <li><a href={`${NH.listingsUrl}?purpose=sale`}>Imóveis à venda</a></li>
+            <li><a href={`${NH.listingsUrl}?purpose=rent`}>Imóveis para alugar</a></li>
             <li><a href={NH.favoritesUrl}>Meus favoritos</a></li>
           </ul>
         </div>
