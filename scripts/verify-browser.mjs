@@ -113,7 +113,7 @@ await mobile.getByRole("button", { name: /abrir menu/i }).click();
 const mobileMenuVisible = await mobile.getByRole("dialog", { name: /menu/i }).isVisible();
 await mobile.keyboard.press("Escape");
 await mobile.getByRole("button", { name: /abrir chat/i }).click();
-const chatVisible = await mobile.getByRole("dialog", { name: /atendimento/i }).isVisible();
+const chatVisible = await mobile.getByRole("dialog", { name: /assistente/i }).isVisible();
 await mobile.keyboard.press("Escape");
 await mobile.screenshot({ path: join(tmpdir(), "new-home-mobile.png"), fullPage: true });
 
@@ -148,6 +148,10 @@ const failed = report.some((item) =>
   item.contentLength === 0 ||
   item.overlay > 0 ||
   item.runtimeErrors?.length ||
-  item.seriousA11y?.length
+  item.seriousA11y?.length ||
+  item.mobileMenuVisible === false ||
+  item.chatVisible === false ||
+  item.favoriteSaved === false ||
+  item.visitOpenedWhatsapp === false
 );
 if (failed) process.exitCode = 1;

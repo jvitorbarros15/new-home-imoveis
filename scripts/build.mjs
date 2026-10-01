@@ -1,8 +1,9 @@
 import { build } from "esbuild";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = new URL("../", import.meta.url).pathname.replace(/^\/(.:\/)/, "$1");
+const root = fileURLToPath(new URL("../", import.meta.url));
 const sourceRoot = join(root, "v1");
 const outDir = join(sourceRoot, "dist");
 
@@ -34,6 +35,10 @@ if (!process.env.VERCEL) {
 
 // Public browser configuration is generated from the deployment environment so
 // that no project identifiers are committed to the repository.
+if (process.env.VERCEL && (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY)) {
+  throw new Error("SUPABASE_URL and SUPABASE_ANON_KEY must be set for Vercel builds.");
+}
+
 const publicConfig = {
   supabaseUrl: process.env.SUPABASE_URL || "",
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY || "",
