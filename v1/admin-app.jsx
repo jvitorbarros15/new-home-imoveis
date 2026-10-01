@@ -86,6 +86,10 @@ function Login({ notice = "" }) {
 
   // Client-side throttling is a courtesy only. The enforced limits are the
   // Supabase Auth rate limits and the Turnstile challenge above.
+  React.useEffect(() => {
+    if (lockout === 0 && attempts >= MAX_ATTEMPTS) setAttempts(0);
+  }, [lockout]);
+
   const locked = lockout > 0 || attempts >= MAX_ATTEMPTS;
 
   function registerFailure(message) {
@@ -473,14 +477,18 @@ function AdminApp() {
     }
 
     let active = true;
+    let firstCheck = true;
     async function verify(candidate) {
       if (!active) return;
       if (!candidate) {
         setSession(null);
         setChecking(false);
+        firstCheck = false;
         return;
       }
-      setChecking(true);
+      // Only the first check replaces the screen; later checks must not unmount
+      // the login step or a form with unsaved edits.
+      if (firstCheck) setChecking(true);
       const { data, error } = await window.sb
         .from("admin_users")
         .select("user_id")
@@ -492,16 +500,23 @@ function AdminApp() {
         await window.sb.auth.signOut();
         setSession(null);
       } else {
-        setAccessError("");
-        setSession(candidate);
+        const { data: aal } = await window.sb.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (!active) return;
+        if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
+          setSession(null);
+        } else {
+          setAccessError("");
+          setSession(candidate);
+        }
       }
       setChecking(false);
+      firstCheck = false;
     }
 
     window.sb.auth.getSession().then(({ data }) => verify(data.session));
     const { data: { subscription } } = window.sb.auth.onAuthStateChange((event, candidate) => {
       if (event === "PASSWORD_RECOVERY") { setRecovery(true); setChecking(false); return; }
-      verify(candidate);
+      if (["SIGNED_IN", "SIGNED_OUT", "USER_UPDATED", "MFA_CHALLENGE_VERIFIED"].includes(event)) verify(candidate);
     });
     return () => { active = false; subscription.unsubscribe(); };
   }, []);
