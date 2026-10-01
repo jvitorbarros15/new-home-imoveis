@@ -208,12 +208,20 @@ function VisitScheduler({ prop }) {
     const message = `Gostaria de solicitar uma visita ${mode} ao imóvel ${prop.code} em ${days[day].label}, às ${time}. Aguardo confirmação de disponibilidade.`;
     window.open(propertyWhatsapp(prop, message), "_blank", "noopener,noreferrer");
   };
-  return <form className="visit" onSubmit={submit}><h4>Solicitar visita</h4><div className="visit-sub">A data depende de confirmação da equipe e do responsável pelo imóvel.</div>
+  return <form className="visit" id="visita" onSubmit={submit}><h4>Solicitar visita</h4><div className="visit-sub">A data depende de confirmação da equipe e do responsável pelo imóvel.</div>
     <div className="visit-days">{days.map((item,index) => <button type="button" key={item.iso} className={`visit-day ${index===day?"on":""}`} aria-pressed={index===day} onClick={() => setDay(index)}><span className="dn">{item.label}</span></button>)}</div>
     <div className="visit-times">{times.map((item) => <button type="button" key={item} className={`visit-time ${item===time?"on":""}`} aria-pressed={item===time} onClick={() => setTime(item)}>{item}</button>)}</div>
     <div className="visit-mode"><button type="button" className={mode==="presencial"?"on":""} aria-pressed={mode==="presencial"} onClick={() => setMode("presencial")}>Presencial</button><button type="button" className={mode==="video"?"on":""} aria-pressed={mode==="video"} onClick={() => setMode("video")}>Vídeo</button></div>
     <button type="submit" className="visit-cta">Solicitar pelo WhatsApp</button>
   </form>;
+}
+
+function StickyContact({ prop }) {
+  return <div className="sticky-contact" role="region" aria-label="Contato rápido">
+    <a className="sc-btn primary" href={propertyWhatsapp(prop, location.href)} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click", { code: prop.code, detail: "barra_fixa" })}><I.WA size={16}/>WhatsApp</a>
+    <a className="sc-btn" href={`tel:${prop.agent.phone}`} onClick={() => track("phone_click", { code: prop.code, detail: "barra_fixa" })}><I.Phone size={14}/>Ligar</a>
+    <a className="sc-btn" href="#visita">Agendar visita</a>
+  </div>;
 }
 
 function Similar({ prop }) {
@@ -226,4 +234,4 @@ function Similar({ prop }) {
   </section>;
 }
 
-Object.assign(window, { PROP, GalleryHero, Lightbox, Identity, Description, Highlights, Features, Localizacao, Custos, Sidebar, Similar });
+Object.assign(window, { PROP, StickyContact, GalleryHero, Lightbox, Identity, Description, Highlights, Features, Localizacao, Custos, Sidebar, Similar });

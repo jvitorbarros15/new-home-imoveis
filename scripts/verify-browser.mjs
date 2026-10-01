@@ -158,6 +158,14 @@ await mobile.goto(baseUrl + "/imovel?code=AP0001-NHB", { waitUntil: "networkidle
 const favorite = mobile.getByRole("button", { name: /salvar nos favoritos/i });
 await favorite.click();
 const favoriteSaved = await mobile.locator('.gal-action[aria-pressed="true"]').count() > 0;
+await mobile.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+const stickyBarVisible = await mobile.evaluate(() => {
+  const bar = document.querySelector(".sticky-contact");
+  if (!bar) return false;
+  const box = bar.getBoundingClientRect();
+  return box.height > 0 && box.bottom <= innerHeight + 1 && box.top >= 0;
+});
+await mobile.evaluate(() => scrollTo(0, 0));
 const visitButton = mobile.getByRole("button", { name: /solicitar pelo whatsapp/i });
 await mobile.evaluate(() => {
   window.__verifyOpenedUrl = "";
@@ -172,6 +180,7 @@ report.push({
   chatVisible,
   favoriteSaved,
   visitOpenedWhatsapp,
+  stickyBarVisible,
   scrollMetrics: mobileScrollMetrics,
   runtimeErrors: interactionErrors,
 });
@@ -189,6 +198,7 @@ const failed = report.some((item) =>
   item.mobileMenuVisible === false ||
   item.chatVisible === false ||
   item.favoriteSaved === false ||
-  item.visitOpenedWhatsapp === false
+  item.visitOpenedWhatsapp === false ||
+  item.stickyBarVisible === false
 );
 if (failed) process.exitCode = 1;

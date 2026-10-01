@@ -819,3 +819,26 @@ button.gal-thumb {
 .gal-tabs,
 .gal-action { background: color-mix(in oklab, var(--bg) 94%, transparent); }
 .ripple { animation: none !important; opacity: 0.3; }
+
+.sticky-contact { display: none; }
+@media (max-width: 1099px) {
+  .sticky-contact {
+    display: flex; gap: 8px;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 9300;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    background: color-mix(in oklab, var(--bg) 94%, transparent);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--line-2);
+  }
+  .sc-btn {
+    flex: 1; min-height: 48px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border: 1px solid var(--line-2); border-radius: 999px;
+    color: var(--ink); text-decoration: none; font-size: 14px;
+  }
+  .sc-btn.primary { flex: 1.4; background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 500; }
+  .imovel-page { padding-bottom: 88px; }
+  body:has(.sticky-contact) .chat-fab { bottom: 86px; }
+  body:has(.sticky-contact) .chat-panel { bottom: 156px; }
+}

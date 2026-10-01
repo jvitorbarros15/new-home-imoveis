@@ -125,7 +125,7 @@ function ImovelApp() {
       </div><Sidebar prop={prop}/></div>
       <Similar prop={prop}/>
     </main>
-    <Footer/><Chat/>
+    <StickyContact prop={prop}/><Footer/><Chat/>
     <Lightbox open={lightboxOpen} idx={lightboxIndex} setIdx={setLightboxIndex} onClose={() => setLightboxOpen(false)} images={prop.images}/>
   </>;
 }
