@@ -37,6 +37,7 @@
   transition: transform 1.2s ease;
 }
 .gal-main:hover .img { transform: scale(1.04); }
+.gal-main.gal-empty { display: grid; place-items: center; cursor: default; min-height: 280px; color: var(--ink-3); border: 1px dashed var(--line-2); }
 .gal-side {
   display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
   gap: 10px;

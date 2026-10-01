@@ -1,47 +1,27 @@
 // Property page sections
 
 const PROP = {
-  code: "AP9680-NHB",
-  status: "À venda",
-  type: "Apartamento",
-  title: "Apartamento decorado no Saint Michael, Ilha Pura",
-  address: "Ilha Pura · Barra da Tijuca · Rio de Janeiro / RJ",
-  region: "Barra da Tijuca",
-  price: 2290000,
-  condominio: 2000,
-  iptu: 500,
-  m2Value: 17218,
-  specs: { areaUtil: 133, areaBruta: 133, quartos: 3, suites: 2, banheiros: 3, vagas: 2, pet: true },
-  description: [
-    "Apartamento decorado no condomínio Saint Michael, no Ilha Pura, com vista para a lagoa e acabamento de alto padrão.",
-    "A planta tem três quartos, incluindo duas suítes, sala em dois ambientes, varanda gourmet, lavabo e área de serviço. A suíte principal possui closet. O anúncio informa automação com Alexa, móveis da Casa Shopping e venda com porteira fechada.",
-  ],
-  highlights: [
-    { icon: "view", title: "Vista para a lagoa", desc: "Uma das características informadas no anúncio da unidade." },
-    { icon: "key", title: "Porteira fechada", desc: "O imóvel é anunciado decorado e mobiliado." },
-    { icon: "sun", title: "Varanda gourmet", desc: "Área externa integrada ao apartamento." },
-  ],
-  features: {
-    "Imóvel": ["Área de serviço", "Banheiro de serviço", "Quarto de serviço", "Lavabo", "Lavanderia", "Porcelanato", "Varanda", "Varanda gourmet"],
-    "Condomínio": ["Campo de futebol", "Churrasqueira", "Piscina", "Quadra poliesportiva", "Sauna"],
-  },
+  code: "",
+  status: "",
+  type: "Imóvel",
+  title: "",
+  address: "",
+  region: "",
+  price: null,
+  condominio: null,
+  iptu: null,
+  m2Value: null,
+  specs: { areaUtil: "—", quartos: "—", suites: "—", banheiros: "—", vagas: "—", pet: false },
+  description: [],
+  highlights: [],
+  features: {},
   nearby: [],
-  images: [
-    { src: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1600&q=82&auto=format&fit=crop", caption: "Imagem ilustrativa — confirme as fotos oficiais", room: "Referência visual" },
-    { src: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1600&q=82&auto=format&fit=crop", caption: "Imagem ilustrativa — confirme as fotos oficiais", room: "Referência visual" },
-    { src: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=1600&q=82&auto=format&fit=crop", caption: "Imagem ilustrativa — confirme as fotos oficiais", room: "Referência visual" },
-    { src: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1600&q=82&auto=format&fit=crop", caption: "Imagem ilustrativa — confirme as fotos oficiais", room: "Referência visual" },
-    { src: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=82&auto=format&fit=crop", caption: "Imagem ilustrativa — confirme as fotos oficiais", room: "Referência visual" },
-  ],
-  imagesAreIllustrative: true,
+  images: [],
+  imagesAreIllustrative: false,
   tourUrl: null,
-  officialUrl: "https://www.imoveisnewhome.com.br/imoveis?codigo=AP9680-NHB",
-  agent: { name: "Erick Leonardo", creci: "51.507", phone: NH.primaryPhone, phoneDisplay: NH.primaryPhoneDisplay },
-  similar: [
-    { code: "AP0694-NHB", type: "Apartamento", title: "Apartamento de 92 m² com três quartos", region: "Barra Olímpica", area: 92, rooms: 3, parking: 1, price: 1100000 },
-    { code: "AP9886-NHB", type: "Apartamento", title: "Apartamento de 110 m² com três quartos", region: "Barra da Tijuca", area: 110, rooms: 3, parking: 2, price: 1200000 },
-    { code: "AP9879-NHB", type: "Apartamento", title: "Apartamento de 136 m² com quatro quartos", region: "Barra Olímpica", area: 136, rooms: 4, parking: 2, price: 1470000 },
-  ],
+  officialUrl: null,
+  agent: { name: NH.name, creci: NH.creci, phone: NH.primaryPhone, phoneDisplay: NH.primaryPhoneDisplay },
+  similar: [],
 };
 
 const BRL = (value) => typeof value === "number" ? value.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }) : "Consulte";
@@ -116,9 +96,11 @@ function GalleryHero({ prop, onOpen }) {
     else await navigator.clipboard?.writeText(location.href);
   };
   return <div className="gal">
-    <button type="button" className="gal-main" onClick={() => onOpen(0)} aria-label="Abrir imagem principal"><div className="img" style={{backgroundImage:`url(${prop.images[0]?.src})`}}/></button>
+    {prop.images.length
+      ? <button type="button" className="gal-main" onClick={() => onOpen(0)} aria-label="Abrir imagem principal"><div className="img" style={{backgroundImage:`url(${prop.images[0].src})`}}/></button>
+      : <div className="gal-main gal-empty" role="img" aria-label="Fotos em breve"><span>Fotos em breve</span></div>}
     <div className="gal-side">{prop.images.slice(1,5).map((image,index) => <button type="button" key={image.src} className="gal-thumb" onClick={() => onOpen(index + 1)} aria-label={`Abrir imagem ${index + 2}`}><div className="img" style={{backgroundImage:`url(${image.src})`}}/></button>)}</div>
-    <button type="button" className="gal-all" onClick={() => onOpen(0)}>Ver galeria · {prop.images.length} imagens</button>
+    {prop.images.length > 0 && <button type="button" className="gal-all" onClick={() => onOpen(0)}>Ver galeria · {prop.images.length} imagens</button>}
     <div className="gal-actions">
       <button type="button" className={`gal-action ${favorite ? "on" : ""}`} onClick={toggleFavorite} aria-pressed={favorite} aria-label={favorite ? "Remover dos favoritos" : "Salvar nos favoritos"}><I.Heart size={16}/></button>
       <button type="button" className="gal-action" onClick={share} aria-label="Compartilhar"><I.Share size={16}/></button>
@@ -149,7 +131,12 @@ function Identity({ prop }) {
 }
 
 function Description({ prop }) {
-  const summary = `${prop.type} de ${prop.specs.areaUtil} m² em ${prop.region}, com ${prop.specs.quartos} quartos, ${prop.specs.suites} suítes e ${prop.specs.vagas} vagas. ${prop.highlights.map((item) => item.title).join(", ")}.`;
+  const summary = [
+    `${prop.type}${prop.specs.areaUtil !== "—" ? ` de ${prop.specs.areaUtil} m²` : ""} em ${prop.region}`,
+    prop.specs.quartos !== "—" && `${prop.specs.quartos} quartos`,
+    prop.specs.suites !== "—" && `${prop.specs.suites} suítes`,
+    prop.specs.vagas !== "—" && `${prop.specs.vagas} vagas`,
+  ].filter(Boolean).join(", ") + ".";
   const [showSummary, setShowSummary] = React.useState(false);
   return <div className="blk"><div className="blk-head"><h2>Sobre o <em>imóvel</em></h2><div className="desc-tab">
     <button type="button" className={!showSummary ? "on" : ""} onClick={() => setShowSummary(false)}>Descrição</button>
@@ -198,7 +185,7 @@ function Custos({ prop }) {
 
 function Sidebar({ prop }) {
   return <aside className="side"><div className="agent-card">
-    <div className="agent-top"><div><div className="agent-name">{prop.agent.name}</div><div className="agent-meta">Corretor · CRECI-RJ {prop.agent.creci}</div></div></div>
+    <div className="agent-top"><div><div className="agent-name">{prop.agent.name}</div><div className="agent-meta">CRECI {prop.agent.creci}</div></div></div>
     <div className="agent-actions">
       <a className="agent-btn primary" href={propertyWhatsapp(prop)} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click", { code: prop.code, detail: "sidebar" })}><I.WA size={16}/>Conversar no WhatsApp</a>
       <a className="agent-btn ghost" href={`tel:${prop.agent.phone}`}><I.Phone size={14}/>{prop.agent.phoneDisplay}</a>

@@ -30,10 +30,45 @@ const pages = [
   { name: "favorites", path: "/favoritos.html" },
   { name: "privacy", path: "/privacidade.html" },
   { name: "finance", path: "/financiamento.html" },
-  { name: "property", path: "/imovel.html?code=AP9680-NHB" },
+  { name: "property", path: "/imovel?code=AP0001-NHB" },
+  { name: "property-missing", path: "/imovel?code=ZZZ" },
   { name: "admin", path: "/admin.html" },
   { name: "not-found", path: "/404.html" },
 ];
+
+const fixtureProperty = {
+  code: "AP0001-NHB", title: "Apartamento de teste", type: "Apartamento", region: "Barra da Tijuca",
+  price_brl: 150000000, area_m2: 100, bedrooms: 3, suites: 1, bathrooms: 2, parking: 1,
+  images: [], status: "active", purpose: "sale", description: "Descrição de teste.",
+  tour_url: null, pet_friendly: true, condominio_brl: 0, iptu_brl: 0, featured: true,
+};
+
+async function mockBackend(context) {
+  await context.route("**/config.js", (route) => route.fulfill({
+    contentType: "application/javascript",
+    body: 'window.NEW_HOME_CONFIG={"supabaseUrl":"https://fixture.supabase.co","supabaseAnonKey":"fixture","turnstileSiteKey":""};',
+  }));
+  await context.route("https://fixture.supabase.co/**", (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    if (request.method() !== "GET") return route.fulfill({ status: 201, body: "" });
+    if (!url.pathname.endsWith("/properties")) return route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
+    const code = url.searchParams.get("code");
+    const wantsObject = (request.headers()["accept"] || "").includes("vnd.pgrst.object");
+    const rows = code === "eq.AP0001-NHB" || !code ? [fixtureProperty] : [];
+    if (wantsObject) {
+      return rows.length
+        ? route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(rows[0]) })
+        : route.fulfill({ status: 406, contentType: "application/json", body: JSON.stringify({ code: "PGRST116", message: "no rows" }) });
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      headers: { "content-range": `0-${Math.max(0, rows.length - 1)}/${rows.length}` },
+      body: JSON.stringify(rows),
+    });
+  });
+}
 const report = [];
 
 async function exerciseScroll(page) {
@@ -68,6 +103,7 @@ async function exerciseScroll(page) {
 
 for (const item of pages) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, locale: "pt-BR" });
+  await mockBackend(context);
   const page = await context.newPage();
   const runtimeErrors = [];
   page.on("pageerror", (error) => runtimeErrors.push(error.message));
@@ -104,6 +140,7 @@ for (const item of pages) {
 }
 
 const interactionContext = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "pt-BR" });
+await mockBackend(interactionContext);
 const mobile = await interactionContext.newPage();
 const interactionErrors = [];
 mobile.on("pageerror", (error) => interactionErrors.push(error.message));
@@ -117,7 +154,7 @@ const chatVisible = await mobile.getByRole("dialog", { name: /assistente/i }).is
 await mobile.keyboard.press("Escape");
 await mobile.screenshot({ path: join(tmpdir(), "new-home-mobile.png"), fullPage: true });
 
-await mobile.goto(baseUrl + "/imovel.html?code=AP9680-NHB", { waitUntil: "networkidle" });
+await mobile.goto(baseUrl + "/imovel?code=AP0001-NHB", { waitUntil: "networkidle" });
 const favorite = mobile.getByRole("button", { name: /salvar nos favoritos/i });
 await favorite.click();
 const favoriteSaved = await mobile.locator('.gal-action[aria-pressed="true"]').count() > 0;

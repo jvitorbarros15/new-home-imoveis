@@ -1,14 +1,13 @@
 // Property page app shell
 
 function NotFoundProperty({ code }) {
-  const officialUrl = `${NH.inventoryUrl}?codigo=${encodeURIComponent(code)}`;
   return <><div className="grain"/><Nav/><DemoNotice/><main className="imovel-page" style={{minHeight:"70vh",display:"grid",placeItems:"center"}}>
     <section className="blk" style={{maxWidth:720,textAlign:"center"}}>
-      <span className="eyebrow">Imóvel {code}</span><h1>Não foi possível carregar este imóvel.</h1>
-      <p>A listagem pode ter sido removida, vendida ou ainda não estar sincronizada com este site.</p>
+      <span className="eyebrow">{code ? `Imóvel ${code}` : "Imóvel"}</span><h1>{code ? "Não encontramos este imóvel." : "Nenhum imóvel selecionado."}</h1>
+      <p>A listagem pode ter sido removida, vendida ou o endereço pode estar incompleto. Veja os imóveis disponíveis ou fale com a equipe.</p>
       <div className="page-cta-actions" style={{justifyContent:"center",marginTop:24}}>
-        <a className="primary" href={officialUrl} target="_blank" rel="noopener noreferrer">Procurar no portal oficial</a>
-        <a className="ghost" href={NH.whatsapp(`Olá! Gostaria de informações sobre o imóvel ${code}.`)} target="_blank" rel="noopener noreferrer">Perguntar no WhatsApp</a>
+        <a className="primary" href={NH.listingsUrl}>Ver imóveis disponíveis</a>
+        <a className="ghost" href={NH.whatsapp(code ? `Olá! Gostaria de informações sobre o imóvel ${code}.` : "Olá! Gostaria de informações sobre imóveis.")} target="_blank" rel="noopener noreferrer">Perguntar no WhatsApp</a>
       </div>
     </section>
   </main><Footer/><Chat/></>;
@@ -17,10 +16,9 @@ function NotFoundProperty({ code }) {
 function mapDatabaseProperty(data) {
   const area = data.area_m2 ?? null;
   const price = data.price_brl != null ? data.price_brl / 100 : null;
-  const defaultImages = PROP.images;
   const images = Array.isArray(data.images) && data.images.length
     ? data.images.map((src,index) => ({src,caption:`Foto ${index + 1} do imóvel`,room:""}))
-    : defaultImages;
+    : [];
   const status = data.status === "sold" ? "Vendido" : data.status === "rented" ? "Alugado" : data.purpose === "rent" ? "Para alugar" : data.status === "active" ? "À venda" : "Consulte";
   return {
     ...PROP,
@@ -31,8 +29,8 @@ function mapDatabaseProperty(data) {
     address: data.region || "Rio de Janeiro / RJ",
     region: data.region || "Rio de Janeiro",
     price,
-    condominio: data.condominio_brl != null ? data.condominio_brl / 100 : null,
-    iptu: data.iptu_brl != null ? data.iptu_brl / 100 : null,
+    condominio: data.condominio_brl ? data.condominio_brl / 100 : null,
+    iptu: data.iptu_brl ? data.iptu_brl / 100 : null,
     m2Value: price && area ? Math.round(price / area) : null,
     specs: {
       areaUtil: area ?? "—",
@@ -49,9 +47,9 @@ function mapDatabaseProperty(data) {
     nearby: [],
     similar: [],
     images,
-    imagesAreIllustrative: !(Array.isArray(data.images) && data.images.length),
+    imagesAreIllustrative: false,
     tourUrl: data.tour_url || null,
-    officialUrl: `${NH.inventoryUrl}?codigo=${encodeURIComponent(data.code)}`,
+    officialUrl: null,
   };
 }
 
@@ -59,8 +57,8 @@ function ImovelApp() {
   const [theme] = React.useState({motion:"on"});
   const [lightboxOpen,setLightboxOpen] = React.useState(false);
   const [lightboxIndex,setLightboxIndex] = React.useState(0);
-  const [prop,setProp] = React.useState(PROP);
-  const [loading,setLoading] = React.useState(false);
+  const [prop,setProp] = React.useState(null);
+  const [loading,setLoading] = React.useState(true);
   const [notFound,setNotFound] = React.useState("");
 
   React.useEffect(() => {
@@ -70,30 +68,25 @@ function ImovelApp() {
 
   React.useEffect(() => {
     const requestedCode = new URLSearchParams(location.search).get("code")?.trim();
-    if (!requestedCode || requestedCode.toUpperCase() === PROP.code) return;
-    if (!window.sb) { setNotFound(requestedCode); return; }
-    setLoading(true);
+    if (!requestedCode || !window.sb) { setNotFound(requestedCode || " "); setLoading(false); return; }
     window.sb.from("properties").select("code,title,type,region,price_brl,area_m2,bedrooms,suites,bathrooms,parking,images,status,purpose,description,tour_url,pet_friendly,condominio_brl,iptu_brl").eq("code",requestedCode).maybeSingle()
       .then(({data,error}) => {
         if (error || !data) setNotFound(requestedCode);
-        else setProp(mapDatabaseProperty(data));
+        else { setProp(mapDatabaseProperty(data)); track("property_view", { code: data.code }); }
       })
       .catch(() => setNotFound(requestedCode))
       .finally(() => setLoading(false));
   },[]);
 
   React.useEffect(() => {
-    track("property_view", { code: prop.code });
-  }, [prop.code]);
-
-  React.useEffect(() => {
+    if (!prop) { document.title = "Imóvel não encontrado | New Home Imóveis"; return; }
     document.title = `${prop.title} | New Home Imóveis`;
     const description = `${prop.type} em ${prop.region}. Código ${prop.code}. Consulte disponibilidade e condições com a New Home Imóveis.`;
     document.querySelector('meta[name="description"]')?.setAttribute("content",description);
   },[prop]);
 
   if (loading) return <div role="status" aria-label="Carregando imóvel" style={{minHeight:"100vh",display:"grid",placeItems:"center",background:"var(--bg)"}}><div style={{width:32,height:32,borderRadius:"50%",border:"2px solid var(--line-2)",borderTopColor:"var(--accent)",animation:"spin .7s linear infinite"}}/></div>;
-  if (notFound) return <NotFoundProperty code={notFound}/>;
+  if (notFound || !prop) return <NotFoundProperty code={notFound.trim()}/>;
   const openLightbox = (index) => { setLightboxIndex(index); setLightboxOpen(true); };
 
   return <><div className="grain"/><Nav/><DemoNotice/>
