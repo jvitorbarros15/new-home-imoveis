@@ -616,3 +616,18 @@
   .sim-card { padding: 28px 20px; }
   .sim-result { padding: 28px 20px; }
 }
+
+.seller-form {
+  max-width: 720px; margin: 0 auto; padding: 0 var(--pad) 96px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+}
+.seller-consent { grid-column: 1 / -1; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.seller-consent input { margin-top: 3px; }
+.seller-consent a { text-decoration: underline; }
+.seller-status { grid-column: 1 / -1; font-size: 14px; }
+.seller-status.ok { color: var(--accent); }
+.seller-status.error { color: #e0795b; }
+.seller-submit { grid-column: 1 / -1; justify-self: start; min-height: 48px; }
+@media (max-width: 640px) {
+  .seller-form { grid-template-columns: 1fr; }
+}

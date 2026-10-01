@@ -686,7 +686,7 @@ function Footer() {
           <ul>
             <li><a href="quem-somos.html">Quem somos</a></li>
             <li><a href="financiamento.html">Financiamento</a></li>
-            <li><a href={NH.listPropertyUrl} target="_blank" rel="noopener noreferrer">Cadastre seu imóvel</a></li>
+            <li><a href={NH.listPropertyUrl}>Cadastre seu imóvel</a></li>
             <li><a href={NH.privacyUrl}>Política de privacidade</a></li>
           </ul>
         </div>

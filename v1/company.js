@@ -21,7 +21,7 @@ window.NH = Object.freeze({
   inventoryUrl: "https://www.imoveisnewhome.com.br/imoveis",
   saleUrl: "https://www.imoveisnewhome.com.br/imoveis/a-venda",
   rentUrl: "https://www.imoveisnewhome.com.br/imoveis/para-alugar",
-  listPropertyUrl: "https://www.imoveisnewhome.com.br/cadastre-seu-imovel",
+  listPropertyUrl: "anunciar.html",
   contactUrl: "https://www.imoveisnewhome.com.br/fale-conosco",
   privacyUrl: "privacidade.html",
   externalPrivacyUrl: "https://www.imoveisnewhome.com.br/politica-de-privacidade",

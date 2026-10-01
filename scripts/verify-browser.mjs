@@ -29,6 +29,7 @@ const pages = [
   { name: "listings", path: "/imoveis.html" },
   { name: "favorites", path: "/favoritos.html" },
   { name: "privacy", path: "/privacidade.html" },
+  { name: "seller", path: "/anunciar.html" },
   { name: "finance", path: "/financiamento.html" },
   { name: "property", path: "/imovel?code=AP0001-NHB" },
   { name: "property-missing", path: "/imovel?code=ZZZ" },
