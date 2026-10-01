@@ -610,3 +610,9 @@
 @media (max-width: 720px) {
   .lst-field-wide { grid-column: span 1; }
 }
+
+.sim-wrap > * { min-width: 0; }
+@media (max-width: 480px) {
+  .sim-card { padding: 28px 20px; }
+  .sim-result { padding: 28px 20px; }
+}

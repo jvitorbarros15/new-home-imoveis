@@ -139,6 +139,34 @@ for (const item of pages) {
   await context.close();
 }
 
+const narrowContext = await browser.newContext({ viewport: { width: 320, height: 700 }, locale: "pt-BR" });
+await mockBackend(narrowContext);
+const narrow = await narrowContext.newPage();
+for (const item of pages.filter((entry) => entry.name !== "not-found")) {
+  await narrow.goto(baseUrl + item.path, { waitUntil: "networkidle" });
+  await narrow.waitForTimeout(800);
+  // body clips horizontal overflow, so scrollWidth hides it; count unclipped elements instead.
+  const overflow = await narrow.evaluate(() => {
+    const clipped = (el) => {
+      for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+        if (/(hidden|auto|scroll|clip)/.test(getComputedStyle(a).overflowX)) return true;
+      }
+      return false;
+    };
+    return [...document.querySelectorAll("body *")].filter((el) => {
+      const box = el.getBoundingClientRect();
+      return box.width > 0 && box.right > innerWidth + 1 && getComputedStyle(el).position !== "fixed" && !clipped(el);
+    }).map((el) => `${el.tagName}.${el.className}`);
+  });
+  const smallTargets = await narrow.evaluate(() => [...document.querySelectorAll("a, button")]
+    .filter((el) => {
+      const box = el.getBoundingClientRect();
+      return box.width > 0 && box.height > 0 && (box.height < 24 || box.width < 24) && getComputedStyle(el).visibility !== "hidden";
+    }).length);
+  report.push({ page: `narrow-320-${item.name}`, horizontalOverflow: overflow.length, overflowTargets: overflow, smallTargets });
+}
+await narrowContext.close();
+
 const interactionContext = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "pt-BR" });
 await mockBackend(interactionContext);
 const mobile = await interactionContext.newPage();
@@ -199,6 +227,7 @@ const failed = report.some((item) =>
   item.chatVisible === false ||
   item.favoriteSaved === false ||
   item.visitOpenedWhatsapp === false ||
-  item.stickyBarVisible === false
+  item.stickyBarVisible === false ||
+  item.horizontalOverflow > 0
 );
 if (failed) process.exitCode = 1;

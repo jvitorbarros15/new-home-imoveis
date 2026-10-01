@@ -1084,3 +1084,17 @@ footer {
 .cta-status { font-size: 13px; line-height: 1.6; margin: 4px 0; }
 .cta-status.error { color: oklch(0.72 0.17 25); }
 .cta-status.ok { color: var(--accent); }
+
+@media (max-width: 480px) {
+  .nav-cta { display: none; }
+}
+.hero-dot { position: relative; }
+.hero-dot::after { content: ""; position: absolute; left: 0; right: 0; top: -22px; bottom: -22px; }
+.ft-col ul { gap: 0; }
+.ft-col a { display: inline-block; padding: 12px 0; }
+
+@media (max-width: 480px) {
+  .stat { min-width: 0; }
+  .stat .num { overflow-wrap: anywhere; }
+  .cta-body, .cta-form { padding: 28px 20px; }
+}
