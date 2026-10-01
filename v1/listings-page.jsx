@@ -74,7 +74,7 @@ function ListingsPage() {
     if (filters.q) {
       // PostgREST treats these characters as filter syntax, so they are stripped.
       const term = filters.q.replace(/[%,()*]/g, " ").trim();
-      if (term) query = query.or(`title.ilike.%${term}%,region.ilike.%${term}%,address.ilike.%${term}%`);
+      if (term) query = query.or(`title.ilike.%${term}%,region.ilike.%${term}%`);
     }
 
     query.then(({ data, error: err, count }) => {

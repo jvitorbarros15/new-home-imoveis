@@ -28,7 +28,7 @@ function mapDatabaseProperty(data) {
     title: data.title,
     type: data.type || "Imóvel",
     status,
-    address: data.address || data.region || "Rio de Janeiro / RJ",
+    address: data.region || "Rio de Janeiro / RJ",
     region: data.region || "Rio de Janeiro",
     price,
     condominio: data.condominio_brl != null ? data.condominio_brl / 100 : null,
@@ -73,7 +73,7 @@ function ImovelApp() {
     if (!requestedCode || requestedCode.toUpperCase() === PROP.code) return;
     if (!window.sb) { setNotFound(requestedCode); return; }
     setLoading(true);
-    window.sb.from("properties").select("*").eq("code",requestedCode).maybeSingle()
+    window.sb.from("properties").select("code,title,type,region,price_brl,area_m2,bedrooms,suites,bathrooms,parking,images,status,purpose,description,tour_url,pet_friendly,condominio_brl,iptu_brl").eq("code",requestedCode).maybeSingle()
       .then(({data,error}) => {
         if (error || !data) setNotFound(requestedCode);
         else setProp(mapDatabaseProperty(data));
