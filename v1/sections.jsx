@@ -579,32 +579,31 @@ function CTA() {
     e.preventDefault();
     const form = e.currentTarget;
     const data = new FormData(form);
+    const phone = normalizePhoneBR(data.get("phone"));
+    if (!phone) { setState("badphone"); return; }
     const lead = {
       name: String(data.get("name") || "").trim().slice(0, 120),
-      phone: String(data.get("phone") || "").trim().slice(0, 40),
+      phone,
       email: String(data.get("email") || "").trim().slice(0, 200),
       interest: String(data.get("interest") || "").slice(0, 60),
-      source_path: location.pathname.slice(0, 200),
+      kind: "contact",
     };
-
-    setState("sending");
-    // Stored before the hand-off so an abandoned WhatsApp window loses nothing.
-    if (window.sb) {
-      const { error } = await window.sb.from("leads").insert(lead);
-      if (error) { setState("error"); return; }
-    }
-    track("lead_submit", { detail: lead.interest });
 
     const message = [
       "Olá! Gostaria de atendimento da New Home Imóveis.",
       `Nome: ${lead.name}`,
-      `WhatsApp: ${lead.phone}`,
+      `WhatsApp: ${data.get("phone")}`,
       `E-mail: ${lead.email}`,
       `Interesse: ${lead.interest}`,
     ].join("\n");
-    setState("sent");
-    form.reset();
+    // Opened inside the click handler so popup blockers allow it.
     window.open(NH.whatsapp(message), "_blank", "noopener,noreferrer");
+
+    setState("sending");
+    const { saved } = await submitLead(lead);
+    track("lead_submit", { detail: lead.interest });
+    setState(saved ? "sent" : "unsaved");
+    if (saved) form.reset();
   };
   return (
     <section id="contato" className="cta reveal" style={{ maxWidth: "100%" }}>
@@ -618,7 +617,8 @@ function CTA() {
       <form className="cta-form" onSubmit={submit}>
         <h3>Fale com um consultor</h3>
         <label>Nome<input name="name" required autoComplete="name" placeholder="Como prefere ser chamado" /></label>
-        <label>WhatsApp<input name="phone" type="tel" required autoComplete="tel" placeholder="(21) 99999-9999" /></label>
+        <label>WhatsApp<input name="phone" type="tel" required autoComplete="tel" placeholder="(21) 99999-9999"
+          aria-invalid={state === "badphone"} /></label>
         <label>E-mail<input name="email" type="email" required autoComplete="email" placeholder="seu@email.com" /></label>
         <label>O que procura?
           <select name="interest" defaultValue="" required>
@@ -633,9 +633,14 @@ function CTA() {
           <input name="consent" type="checkbox" required />
           <span>Concordo com a <a href={NH.privacyUrl}>política de privacidade</a> e autorizo o contato da equipe.</span>
         </label>
-        {state === "error" && (
+        {state === "badphone" && (
           <p className="cta-status error" role="alert">
-            Não foi possível registrar o contato. Fale direto no WhatsApp {NH.primaryPhoneDisplay}.
+            Informe um telefone válido com DDD, por exemplo (21) 99999-9999.
+          </p>
+        )}
+        {state === "unsaved" && (
+          <p className="cta-status error" role="alert">
+            Não conseguimos registrar seu contato, mas o WhatsApp foi aberto. Continue a conversa por lá.
           </p>
         )}
         {state === "sent" && (
