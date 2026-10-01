@@ -269,7 +269,7 @@ function Hero({ motion }) {
   }, []);
 
   const PRETENSOES = ["Comprar", "Alugar", "Lançamentos"];
-  const TIPOS = ["Apartamento", "Cobertura", "Casa", "Casa em condomínio", "Terreno", "Comercial"];
+  const TIPOS = PROPERTY_TYPES;
   const submitSearch = (e) => {
     e.preventDefault();
     window.location.href = listingsSearchUrl({ pretensao, tipo, busca });
@@ -515,7 +515,7 @@ function Stats() {
         <div className="lbl">Barra da Tijuca, Recreio e Região Olímpica</div>
       </div>
       <div className="stat">
-        <div className="num">7609 J</div>
+        <div className="num">{NH.creci}</div>
         <div className="lbl">Registro da imobiliária no CRECI-RJ</div>
       </div>
     </section>

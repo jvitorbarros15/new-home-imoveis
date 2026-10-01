@@ -1,6 +1,6 @@
 // Admin — create / edit property form
 
-const TIPOS = ["Apartamento", "Cobertura", "Casa", "Casa em Condomínio", "Penthouse", "Terreno", "Comercial"];
+const TIPOS = PROPERTY_TYPES;
 const STATUSES = [{ v: "active", l: "Ativo" }, { v: "sold", l: "Vendido" }, { v: "rented", l: "Alugado" }];
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const ALLOWED_EXTS  = [".jpg", ".jpeg", ".png", ".webp", ".gif"];

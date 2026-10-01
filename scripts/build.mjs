@@ -13,14 +13,14 @@ const vendors = {
 };
 
 const entries = {
-  home: ["company.js", "analytics.js", "sections.jsx", "chat.jsx", "app.jsx"],
-  property: ["company.js", "analytics.js", "sections.jsx", "chat.jsx", "imovel-sections.jsx", "imovel-app.jsx"],
-  listings: ["company.js", "analytics.js", "sections.jsx", "chat.jsx", "listings-page.jsx"],
-  favorites: ["company.js", "analytics.js", "sections.jsx", "chat.jsx", "favoritos-page.jsx"],
-  about: ["company.js", "analytics.js", "sections.jsx", "chat.jsx", "quem-somos-page.jsx"],
-  finance: ["company.js", "analytics.js", "sections.jsx", "chat.jsx", "financiamento-page.jsx"],
-  privacy: ["company.js", "analytics.js", "sections.jsx", "chat.jsx", "privacidade-page.jsx"],
-  admin: ["company.js", "admin-listings.jsx", "admin-leads.jsx", "admin-form.jsx", "admin-app.jsx"],
+  home: ["constants.js", "company.js", "analytics.js", "sections.jsx", "chat.jsx", "app.jsx"],
+  property: ["constants.js", "company.js", "analytics.js", "sections.jsx", "chat.jsx", "imovel-sections.jsx", "imovel-app.jsx"],
+  listings: ["constants.js", "company.js", "analytics.js", "sections.jsx", "chat.jsx", "listings-page.jsx"],
+  favorites: ["constants.js", "company.js", "analytics.js", "sections.jsx", "chat.jsx", "favoritos-page.jsx"],
+  about: ["constants.js", "company.js", "analytics.js", "sections.jsx", "chat.jsx", "quem-somos-page.jsx"],
+  finance: ["constants.js", "company.js", "analytics.js", "sections.jsx", "chat.jsx", "financiamento-page.jsx"],
+  privacy: ["constants.js", "company.js", "analytics.js", "sections.jsx", "chat.jsx", "privacidade-page.jsx"],
+  admin: ["constants.js", "company.js", "admin-listings.jsx", "admin-leads.jsx", "admin-form.jsx", "admin-app.jsx"],
 };
 
 await mkdir(outDir, { recursive: true });

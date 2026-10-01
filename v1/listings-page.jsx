@@ -1,6 +1,6 @@
 // Public listing browser: filters, pagination and links into the property page.
 
-const LIST_TYPES = ["Apartamento", "Cobertura", "Casa", "Casa em Condomínio", "Penthouse", "Terreno", "Comercial"];
+const LIST_TYPES = PROPERTY_TYPES;
 const LIST_STATUS = [
   { v: "", l: "Todos" },
   { v: "active", l: "À venda" },
