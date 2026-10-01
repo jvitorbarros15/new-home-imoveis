@@ -53,6 +53,25 @@ function mapDatabaseProperty(data) {
   };
 }
 
+async function loadSimilar(data) {
+  if (!data.price_brl) return [];
+  const { data: rows, error } = await window.sb
+    .from("properties")
+    .select("code,title,type,region,price_brl,area_m2,bedrooms,parking,purpose")
+    .eq("purpose", data.purpose)
+    .eq("type", data.type)
+    .neq("code", data.code)
+    .gte("price_brl", Math.round(data.price_brl * 0.7))
+    .lte("price_brl", Math.round(data.price_brl * 1.3))
+    .order("created_at", { ascending: false })
+    .limit(12);
+  if (error || !rows) return [];
+  return rows
+    .sort((a, b) => Number(b.region === data.region) - Number(a.region === data.region))
+    .slice(0, 4)
+    .map(row => ({ code: row.code, type: row.type, title: row.title, region: row.region, area: row.area_m2, rooms: row.bedrooms, parking: row.parking, price: row.price_brl / 100, purpose: row.purpose }));
+}
+
 function ImovelApp() {
   const [theme] = React.useState({motion:"on"});
   const [lightboxOpen,setLightboxOpen] = React.useState(false);
@@ -72,7 +91,11 @@ function ImovelApp() {
     window.sb.from("properties").select("code,title,type,region,price_brl,area_m2,bedrooms,suites,bathrooms,parking,images,status,purpose,description,tour_url,pet_friendly,condominio_brl,iptu_brl").eq("code",requestedCode).maybeSingle()
       .then(({data,error}) => {
         if (error || !data) setNotFound(requestedCode);
-        else { setProp(mapDatabaseProperty(data)); track("property_view", { code: data.code }); }
+        else {
+          setProp(mapDatabaseProperty(data));
+          track("property_view", { code: data.code });
+          loadSimilar(data).then(similar => setProp(current => current && { ...current, similar }));
+        }
       })
       .catch(() => setNotFound(requestedCode))
       .finally(() => setLoading(false));

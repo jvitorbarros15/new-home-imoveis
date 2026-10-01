@@ -218,10 +218,10 @@ function VisitScheduler({ prop }) {
 
 function Similar({ prop }) {
   if (!prop.similar?.length) return null;
-  return <section className="similar"><div className="sec-head" style={{paddingTop:0}}><h2>Outras <em>opções</em></h2><p>Consulte disponibilidade, endereço e valores atualizados no portal oficial.</p></div>
+  return <section className="similar"><div className="sec-head" style={{paddingTop:0}}><h2>Outras <em>opções</em></h2><p>Imóveis parecidos com este, na mesma faixa de valor.</p></div>
     <div className="similar-rail">{prop.similar.map((item) => <a key={item.code} className="sim-card" href={`imovel.html?code=${encodeURIComponent(item.code)}`} onClick={() => track("listing_click", { code: item.code, detail: "similares" })}>
       <div className="sim-body"><span className="sim-type">{item.type} · {item.region}</span><span className="sim-title">{item.title}</span>
-        <div className="sim-specs"><span>{item.area} m²</span><span>·</span><span>{item.rooms} quartos</span><span>·</span><span>{item.parking} vaga{item.parking===1?"":"s"}</span></div><span className="sim-price">{BRL(item.price)}</span>
+        <div className="sim-specs">{[item.area ? `${item.area} m²` : null, item.rooms ? `${item.rooms} ${item.rooms===1?"quarto":"quartos"}` : null, item.parking ? `${item.parking} vaga${item.parking===1?"":"s"}` : null].filter(Boolean).map((text,index) => <React.Fragment key={text}>{index > 0 && <span>·</span>}<span>{text}</span></React.Fragment>)}</div><span className="sim-price">{BRL(item.price)}{item.purpose === "rent" ? "/mês" : ""}</span>
       </div></a>)}</div>
   </section>;
 }

@@ -25,46 +25,6 @@ const IconSun    = (p) => <SVG {...p}><circle cx="12" cy="12" r="5"/><line x1="1
 const IconMenu   = (p) => <SVG {...p}><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></SVG>;
 const IconX      = (p) => <SVG {...p}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></SVG>;
 
-/* ------ Property data --------------------------------------------- */
-const FEATURED = [
-  {
-    code: "AP9680-NHB",
-    type: "Apartamento",
-    title: "Apartamento decorado com vista para a lagoa",
-    area: "133 m²", rooms: "3 Quartos", baths: "3", parking: "2 Vagas",
-    region: "Barra da Tijuca · Rio de Janeiro",
-    price: "R$ 2.290.000",
-    img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80&auto=format&fit=crop",
-  },
-  {
-    code: "AP0694-NHB",
-    type: "Apartamento",
-    title: "Apartamento com 3 quartos na Região Olímpica",
-    area: "92 m²", rooms: "3 Quartos", baths: "3", parking: "1 Vaga",
-    region: "Barra Olímpica · Rio de Janeiro",
-    price: "R$ 1.100.000",
-    img: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&q=80&auto=format&fit=crop",
-  },
-  {
-    code: "AP9886-NHB",
-    type: "Apartamento",
-    title: "Apartamento com 3 quartos na Barra da Tijuca",
-    area: "110 m²", rooms: "3 Quartos", baths: "3", parking: "2 Vagas",
-    region: "Barra da Tijuca · Rio de Janeiro",
-    price: "R$ 1.200.000",
-    img: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800&q=80&auto=format&fit=crop",
-  },
-  {
-    code: "AP9879-NHB",
-    type: "Apartamento",
-    title: "Apartamento com 4 quartos para venda ou locação",
-    area: "136 m²", rooms: "4 Quartos", baths: "—", parking: "2 Vagas",
-    region: "Barra Olímpica · Rio de Janeiro",
-    price: "R$ 1.470.000",
-    img: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80&auto=format&fit=crop",
-  },
-];
-
 const HERO_IMAGES = [
   "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1600&q=72&auto=format&fit=crop",
   "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1600&q=72&auto=format&fit=crop",
@@ -361,37 +321,42 @@ function Hero({ motion }) {
 function Destaques() {
   const [tab, setTab] = React.useState("Venda");
   const [hover, setHover] = React.useState(0);
-  const [items, setItems] = React.useState(FEATURED);
+  const [items, setItems] = React.useState([]);
 
   React.useEffect(() => {
     if (!window.sb) return;
+    let active = true;
     window.sb
       .from("properties")
       .select("code,title,type,region,price_brl,area_m2,bedrooms,bathrooms,parking,images,status,purpose,featured")
       .eq("status", "active")
+      .eq("purpose", tab === "Venda" ? "sale" : "rent")
       .order("featured", { ascending: false })
       .order("created_at", { ascending: false })
-      .limit(8)
+      .limit(4)
       .then(({ data, error }) => {
-        if (!error && data && data.length > 0) {
-          setItems(data.map(p => ({
-            type:    p.type,
-            title:   p.title,
-            area:    p.area_m2 ? `${p.area_m2} m²` : "—",
-            rooms:   p.bedrooms ? `${p.bedrooms} Quartos` : "—",
-            baths:   p.bathrooms ? String(p.bathrooms) : "—",
-            parking: p.parking ? `${p.parking} Vagas` : "—",
-            region:  p.region,
-            price:   "R$ " + (p.price_brl / 100).toLocaleString("pt-BR", { maximumFractionDigits: 0 }),
-            img:     p.images?.[0] || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80",
-            code:    p.code,
-          })));
-          setHover(0);
-        }
+        if (!active || error) return;
+        const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+        setItems((data || []).map(p => ({
+          type:    p.type,
+          title:   p.title,
+          area:    p.area_m2 ? `${p.area_m2} m²` : "—",
+          rooms:   p.bedrooms ? plural(p.bedrooms, "Quarto", "Quartos") : "—",
+          baths:   p.bathrooms ? String(p.bathrooms) : "—",
+          parking: p.parking ? plural(p.parking, "Vaga", "Vagas") : "—",
+          region:  p.region,
+          price:   "R$ " + (p.price_brl / 100).toLocaleString("pt-BR", { maximumFractionDigits: 0 }) + (p.purpose === "rent" ? "/mês" : ""),
+          img:     p.images?.[0] || "",
+          code:    p.code,
+        })));
+        setHover(0);
       });
-  }, []);
+    return () => { active = false; };
+  }, [tab]);
 
   const featured = items[hover] || items[0];
+
+  if (!featured && tab === "Venda") return null;
 
   return (
     <section id="destaques" className="reveal">
@@ -400,21 +365,18 @@ function Destaques() {
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 18 }}>
           <p>Uma seleção mensal de propriedades que combinam localização, projeto e singularidade.</p>
           <div className="seg">
-            {["Venda", "Aluguel", "Lançamentos"].map(t => (
-              <button key={t} className={tab === t ? "on" : ""} onClick={() => {
-                setTab(t);
-                const purpose = t === "Venda" ? "sale" : t === "Aluguel" ? "rent" : "";
-                window.location.href = purpose ? `${NH.listingsUrl}?purpose=${purpose}` : NH.listingsUrl;
-              }}>{t}</button>
+            {["Venda", "Aluguel"].map(t => (
+              <button key={t} className={tab === t ? "on" : ""} aria-pressed={tab === t} onClick={() => setTab(t)}>{t}</button>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="destaques">
+      {!featured && <p className="dest-empty">Nenhum imóvel disponível nesta categoria no momento.</p>}
+      {featured && <div className="destaques">
         <a className="dest-hero dest-hero-link" href={`imovel.html?code=${encodeURIComponent(featured?.code || "")}`}
               onClick={() => track("listing_click", { code: featured?.code, detail: "hero" })}>
-          <div className="img" style={{ backgroundImage: `url("${featured?.img}")` }} />
+          <div className="img" style={{ backgroundImage: featured?.img ? `url("${featured.img}")` : undefined }} />
           <div className="meta">
             <div>
               <div className="dest-tag">{featured?.type} · {featured?.region}</div>
@@ -427,7 +389,7 @@ function Destaques() {
               </div>
             </div>
             <div className="dest-price">
-              <small>A partir de</small>
+              <small>Valor</small>
               {featured?.price}
             </div>
           </div>
@@ -439,7 +401,7 @@ function Destaques() {
                onClick={() => track("listing_click", { code: p.code, detail: "destaques" })}
                onMouseEnter={() => setHover(i + 1)}
                onFocus={() => setHover(i + 1)}>
-              <div className="dc-imgwrap"><div className="dc-img" style={{ backgroundImage: `url("${p.img}")` }} /></div>
+              <div className="dc-imgwrap"><div className="dc-img" style={{ backgroundImage: p.img ? `url("${p.img}")` : undefined }} /></div>
               <div className="dc-body">
                 <div>
                   <div className="dc-type">{p.type} · {p.region.split(" · ")[0]}</div>
@@ -456,7 +418,7 @@ function Destaques() {
             </a>
           ))}
         </div>
-      </div>
+      </div>}
     </section>
   );
 }
