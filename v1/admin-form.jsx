@@ -56,6 +56,15 @@ function clamp(v, min, max) {
   return String(Math.max(min, Math.min(max, n)));
 }
 
+function Field({ label, id, children, full }) {
+  return (
+    <div className={`adm-field${full ? " adm-field-full" : ""}`}>
+      <label htmlFor={id}>{label}</label>
+      {children}
+    </div>
+  );
+}
+
 function PropertyForm({ prop, onSaved }) {
   const isEdit = !!prop;
 
@@ -195,15 +204,6 @@ function PropertyForm({ prop, onSaved }) {
       return;
     }
     onSaved();
-  }
-
-  function Field({ label, id, children, full }) {
-    return (
-      <div className={`adm-field${full ? " adm-field-full" : ""}`}>
-        <label htmlFor={id}>{label}</label>
-        {children}
-      </div>
-    );
   }
 
   return (
