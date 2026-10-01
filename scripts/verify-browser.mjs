@@ -194,13 +194,18 @@ const stickyBarVisible = await mobile.evaluate(() => {
   return box.height > 0 && box.bottom <= innerHeight + 1 && box.top >= 0;
 });
 await mobile.evaluate(() => scrollTo(0, 0));
-const visitButton = mobile.getByRole("button", { name: /solicitar pelo whatsapp/i });
+const visitButton = mobile.getByRole("button", { name: /^solicitar visita$/i });
+const visitForm = mobile.locator("form.visit");
+await visitForm.locator('input[name="name"]').fill("Cliente Teste");
+await visitForm.locator('input[name="phone"]').fill("(21) 99999-9999");
+await visitForm.locator('input[name="consent"]').check();
 await mobile.evaluate(() => {
   window.__verifyOpenedUrl = "";
   window.open = (url) => { window.__verifyOpenedUrl = String(url); return null; };
 });
 await visitButton.click();
 const visitOpenedWhatsapp = (await mobile.evaluate(() => window.__verifyOpenedUrl)).includes("wa.me");
+const visitConfirmed = await mobile.locator(".visit-status.ok").waitFor({ timeout: 5000 }).then(() => true, () => false);
 
 report.push({
   page: "interactions-mobile",
@@ -209,6 +214,7 @@ report.push({
   favoriteSaved,
   visitOpenedWhatsapp,
   stickyBarVisible,
+  visitConfirmed,
   scrollMetrics: mobileScrollMetrics,
   runtimeErrors: interactionErrors,
 });
@@ -228,6 +234,7 @@ const failed = report.some((item) =>
   item.favoriteSaved === false ||
   item.visitOpenedWhatsapp === false ||
   item.stickyBarVisible === false ||
+  item.visitConfirmed === false ||
   item.horizontalOverflow > 0
 );
 if (failed) process.exitCode = 1;

@@ -845,3 +845,13 @@ button.gal-thumb {
 }
 
 .visit-day, .visit-time { min-height: 44px; }
+
+.visit-contact { display: grid; gap: 10px; margin-top: 14px; }
+.visit-contact label, .visit-consent { display: grid; gap: 6px; font-size: 12px; color: var(--ink-2); }
+.visit-contact input { min-height: 44px; padding: 0 12px; background: transparent; border: 1px solid var(--line-2); border-radius: 4px; color: var(--ink); font: inherit; }
+.visit-consent { display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; line-height: 1.5; }
+.visit-consent input { margin-top: 3px; }
+.visit-consent a { text-decoration: underline; }
+.visit-status { margin-top: 10px; font-size: 13px; }
+.visit-status.ok { color: var(--accent); }
+.visit-status.error { color: #e0795b; }

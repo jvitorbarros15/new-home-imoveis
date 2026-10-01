@@ -203,16 +203,34 @@ function VisitScheduler({ prop }) {
     return { iso: date.toISOString().slice(0,10), label: date.toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"short"}) };
   }), []);
   const times=["10:00","12:00","14:00","16:00","18:00"];
-  const submit = (event) => {
+  const [state, setState] = React.useState("");
+  const submit = async (event) => {
     event.preventDefault();
-    const message = `Gostaria de solicitar uma visita ${mode} ao imóvel ${prop.code} em ${days[day].label}, às ${time}. Aguardo confirmação de disponibilidade.`;
+    const data = new FormData(event.currentTarget);
+    const phone = normalizePhoneBR(data.get("phone"));
+    if (!phone) { setState("badphone"); return; }
+    const name = String(data.get("name") || "").trim().slice(0, 120);
+    const slot = `${days[day].label}, às ${time}`;
+    const message = `Gostaria de solicitar uma visita ${mode} ao imóvel ${prop.code} em ${slot}. Meu nome é ${name}. Aguardo confirmação de disponibilidade.`;
     window.open(propertyWhatsapp(prop, message), "_blank", "noopener,noreferrer");
+    setState("sending");
+    const { saved } = await submitLead({ kind: "visit", name, phone, property_code: prop.code, interest: `Visita ${mode}`.slice(0, 60), message: slot });
+    track("visit_request", { code: prop.code, detail: mode });
+    setState(saved ? "sent" : "unsaved");
   };
   return <form className="visit" id="visita" onSubmit={submit}><h4>Solicitar visita</h4><div className="visit-sub">A data depende de confirmação da equipe e do responsável pelo imóvel.</div>
     <div className="visit-days">{days.map((item,index) => <button type="button" key={item.iso} className={`visit-day ${index===day?"on":""}`} aria-pressed={index===day} onClick={() => setDay(index)}><span className="dn">{item.label}</span></button>)}</div>
     <div className="visit-times">{times.map((item) => <button type="button" key={item} className={`visit-time ${item===time?"on":""}`} aria-pressed={item===time} onClick={() => setTime(item)}>{item}</button>)}</div>
     <div className="visit-mode"><button type="button" className={mode==="presencial"?"on":""} aria-pressed={mode==="presencial"} onClick={() => setMode("presencial")}>Presencial</button><button type="button" className={mode==="video"?"on":""} aria-pressed={mode==="video"} onClick={() => setMode("video")}>Vídeo</button></div>
-    <button type="submit" className="visit-cta">Solicitar pelo WhatsApp</button>
+    <div className="visit-contact">
+      <label>Nome<input name="name" required autoComplete="name" maxLength={120} /></label>
+      <label>WhatsApp<input name="phone" type="tel" required autoComplete="tel" placeholder="(21) 99999-9999" aria-invalid={state === "badphone"} /></label>
+    </div>
+    <label className="visit-consent"><input name="consent" type="checkbox" required /><span>Concordo com a <a href={NH.privacyUrl}>política de privacidade</a> e autorizo o contato da equipe.</span></label>
+    {state === "badphone" && <p className="visit-status error" role="alert">Informe um telefone válido com DDD.</p>}
+    {state === "sent" && <p className="visit-status ok" role="status">Pedido de visita enviado. Abrimos o WhatsApp para confirmar o horário.</p>}
+    {state === "unsaved" && <p className="visit-status error" role="alert">Não conseguimos registrar o pedido, mas o WhatsApp foi aberto. Continue a conversa por lá.</p>}
+    <button type="submit" className="visit-cta" disabled={state === "sending"}>{state === "sending" ? "Enviando..." : "Solicitar visita"}</button>
   </form>;
 }
 
