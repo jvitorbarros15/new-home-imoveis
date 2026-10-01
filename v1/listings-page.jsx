@@ -42,8 +42,15 @@ function ListingsPage() {
   const [total, setTotal] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
+  const [qText, setQText] = React.useState(filters.q);
 
   useReveal();
+
+  React.useEffect(() => {
+    if (qText === filters.q) return;
+    const timer = setTimeout(() => setFilters(f => ({ ...f, q: qText, page: 1 })), 300);
+    return () => clearTimeout(timer);
+  }, [qText]);
 
   React.useEffect(() => {
     writeFilters(filters);
@@ -92,6 +99,12 @@ function ListingsPage() {
     return () => { active = false; };
   }, [filters]);
 
+  React.useEffect(() => {
+    if (loading || error) return;
+    const last = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    if (filters.page > last) setFilters(f => ({ ...f, page: last }));
+  }, [loading, error, total]);
+
   const update = (patch) => setFilters(f => ({ ...f, ...patch, page: 1 }));
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -110,7 +123,7 @@ function ListingsPage() {
         <form className="lst-filters" onSubmit={(e) => e.preventDefault()} aria-label="Filtros de busca">
           <div className="lst-field lst-field-wide">
             <label htmlFor="f-q">Região, bairro ou palavra-chave</label>
-            <input id="f-q" value={filters.q} onChange={e => update({ q: e.target.value })}
+            <input id="f-q" value={qText} onChange={e => setQText(e.target.value)}
                    placeholder="Barra da Tijuca, varanda gourmet..." />
           </div>
           <div className="lst-field">
@@ -144,13 +157,13 @@ function ListingsPage() {
                    onChange={e => update({ maxPrice: e.target.value })} placeholder="3000000" />
           </div>
           <button type="button" className="lst-clear"
-                  onClick={() => setFilters({ q: "", code: "", tipo: "", purpose: "", minPrice: "", maxPrice: "", bedrooms: "", page: 1 })}>
+                  onClick={() => { setQText(""); setFilters({ q: "", code: "", tipo: "", purpose: "", minPrice: "", maxPrice: "", bedrooms: "", page: 1 }); }}>
             Limpar filtros
           </button>
         </form>
 
         <p className="lst-count" role="status">
-          {loading ? "Buscando..." : `${total} ${total === 1 ? "imóvel encontrado" : "imóveis encontrados"}`}
+          {loading ? "Buscando..." : error ? "" : `${total} ${total === 1 ? "imóvel encontrado" : "imóveis encontrados"}`}
         </p>
 
         {error && <div className="lst-error" role="alert">{error}</div>}

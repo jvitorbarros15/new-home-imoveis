@@ -228,7 +228,7 @@ function Hero({ motion }) {
     return () => document.removeEventListener("click", close);
   }, []);
 
-  const PRETENSOES = ["Comprar", "Alugar", "Lançamentos"];
+  const PRETENSOES = ["Comprar", "Alugar"];
   const TIPOS = PROPERTY_TYPES;
   const submitSearch = (e) => {
     e.preventDefault();
@@ -307,7 +307,7 @@ function Hero({ motion }) {
               <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Bairro, condomínio ou código" aria-label="Localização ou código do imóvel" />
             </span>
           </div>
-          <button type="button" className="hs-filter" onClick={() => { window.location.href = NH.listingsUrl; }}><IconFilter size={14} /> Mais filtros</button>
+          <button type="button" className="hs-filter" onClick={() => { window.location.href = listingsSearchUrl({ pretensao, tipo, busca }); }}><IconFilter size={14} /> Mais filtros</button>
           <button type="submit" className="hs-btn">Encontrar <IconArrow size={14} /></button>
         </form>
       </div>
