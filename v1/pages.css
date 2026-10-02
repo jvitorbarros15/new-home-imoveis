@@ -606,6 +606,9 @@
   .lst-field-wide { grid-column: span 1; }
 }
 
+.sim-for { margin: -24px 0 28px; color: var(--ink-2); font-size: 14px; }
+.sim-for b { color: var(--ink); font-weight: 500; }
+.sim-for a { color: var(--accent); text-decoration: underline; }
 .sim-wrap > * { min-width: 0; }
 @media (max-width: 480px) {
   .sim-card { padding: 28px 20px; }

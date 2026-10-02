@@ -51,8 +51,16 @@ function BanksGrid() {
   </section>;
 }
 
+const SIM_MIN_VALUE = 50000;
+const SIM_MAX_VALUE = 50000000;
+
 function Simulator() {
-  const [valor, setValor] = React.useState(1500000);
+  const query = React.useMemo(() => new URLSearchParams(location.search), []);
+  const [valor, setValor] = React.useState(() => {
+    const fromUrl = parseInt(query.get("valor"), 10);
+    return fromUrl > 0 ? Math.min(Math.max(fromUrl, SIM_MIN_VALUE), SIM_MAX_VALUE) : 1500000;
+  });
+  const code = /^[A-Za-z0-9-]{3,20}$/.test(query.get("codigo") || "") && query.get("valor") ? query.get("codigo") : "";
   const [entrada, setEntrada] = React.useState(0.25);
   const [anos, setAnos] = React.useState(30);
   const [taxa, setTaxa] = React.useState(10.5);
@@ -77,6 +85,7 @@ function Simulator() {
 
   return <section className="page-section reveal" id="simulador">
     <div className="page-section-head"><h2>Estime sua <em>parcela</em></h2><p>Cálculo educativo pelo sistema Price, sem seguros, tarifas ou indexadores.</p></div>
+    {code && <p className="sim-for">Simulação para o imóvel <b>{code}</b> · <a href={`imovel?code=${encodeURIComponent(code)}`}>Voltar ao imóvel</a></p>}
     <div className="sim-wrap">
       <div className="sim-card"><h3>Parâmetros</h3>
         <div className="sim-field">

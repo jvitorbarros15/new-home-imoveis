@@ -26,6 +26,7 @@ function mapDatabaseProperty(data) {
     title: data.title,
     type: data.type || "Imóvel",
     status,
+    purpose: data.purpose,
     address: data.region || "Rio de Janeiro / RJ",
     region: data.region || "Rio de Janeiro",
     price,

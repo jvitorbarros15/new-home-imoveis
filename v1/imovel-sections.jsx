@@ -171,6 +171,7 @@ function Localizacao({ prop }) {
 }
 
 function Custos({ prop }) {
+  const forSale = prop.purpose !== "rent" && prop.price > 0;
   return <div className="blk"><div className="blk-head"><h2>Custos do <em>imóvel</em></h2><span className="blk-aside">Valores sujeitos a alteração</span></div>
     <div className="custos"><div className="custos-table">
       <div className="custos-row"><span className="l">Valor anunciado</span><span className="v">{BRL(prop.price)}</span></div>
@@ -178,7 +179,7 @@ function Custos({ prop }) {
       <div className="custos-row"><span className="l">IPTU mensal informado</span><span className="v">{BRL(prop.iptu)}</span></div>
       <div className="custos-row"><span className="l">Valor aproximado do m²</span><span className="v">{BRL(prop.m2Value)}</span></div>
     </div>
-    <a className="custos-cta" href="financiamento.html"><span className="custos-cta-eyebrow">Planejamento</span><span className="custos-cta-title">Faça uma estimativa de financiamento</span><span className="custos-cta-go">Abrir simulador →</span></a></div>
+    {forSale && <a className="custos-cta" href={`financiamento?valor=${Math.round(prop.price)}&codigo=${encodeURIComponent(prop.code)}#simulador`}><span className="custos-cta-eyebrow">Planejamento</span><span className="custos-cta-title">Faça uma estimativa de financiamento</span><span className="custos-cta-go">Abrir simulador →</span></a>}</div>
     <p className="sim-fine">Preço, condomínio, IPTU, disponibilidade e condições podem mudar sem aviso. Confirme as informações antes da visita ou proposta.</p>
   </div>;
 }

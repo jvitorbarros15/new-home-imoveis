@@ -268,6 +268,10 @@ checks.priceBandsFillInputs = (await mobile.locator("#f-min").inputValue()) === 
   && (await mobile.locator("#f-max").inputValue()) === "R$ 3.000.000"
   && mobile.url().includes("min=1500000&max=3000000");
 
+await mobile.goto(baseUrl + "/financiamento?valor=2000000&codigo=AP0001-NHB", { waitUntil: "networkidle" });
+checks.simulatorReadsValor = (await mobile.locator("#sim-value").inputValue()) === "R$ 2.000.000"
+  && (await mobile.locator(".sim-for a").count()) === 1;
+
 report.push({ page: "checks", ...checks });
 await interactionContext.close();
 await browser.close();
