@@ -188,7 +188,7 @@ function Hero({ motion }) {
   const [idx, setIdx] = React.useState(0);
   const [loadedSlides, setLoadedSlides] = React.useState(() => new Set([0]));
   const [pretensao, setPretensao] = React.useState("Comprar");
-  const [tipo, setTipo] = React.useState("Apartamento");
+  const [tipo, setTipo] = React.useState("");
   const [busca, setBusca] = React.useState("");
   const [openP, setOpenP] = React.useState(false);
   const [openT, setOpenT] = React.useState(false);
@@ -229,7 +229,7 @@ function Hero({ motion }) {
   }, []);
 
   const PRETENSOES = ["Comprar", "Alugar"];
-  const TIPOS = PROPERTY_TYPES;
+  const TIPOS = ["", ...PROPERTY_TYPES];
   const submitSearch = (e) => {
     e.preventDefault();
     window.location.href = listingsSearchUrl({ pretensao, tipo, busca });
@@ -272,7 +272,13 @@ function Hero({ motion }) {
         </div>
 
         <form className="hero-search" onSubmit={submitSearch}>
-          <div className="hs-field" role="button" tabIndex="0" aria-haspopup="listbox" aria-expanded={openP}
+          <div className="hs-toggle" role="group" aria-label="Pretensão">
+            {PRETENSOES.map(p => (
+              <button type="button" key={p} className={p === pretensao ? "on" : ""} aria-pressed={p === pretensao}
+                      onClick={() => setPretensao(p)}>{p}</button>
+            ))}
+          </div>
+          <div className="hs-field hs-desktop" role="button" tabIndex="0" aria-haspopup="listbox" aria-expanded={openP}
                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpenP(o => !o); setOpenT(false); } }}
                onClick={(e) => { e.stopPropagation(); setOpenP(o => !o); setOpenT(false); }}>
             <span className="hs-label">Pretensão</span>
@@ -286,16 +292,16 @@ function Hero({ motion }) {
               </div>
             )}
           </div>
-          <div className="hs-field" role="button" tabIndex="0" aria-haspopup="listbox" aria-expanded={openT}
+          <div className="hs-field hs-desktop" role="button" tabIndex="0" aria-haspopup="listbox" aria-expanded={openT}
                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpenT(o => !o); setOpenP(false); } }}
                onClick={(e) => { e.stopPropagation(); setOpenT(o => !o); setOpenP(false); }}>
             <span className="hs-label">Tipo de imóvel</span>
-            <span className="hs-value">{tipo}<IconChev className="hs-chev" /></span>
+            <span className="hs-value">{tipo || "Todos os tipos"}<IconChev className="hs-chev" /></span>
             {openT && (
               <div className="hs-pop" onClick={(e) => e.stopPropagation()}>
                 {TIPOS.map(p => (
                   <button type="button" key={p} className={p === tipo ? "on" : ""}
-                          onClick={() => { setTipo(p); setOpenT(false); }}>{p}</button>
+                          onClick={() => { setTipo(p); setOpenT(false); }}>{p || "Todos os tipos"}</button>
                 ))}
               </div>
             )}

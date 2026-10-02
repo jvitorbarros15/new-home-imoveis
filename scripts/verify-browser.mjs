@@ -279,6 +279,12 @@ await mobile.goto(baseUrl, { waitUntil: "networkidle" });
 await mobile.locator(".seg button", { hasText: "Aluguel" }).click();
 checks.featuredStaysVisibleOnTabSwitch = (await mobile.locator('.destaques[data-count="1"] .dest-hero').count()) === 1;
 
+await mobile.goto(baseUrl, { waitUntil: "networkidle" });
+checks.mobileHeroSearchAboveFold = await mobile.evaluate(() => {
+  const box = document.querySelector(".hs-btn").getBoundingClientRect();
+  return box.height > 0 && box.bottom <= innerHeight;
+});
+
 report.push({ page: "checks", ...checks });
 await interactionContext.close();
 await browser.close();
