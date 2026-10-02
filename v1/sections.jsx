@@ -546,7 +546,7 @@ function CTA() {
     const lead = {
       name: String(data.get("name") || "").trim().slice(0, 120),
       phone,
-      email: String(data.get("email") || "").trim().slice(0, 200),
+      email: String(data.get("email") || "").trim().slice(0, 200) || null,
       interest: String(data.get("interest") || "").slice(0, 60),
       kind: "contact",
     };
@@ -555,9 +555,9 @@ function CTA() {
       "Olá! Gostaria de atendimento da New Home Imóveis.",
       `Nome: ${lead.name}`,
       `WhatsApp: ${data.get("phone")}`,
-      `E-mail: ${lead.email}`,
+      lead.email && `E-mail: ${lead.email}`,
       `Interesse: ${lead.interest}`,
-    ].join("\n");
+    ].filter(Boolean).join("\n");
     // Opened inside the click handler so popup blockers allow it.
     window.open(NH.whatsapp(message), "_blank", "noopener,noreferrer");
 
@@ -581,7 +581,7 @@ function CTA() {
         <label>Nome<input name="name" required autoComplete="name" placeholder="Como prefere ser chamado" /></label>
         <label>WhatsApp<input name="phone" type="tel" required autoComplete="tel" placeholder="(21) 99999-9999"
           aria-invalid={state === "badphone"} /></label>
-        <label>E-mail<input name="email" type="email" required autoComplete="email" placeholder="seu@email.com" /></label>
+        <label>E-mail (opcional)<input name="email" type="email" autoComplete="email" placeholder="seu@email.com" /></label>
         <label>O que procura?
           <select name="interest" defaultValue="" required>
             <option value="" disabled>Selecione</option>

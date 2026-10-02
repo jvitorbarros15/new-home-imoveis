@@ -249,6 +249,19 @@ checks.emptyGalleryIsCompact = await mobile.evaluate(() => {
 await mobile.goto(baseUrl + "/imovel?code=AP0001-NHB", { waitUntil: "networkidle" });
 checks.chatHiddenBehindStickyBar = await mobile.evaluate(() => getComputedStyle(document.querySelector(".chat-fab")).display === "none");
 
+await mobile.goto(baseUrl, { waitUntil: "networkidle" });
+const inserted = [];
+mobile.on("request", (req) => { if (req.method() === "POST" && req.url().includes("/leads")) inserted.push(req.postData()); });
+await mobile.evaluate(() => { window.open = () => null; });
+const ctaForm = mobile.locator("form.cta-form");
+await ctaForm.locator('input[name="name"]').fill("Cliente Teste");
+await ctaForm.locator('input[name="phone"]').fill("(21) 99999-9999");
+await ctaForm.locator('select[name="interest"]').selectOption({ index: 1 });
+await ctaForm.locator('input[name="consent"]').check();
+await ctaForm.locator("button[type=submit]").click();
+await mobile.locator(".cta-status.ok").waitFor({ timeout: 5000 }).catch(() => {});
+checks.homeFormSavesWithoutEmail = inserted.length === 1 && JSON.parse(inserted[0]).email === null;
+
 report.push({ page: "checks", ...checks });
 await interactionContext.close();
 await browser.close();
