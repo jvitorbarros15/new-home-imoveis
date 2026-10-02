@@ -6,7 +6,7 @@ function NotFoundProperty({ code }) {
       <span className="eyebrow">{code ? `Imóvel ${code}` : "Imóvel"}</span><h1>{code ? "Não encontramos este imóvel." : "Nenhum imóvel selecionado."}</h1>
       <p>A listagem pode ter sido removida, vendida ou o endereço pode estar incompleto. Veja os imóveis disponíveis ou fale com a equipe.</p>
       <div className="page-cta-actions" style={{justifyContent:"center",marginTop:24}}>
-        <a className="primary" href={NH.listingsUrl}>Ver imóveis disponíveis</a>
+        <a className="btn-primary" href={NH.listingsUrl}>Ver imóveis disponíveis</a>
         <a className="ghost" href={NH.whatsapp(code ? `Olá! Gostaria de informações sobre o imóvel ${code}.` : "Olá! Gostaria de informações sobre imóveis.")} target="_blank" rel="noopener noreferrer">Perguntar no WhatsApp</a>
       </div>
     </section>

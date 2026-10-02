@@ -69,7 +69,7 @@ function FavoritesPage() {
           <div className="lst-empty">
             <h2>Você ainda não salvou nenhum imóvel.</h2>
             <p>Use o ícone de coração na página de um imóvel para guardá-lo aqui.</p>
-            <a className="primary" href={NH.listingsUrl}>Ver imóveis</a>
+            <a className="btn-primary" href={NH.listingsUrl}>Ver imóveis</a>
           </div>
         )}
 

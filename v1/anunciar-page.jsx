@@ -32,11 +32,21 @@ function SellerPage() {
       <Nav />
       <DemoNotice />
       <main className="page" id="conteudo">
+        <div className="seller-layout">
+        <div>
         <header className="page-head">
           <span className="eyebrow">Proprietários</span>
           <h1>Anuncie seu <em>imóvel</em></h1>
           <p>Conte o básico sobre o imóvel. Um consultor entra em contato para avaliar, orientar a documentação e divulgar.</p>
         </header>
+        <ol className="seller-steps">
+          <li><strong>Avaliação gratuita</strong><span>Analisamos o imóvel e o mercado da região para sugerir o valor.</span></li>
+          <li><strong>Fotos e divulgação</strong><span>Anúncio com apresentação cuidada, no site e nos canais da New Home.</span></li>
+          <li><strong>Visitas acompanhadas</strong><span>Agendamos e acompanhamos cada visita, só com interessados reais.</span></li>
+          <li><strong>Documentação até a escritura</strong><span>Orientamos toda a documentação até a conclusão do negócio.</span></li>
+        </ol>
+        <p className="seller-creci">{NH.name} · CRECI {NH.creci}</p>
+        </div>
 
         <form className="seller-form" onSubmit={submit}>
           <div className="lst-field">
@@ -78,8 +88,9 @@ function SellerPage() {
           {state === "badphone" && <p className="seller-status error" role="alert">Informe um telefone válido com DDD, por exemplo (21) 99999-9999.</p>}
           {state === "sent" && <p className="seller-status ok" role="status">Recebemos seu contato. Abrimos o WhatsApp para continuar a conversa.</p>}
           {state === "unsaved" && <p className="seller-status error" role="alert">Não conseguimos registrar o contato, mas o WhatsApp foi aberto. Continue a conversa por lá.</p>}
-          <button type="submit" className="primary seller-submit" disabled={state === "sending"}>{state === "sending" ? "Enviando..." : "Quero anunciar"}</button>
+          <button type="submit" className="btn-primary seller-submit" disabled={state === "sending"}>{state === "sending" ? "Enviando..." : "Quero anunciar"}</button>
         </form>
+        </div>
       </main>
       <Footer />
       <Chat />

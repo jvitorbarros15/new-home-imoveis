@@ -610,7 +610,7 @@ function CTA() {
             Contato registrado. Abrimos o WhatsApp para continuar a conversa.
           </p>
         )}
-        <button type="submit" disabled={state === "sending"}>
+        <button type="submit" className="btn-primary" disabled={state === "sending"}>
           {state === "sending" ? "Enviando..." : "Solicitar contato"}
         </button>
       </form>

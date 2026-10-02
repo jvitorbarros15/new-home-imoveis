@@ -172,7 +172,7 @@ function ListingsPage() {
           <div className="lst-empty">
             <h2>Nenhum imóvel corresponde a esses filtros.</h2>
             <p>Ajuste a busca ou fale com a equipe para receber opções fora do site.</p>
-            <a className="primary" href={NH.whatsapp("Olá! Não encontrei o que procuro no site. Podem me ajudar?")}
+            <a className="btn-primary" href={NH.whatsapp("Olá! Não encontrei o que procuro no site. Podem me ajudar?")}
                target="_blank" rel="noopener noreferrer"
                onClick={() => track("whatsapp_click", { detail: "busca_vazia" })}>
               Falar no WhatsApp

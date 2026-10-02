@@ -224,6 +224,12 @@ const checks = {};
 checks.navContactNotActiveOnHome = await mobile.goto(baseUrl, { waitUntil: "networkidle" }).then(() =>
   mobile.locator(".nav-links a.active", { hasText: "Contato" }).count()).then((n) => n === 0);
 
+await mobile.goto(baseUrl + "/anunciar.html", { waitUntil: "networkidle" });
+checks.sellerSubmitStyled = await mobile.locator(".seller-submit").evaluate((el) => {
+  const bg = getComputedStyle(el).backgroundColor;
+  return bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent";
+});
+
 report.push({ page: "checks", ...checks });
 await interactionContext.close();
 await browser.close();
