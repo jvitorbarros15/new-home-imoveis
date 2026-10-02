@@ -235,6 +235,9 @@
 .idn-price-est b { color: var(--accent); font-weight: 500; }
 .idn-price-est small { font-size: 11px; color: var(--ink-3); letter-spacing: 0.04em; }
 .idn-price-est:hover small { color: var(--accent); }
+.idn-price-unit { font-size: 0.4em; margin-left: 4px; color: var(--ink-3); letter-spacing: 0; }
+.idn-price-total { margin-top: 10px; font-size: 14px; color: var(--ink-2); }
+.idn-price-total b { color: var(--accent); font-weight: 500; }
 .idn-price-meta b { color: var(--ink); font-weight: 500; }
 .idn-actions {
   margin-top: 22px; display: flex; gap: 8px; justify-content: flex-end;

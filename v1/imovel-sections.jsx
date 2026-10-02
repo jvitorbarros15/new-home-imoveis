@@ -24,6 +24,8 @@ const PROP = {
   similar: [],
 };
 
+const isMoney = (value) => typeof value === "number";
+const rentTotal = (prop) => prop.purpose === "rent" && isMoney(prop.price) && isMoney(prop.condominio) && isMoney(prop.iptu) ? prop.price + prop.condominio + prop.iptu : null;
 const BRL = (value) => typeof value === "number" ? value.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }) : "Consulte";
 const propertyWhatsapp = (prop, extra = "Gostaria de mais informações.") =>
   NH.whatsapp(`Olá! Tenho interesse no imóvel ${prop.code} — ${prop.title}. ${extra}`);
@@ -100,7 +102,7 @@ function GalleryHero({ prop, onOpen }) {
       ? <button type="button" className="gal-main" onClick={() => onOpen(0)} aria-label="Abrir imagem principal"><div className="img" style={{backgroundImage:`url(${prop.images[0].src})`}}/></button>
       : <div className="gal-main gal-empty"><img src="assets/logo-gold.png" alt="" /><span>Fotos em breve</span><a href={propertyWhatsapp(prop, "Gostaria de receber as fotos deste imóvel.")} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click", { code: prop.code, detail: "pedir_fotos" })}>Pedir fotos pelo WhatsApp</a></div>}
     {prop.images.length > 0 && <div className="gal-side">{prop.images.slice(1,5).map((image,index) => <button type="button" key={image.src} className="gal-thumb" onClick={() => onOpen(index + 1)} aria-label={`Abrir imagem ${index + 2}`}><div className="img" style={{backgroundImage:`url(${image.src})`}}/></button>)}</div>}
-    {prop.images.length > 0 && <button type="button" className="gal-all" onClick={() => onOpen(0)}><span className="gal-all-long">Ver galeria · {prop.images.length} imagens</span><span className="gal-all-short">{prop.images.length} {prop.images.length === 1 ? "foto" : "fotos"}</span></button>}
+    {prop.images.length > 0 && <button type="button" className="gal-all" onClick={() => onOpen(0)}><span className="gal-all-long">Ver galeria · {prop.images.length} {prop.images.length === 1 ? "imagem" : "imagens"}</span><span className="gal-all-short">{prop.images.length} {prop.images.length === 1 ? "foto" : "fotos"}</span></button>}
     <div className="gal-actions">
       <button type="button" className={`gal-action ${favorite ? "on" : ""}`} onClick={toggleFavorite} aria-pressed={favorite} aria-label={favorite ? "Remover dos favoritos" : "Salvar nos favoritos"}><I.Heart size={16}/></button>
       <button type="button" className="gal-action" onClick={share} aria-label="Compartilhar"><I.Share size={16}/></button>
@@ -111,6 +113,8 @@ function GalleryHero({ prop, onOpen }) {
 }
 
 function Identity({ prop }) {
+  const rent = prop.purpose === "rent";
+  const total = rentTotal(prop);
   const forSale = prop.purpose !== "rent" && prop.price > 0;
   const installment = forSale ? priceInstallment(prop.price * (1 - SIM_DEFAULTS.entrada), SIM_DEFAULTS.taxa, SIM_DEFAULTS.anos) : 0;
   return <><div className="idn">
@@ -118,8 +122,9 @@ function Identity({ prop }) {
       <h1>{prop.title}</h1><div className="idn-loc"><I.Pin size={16}/>{prop.address}</div>
       {prop.officialUrl && <a className="agent-btn ghost" href={prop.officialUrl} target="_blank" rel="noopener noreferrer" style={{marginTop:14}}>Ver anúncio e fotos oficiais ↗</a>}
     </div>
-    <div className="idn-price-block"><span className="idn-price-label">Valor anunciado</span><span className="idn-price">{BRL(prop.price)}</span>
-      <div className="idn-price-meta"><span>Cond. <b>{BRL(prop.condominio)}</b></span><span>IPTU <b>{BRL(prop.iptu)}/mês</b></span><span>m² <b>{BRL(prop.m2Value)}</b></span></div>
+    <div className="idn-price-block"><span className="idn-price-label">{rent ? "Aluguel mensal" : "Valor anunciado"}</span><span className="idn-price">{BRL(prop.price)}{rent && isMoney(prop.price) ? <small className="idn-price-unit">/mês</small> : null}</span>
+      <div className="idn-price-meta"><span>{isMoney(prop.condominio) ? <>Cond. <b>{BRL(prop.condominio)}</b></> : "Cond. sob consulta"}</span><span>{isMoney(prop.iptu) ? <>IPTU <b>{BRL(prop.iptu)}/mês</b></> : "IPTU sob consulta"}</span>{!rent && <span>m² <b>{BRL(prop.m2Value)}</b></span>}</div>
+      {total !== null && <div className="idn-price-total">Total mensal estimado <b>{BRL(total)}</b></div>}
       {installment > 0 && <a className="idn-price-est" href={`financiamento?valor=${Math.round(prop.price)}&codigo=${encodeURIComponent(prop.code)}#simulador`}><span>Parcela estimada a partir de <b>{BRL(installment)}/mês</b></span><small>Entrada de {SIM_DEFAULTS.entrada * 100}%, {SIM_DEFAULTS.anos} anos, {String(SIM_DEFAULTS.taxa).replace(".", ",")}% a.a. Simule →</small></a>}
     </div>
   </div>
@@ -177,10 +182,12 @@ function Custos({ prop }) {
   const forSale = prop.purpose !== "rent" && prop.price > 0;
   return <div className="blk"><div className="blk-head"><h2>Custos do <em>imóvel</em></h2><span className="blk-aside">Valores sujeitos a alteração</span></div>
     <div className="custos"><div className="custos-table">
-      <div className="custos-row"><span className="l">Valor anunciado</span><span className="v">{BRL(prop.price)}</span></div>
-      <div className="custos-row"><span className="l">Condomínio mensal</span><span className="v">{BRL(prop.condominio)}</span></div>
-      <div className="custos-row"><span className="l">IPTU mensal informado</span><span className="v">{BRL(prop.iptu)}</span></div>
-      <div className="custos-row"><span className="l">Valor aproximado do m²</span><span className="v">{BRL(prop.m2Value)}</span></div>
+      <div className="custos-row"><span className="l">{prop.purpose === "rent" ? "Aluguel mensal" : "Valor anunciado"}</span><span className="v">{BRL(prop.price)}</span></div>
+      <div className="custos-row"><span className="l">Condomínio mensal</span><span className="v">{isMoney(prop.condominio) ? BRL(prop.condominio) : "Sob consulta"}</span></div>
+      <div className="custos-row"><span className="l">IPTU mensal informado</span><span className="v">{isMoney(prop.iptu) ? BRL(prop.iptu) : "Sob consulta"}</span></div>
+      {prop.purpose === "rent"
+        ? rentTotal(prop) !== null && <div className="custos-row"><span className="l">Total mensal estimado</span><span className="v">{BRL(rentTotal(prop))}</span></div>
+        : <div className="custos-row"><span className="l">Valor aproximado do m²</span><span className="v">{BRL(prop.m2Value)}</span></div>}
     </div>
     {forSale && <a className="custos-cta" href={`financiamento?valor=${Math.round(prop.price)}&codigo=${encodeURIComponent(prop.code)}#simulador`}><span className="custos-cta-eyebrow">Planejamento</span><span className="custos-cta-title">Faça uma estimativa de financiamento</span><span className="custos-cta-go">Abrir simulador →</span></a>}</div>
     <p className="sim-fine">Preço, condomínio, IPTU, disponibilidade e condições podem mudar sem aviso. Confirme as informações antes da visita ou proposta.</p>
