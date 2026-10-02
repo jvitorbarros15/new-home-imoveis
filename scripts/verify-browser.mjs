@@ -272,6 +272,9 @@ await mobile.goto(baseUrl + "/financiamento?valor=2000000&codigo=AP0001-NHB", { 
 checks.simulatorReadsValor = (await mobile.locator("#sim-value").inputValue()) === "R$ 2.000.000"
   && (await mobile.locator(".sim-for a").count()) === 1;
 
+await mobile.goto(baseUrl + "/imovel?code=AP0001-NHB", { waitUntil: "networkidle" });
+checks.installmentTeaser = /R\$\s*9\.\d{3}\/mês/.test(await mobile.locator(".idn-price-est").innerText());
+
 report.push({ page: "checks", ...checks });
 await interactionContext.close();
 await browser.close();

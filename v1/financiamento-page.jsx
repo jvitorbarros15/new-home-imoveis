@@ -61,15 +61,12 @@ function Simulator() {
     return fromUrl > 0 ? Math.min(Math.max(fromUrl, SIM_MIN_VALUE), SIM_MAX_VALUE) : 1500000;
   });
   const code = /^[A-Za-z0-9-]{3,20}$/.test(query.get("codigo") || "") && query.get("valor") ? query.get("codigo") : "";
-  const [entrada, setEntrada] = React.useState(0.25);
-  const [anos, setAnos] = React.useState(30);
-  const [taxa, setTaxa] = React.useState(10.5);
+  const [entrada, setEntrada] = React.useState(SIM_DEFAULTS.entrada);
+  const [anos, setAnos] = React.useState(SIM_DEFAULTS.anos);
+  const [taxa, setTaxa] = React.useState(SIM_DEFAULTS.taxa);
   const principal = Math.max(0, valor * (1 - entrada));
-  const monthlyRate = Math.pow(1 + taxa / 100, 1 / 12) - 1;
   const months = anos * 12;
-  const parcela = principal > 0 && monthlyRate > 0
-    ? principal * (monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1)
-    : 0;
+  const parcela = priceInstallment(principal, taxa, anos);
   const totalPago = parcela * months;
   const juros = Math.max(0, totalPago - principal);
   const money = (value) => `R$ ${Math.round(value).toLocaleString("pt-BR")}`;

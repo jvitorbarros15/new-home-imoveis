@@ -111,6 +111,8 @@ function GalleryHero({ prop, onOpen }) {
 }
 
 function Identity({ prop }) {
+  const forSale = prop.purpose !== "rent" && prop.price > 0;
+  const installment = forSale ? priceInstallment(prop.price * (1 - SIM_DEFAULTS.entrada), SIM_DEFAULTS.taxa, SIM_DEFAULTS.anos) : 0;
   return <><div className="idn">
     <div><div className="idn-tags"><span className="idn-tag accent">{prop.status}</span><span className="idn-tag">{prop.type}</span><span className="idn-tag">Cód. {prop.code}</span></div>
       <h1>{prop.title}</h1><div className="idn-loc"><I.Pin size={16}/>{prop.address}</div>
@@ -118,6 +120,7 @@ function Identity({ prop }) {
     </div>
     <div className="idn-price-block"><span className="idn-price-label">Valor anunciado</span><span className="idn-price">{BRL(prop.price)}</span>
       <div className="idn-price-meta"><span>Cond. <b>{BRL(prop.condominio)}</b></span><span>IPTU <b>{BRL(prop.iptu)}/mês</b></span><span>m² <b>{BRL(prop.m2Value)}</b></span></div>
+      {installment > 0 && <a className="idn-price-est" href={`financiamento?valor=${Math.round(prop.price)}&codigo=${encodeURIComponent(prop.code)}#simulador`}><span>Parcela estimada a partir de <b>{BRL(installment)}/mês</b></span><small>Entrada de {SIM_DEFAULTS.entrada * 100}%, {SIM_DEFAULTS.anos} anos, {String(SIM_DEFAULTS.taxa).replace(".", ",")}% a.a. Simule →</small></a>}
     </div>
   </div>
   <div className="specs">

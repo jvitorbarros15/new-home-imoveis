@@ -24,3 +24,12 @@ function formatBRLInput(raw) {
   const value = parseBRL(raw);
   return value === null ? "" : `R$ ${value.toLocaleString("pt-BR")}`;
 }
+
+const SIM_DEFAULTS = { entrada: 0.25, anos: 30, taxa: 10.5 };
+
+function priceInstallment(principal, annualRatePct, years) {
+  const monthlyRate = Math.pow(1 + annualRatePct / 100, 1 / 12) - 1;
+  const months = years * 12;
+  if (!(principal > 0) || !(monthlyRate > 0)) return 0;
+  return principal * (monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
+}
