@@ -127,7 +127,7 @@ function Nav() {
     { href: NH.favoritesUrl,        label: "Favoritos",     page: "favoritos" },
     { href: "financiamento.html",   label: "Financiamento", page: "financiamento" },
     { href: "quem-somos.html",      label: "Quem somos",    page: "quem-somos" },
-    { href: "index.html#contato",   label: "Contato",       page: "index" },
+    { href: currentPage === "index" ? "#contato" : "index.html#contato", label: "Contato", page: "contato" },
   ];
 
   return (

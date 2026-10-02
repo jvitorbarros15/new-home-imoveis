@@ -220,6 +220,11 @@ report.push({
   runtimeErrors: interactionErrors,
 });
 
+const checks = {};
+checks.navContactNotActiveOnHome = await mobile.goto(baseUrl, { waitUntil: "networkidle" }).then(() =>
+  mobile.locator(".nav-links a.active", { hasText: "Contato" }).count()).then((n) => n === 0);
+
+report.push({ page: "checks", ...checks });
 await interactionContext.close();
 await browser.close();
 console.log(JSON.stringify(report, null, 2));
@@ -236,6 +241,7 @@ const failed = report.some((item) =>
   item.visitOpenedWhatsapp === false ||
   item.stickyBarVisible === false ||
   item.visitConfirmed === false ||
-  item.horizontalOverflow > 0
+  item.horizontalOverflow > 0 ||
+  (item.page === "checks" && Object.values(item).slice(1).includes(false))
 );
 if (failed) process.exitCode = 1;
