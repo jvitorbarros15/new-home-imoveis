@@ -1,7 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-const SITE_URL = process.env.SITE_URL || "https://new-home-imoveis.vercel.app";
+const DEFAULT_SITE_URL = "https://new-home-imoveis.vercel.app";
+const SITE_URL = (process.env.SITE_URL || DEFAULT_SITE_URL).replace(/\/+$/, "");
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "";
 const CODE_PATTERN = /^[A-Za-z0-9-]{1,32}$/;
@@ -10,7 +11,8 @@ let templateCache;
 
 async function loadTemplate() {
   if (templateCache) return templateCache;
-  templateCache = await readFile(join(process.cwd(), "templates", "imovel.html"), "utf8");
+  const template = await readFile(join(process.cwd(), "templates", "imovel.html"), "utf8");
+  templateCache = template.replaceAll(DEFAULT_SITE_URL, SITE_URL);
   return templateCache;
 }
 

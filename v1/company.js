@@ -29,7 +29,7 @@ window.NH = Object.freeze({
   favoritesUrl: "/favoritos",
   isDemo: true,
   mapUrl: "https://www.google.com/maps/search/?api=1&query=Avenida+Embaixador+Abelardo+Bueno+3500+Rio+de+Janeiro",
-  siteUrl: "https://new-home-imoveis.vercel.app",
+  siteUrl: window.NEW_HOME_CONFIG?.siteUrl || "https://new-home-imoveis.vercel.app",
   whatsapp(message = "Olá! Gostaria de falar com a New Home Imóveis.") {
     return `https://wa.me/${this.primaryPhone.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
   },

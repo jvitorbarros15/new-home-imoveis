@@ -41,7 +41,11 @@ if (process.env.VERCEL && (!process.env.SUPABASE_URL || !process.env.SUPABASE_AN
   throw new Error("SUPABASE_URL and SUPABASE_ANON_KEY must be set for Vercel builds.");
 }
 
+const DEFAULT_SITE_URL = "https://new-home-imoveis.vercel.app";
+const siteUrl = (process.env.SITE_URL || DEFAULT_SITE_URL).replace(/\/+$/, "");
+
 const publicConfig = {
+  siteUrl,
   supabaseUrl: process.env.SUPABASE_URL || "",
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY || "",
   turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || "",
@@ -103,6 +107,13 @@ if (process.env.VERCEL) {
       bundleHashes[name] ? `src="${src}?v=${bundleHashes[name]}"` : match
     );
     if (next !== html) await writeFile(file, next, "utf8");
+  }
+
+  if (siteUrl !== DEFAULT_SITE_URL) {
+    for (const file of htmlFiles.filter((file) => file.startsWith(sourceRoot))) {
+      const html = await readFile(file, "utf8");
+      if (html.includes(DEFAULT_SITE_URL)) await writeFile(file, html.replaceAll(DEFAULT_SITE_URL, siteUrl), "utf8");
+    }
   }
 }
 
