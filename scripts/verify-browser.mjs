@@ -246,6 +246,9 @@ checks.emptyGalleryIsCompact = await mobile.evaluate(() => {
   return !!gal && gal.getBoundingClientRect().height <= 220 && !!gal.querySelector(".gal-empty a[href*='wa.me']");
 });
 
+await mobile.goto(baseUrl + "/imovel?code=AP0001-NHB", { waitUntil: "networkidle" });
+checks.chatHiddenBehindStickyBar = await mobile.evaluate(() => getComputedStyle(document.querySelector(".chat-fab")).display === "none");
+
 report.push({ page: "checks", ...checks });
 await interactionContext.close();
 await browser.close();

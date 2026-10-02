@@ -238,7 +238,7 @@ function StickyContact({ prop }) {
   return <div className="sticky-contact" role="region" aria-label="Contato rápido">
     <a className="sc-btn primary" href={propertyWhatsapp(prop, location.href)} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click", { code: prop.code, detail: "barra_fixa" })}><I.WA size={16}/>WhatsApp</a>
     <a className="sc-btn" href={`tel:${prop.agent.phone}`} onClick={() => track("phone_click", { code: prop.code, detail: "barra_fixa" })}><I.Phone size={14}/>Ligar</a>
-    <a className="sc-btn" href="#visita">Agendar visita</a>
+    <a className="sc-btn" href="#visita">Visita</a>
   </div>;
 }
 

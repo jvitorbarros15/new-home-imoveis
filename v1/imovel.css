@@ -850,8 +850,8 @@ button.gal-thumb {
   }
   .sc-btn.primary { flex: 1.4; background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 500; }
   .imovel-page { padding-bottom: 88px; }
-  body:has(.sticky-contact) .chat-fab { bottom: 86px; }
-  body:has(.sticky-contact) .chat-panel { bottom: 156px; }
+  body:has(.sticky-contact) .chat-fab,
+  body:has(.sticky-contact) .chat-panel { display: none; }
 }
 
 .visit-day, .visit-time { min-height: 44px; }
