@@ -262,11 +262,13 @@ await ctaForm.locator("button[type=submit]").click();
 await mobile.locator(".cta-status.ok").waitFor({ timeout: 5000 }).catch(() => {});
 checks.homeFormSavesWithoutEmail = inserted.length === 1 && JSON.parse(inserted[0]).email === null;
 
+await mobile.setViewportSize({ width: 1440, height: 900 });
 await mobile.goto(baseUrl + "/imoveis?purpose=sale", { waitUntil: "networkidle" });
-await mobile.locator(".lst-band", { hasText: "1,5 a 3 mi" }).click();
+await mobile.locator(".lst-filters .lst-band", { hasText: "1,5 a 3 mi" }).click();
 checks.priceBandsFillInputs = (await mobile.locator("#f-min").inputValue()) === "R$ 1.500.000"
   && (await mobile.locator("#f-max").inputValue()) === "R$ 3.000.000"
   && mobile.url().includes("min=1500000&max=3000000");
+await mobile.setViewportSize({ width: 390, height: 844 });
 
 await mobile.goto(baseUrl + "/financiamento?valor=2000000&codigo=AP0001-NHB", { waitUntil: "networkidle" });
 checks.simulatorReadsValor = (await mobile.locator("#sim-value").inputValue()) === "R$ 2.000.000"
@@ -284,6 +286,21 @@ checks.mobileHeroSearchAboveFold = await mobile.evaluate(() => {
   const box = document.querySelector(".hs-btn").getBoundingClientRect();
   return box.height > 0 && box.bottom <= innerHeight;
 });
+
+await mobile.goto(baseUrl + "/imoveis", { waitUntil: "networkidle" });
+checks.mobileFirstResultInFirstScreen = await mobile.evaluate(() => {
+  const card = document.querySelector(".lst-card");
+  return !!card && card.getBoundingClientRect().top < innerHeight;
+});
+await mobile.getByRole("button", { name: /^filtros/i }).click();
+checks.filterSheetOpens = await mobile.locator("dialog.lst-sheet[open]").isVisible();
+await mobile.locator("#s-purpose").selectOption("rent");
+await mobile.getByRole("button", { name: "Aplicar" }).click();
+checks.filterSheetAppliesAndChips = !(await mobile.locator("dialog.lst-sheet[open]").count())
+  && (await mobile.locator(".lst-chip", { hasText: "Aluguel" }).count()) === 1
+  && mobile.url().includes("purpose=rent");
+await mobile.locator(".lst-chip", { hasText: "Aluguel" }).click();
+checks.filterChipRemoves = !mobile.url().includes("purpose=");
 
 report.push({ page: "checks", ...checks });
 await interactionContext.close();

@@ -36,6 +36,9 @@ function writeFilters(filters) {
   history.replaceState(null, "", query ? `?${query}` : location.pathname);
 }
 
+const EMPTY_FILTERS = { tipo: "", purpose: "", minPrice: "", maxPrice: "", bedrooms: "" };
+const brlShort = (value) => `R$ ${Number(value).toLocaleString("pt-BR")}`;
+
 function ListingsPage() {
   const [filters, setFilters] = React.useState(readFilters);
   const [items, setItems] = React.useState([]);
@@ -43,6 +46,8 @@ function ListingsPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState("");
   const [qText, setQText] = React.useState(filters.q);
+  const [draft, setDraft] = React.useState(filters);
+  const sheetRef = React.useRef(null);
 
   useReveal();
 
@@ -107,7 +112,79 @@ function ListingsPage() {
 
   const update = (patch) => setFilters(f => ({ ...f, ...patch, page: 1 }));
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const bands = PRICE_BANDS[filters.purpose];
+
+  const clearAll = () => { setQText(""); setFilters({ q: "", code: "", ...EMPTY_FILTERS, page: 1 }); };
+  const openSheet = () => {
+    setDraft(filters);
+    document.body.style.overflow = "hidden";
+    sheetRef.current.showModal();
+  };
+  const applySheet = () => {
+    update({ tipo: draft.tipo, purpose: draft.purpose, bedrooms: draft.bedrooms, minPrice: draft.minPrice, maxPrice: draft.maxPrice });
+    sheetRef.current.close();
+  };
+
+  const chips = [];
+  if (filters.purpose) chips.push({ key: "purpose", label: LIST_PURPOSE.find(p => p.v === filters.purpose)?.l || filters.purpose, clear: { purpose: "", minPrice: "", maxPrice: "" } });
+  if (filters.tipo) chips.push({ key: "tipo", label: filters.tipo, clear: { tipo: "" } });
+  if (filters.bedrooms) chips.push({ key: "bedrooms", label: `${filters.bedrooms}+ quartos`, clear: { bedrooms: "" } });
+  if (filters.minPrice || filters.maxPrice) {
+    const label = filters.minPrice && filters.maxPrice ? `${brlShort(filters.minPrice)} a ${brlShort(filters.maxPrice)}`
+      : filters.minPrice ? `A partir de ${brlShort(filters.minPrice)}` : `Até ${brlShort(filters.maxPrice)}`;
+    chips.push({ key: "price", label, clear: { minPrice: "", maxPrice: "" } });
+  }
+  const activeCount = chips.length;
+
+  const filterFields = (prefix, values, set) => {
+    const bands = PRICE_BANDS[values.purpose];
+    return (
+      <>
+        <div className="lst-field">
+          <label htmlFor={`${prefix}-purpose`}>Finalidade</label>
+          <select id={`${prefix}-purpose`} value={values.purpose} onChange={e => set({ purpose: e.target.value, minPrice: "", maxPrice: "" })}>
+            {LIST_PURPOSE.map(s => <option key={s.l} value={s.v}>{s.l}</option>)}
+          </select>
+        </div>
+        <div className="lst-field">
+          <label htmlFor={`${prefix}-tipo`}>Tipo</label>
+          <select id={`${prefix}-tipo`} value={values.tipo} onChange={e => set({ tipo: e.target.value })}>
+            <option value="">Todos</option>
+            {LIST_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+        <div className="lst-field">
+          <label htmlFor={`${prefix}-quartos`}>Quartos (mín.)</label>
+          <select id={`${prefix}-quartos`} value={values.bedrooms} onChange={e => set({ bedrooms: e.target.value })}>
+            <option value="">Indiferente</option>
+            {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}+</option>)}
+          </select>
+        </div>
+        <div className="lst-field">
+          <label htmlFor={`${prefix}-min`}>Preço mínimo</label>
+          <input id={`${prefix}-min`} inputMode="numeric" autoComplete="off" value={formatBRLInput(values.minPrice)}
+                 onChange={e => set({ minPrice: String(parseBRL(e.target.value) ?? "") })} placeholder="Mínimo" />
+        </div>
+        <div className="lst-field">
+          <label htmlFor={`${prefix}-max`}>Preço máximo</label>
+          <input id={`${prefix}-max`} inputMode="numeric" autoComplete="off" value={formatBRLInput(values.maxPrice)}
+                 onChange={e => set({ maxPrice: String(parseBRL(e.target.value) ?? "") })} placeholder="Máximo" />
+        </div>
+        {bands && (
+          <div className="lst-bands" role="group" aria-label="Faixas de preço">
+            {bands.map(band => {
+              const on = values.minPrice === String(band.min) && values.maxPrice === String(band.max);
+              return (
+                <button key={band.label} type="button" className={`lst-band ${on ? "on" : ""}`} aria-pressed={on}
+                        onClick={() => set(on ? { minPrice: "", maxPrice: "" } : { minPrice: String(band.min), maxPrice: String(band.max) })}>
+                  {band.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </>
+    );
+  };
 
   return (
     <>
@@ -115,7 +192,7 @@ function ListingsPage() {
       <Nav />
       <DemoNotice />
       <main className="page" id="conteudo">
-        <header className="page-head">
+        <header className="page-head lst-head">
           <span className="eyebrow">Busca</span>
           <h1>Imóveis <em>disponíveis</em></h1>
           <p>Filtre por finalidade, tipo, região, faixa de preço e número de quartos.</p>
@@ -127,58 +204,44 @@ function ListingsPage() {
             <input id="f-q" value={qText} onChange={e => setQText(e.target.value)}
                    placeholder="Barra da Tijuca, varanda gourmet..." />
           </div>
-          <div className="lst-field">
-            <label htmlFor="f-purpose">Finalidade</label>
-            <select id="f-purpose" value={filters.purpose} onChange={e => update({ purpose: e.target.value })}>
-              {LIST_PURPOSE.map(s => <option key={s.l} value={s.v}>{s.l}</option>)}
-            </select>
+          <div className="lst-more">
+            {filterFields("f", filters, update)}
+            <button type="button" className="lst-clear" onClick={clearAll}>Limpar filtros</button>
           </div>
-          <div className="lst-field">
-            <label htmlFor="f-tipo">Tipo</label>
-            <select id="f-tipo" value={filters.tipo} onChange={e => update({ tipo: e.target.value })}>
-              <option value="">Todos</option>
-              {LIST_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
-          <div className="lst-field">
-            <label htmlFor="f-quartos">Quartos (mín.)</label>
-            <select id="f-quartos" value={filters.bedrooms} onChange={e => update({ bedrooms: e.target.value })}>
-              <option value="">Indiferente</option>
-              {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}+</option>)}
-            </select>
-          </div>
-          <div className="lst-field">
-            <label htmlFor="f-min">Preço mínimo</label>
-            <input id="f-min" inputMode="numeric" autoComplete="off" value={formatBRLInput(filters.minPrice)}
-                   onChange={e => update({ minPrice: String(parseBRL(e.target.value) ?? "") })} placeholder="Mínimo" />
-          </div>
-          <div className="lst-field">
-            <label htmlFor="f-max">Preço máximo</label>
-            <input id="f-max" inputMode="numeric" autoComplete="off" value={formatBRLInput(filters.maxPrice)}
-                   onChange={e => update({ maxPrice: String(parseBRL(e.target.value) ?? "") })} placeholder="Máximo" />
-          </div>
-          {bands && (
-            <div className="lst-bands" role="group" aria-label="Faixas de preço">
-              {bands.map(band => {
-                const on = filters.minPrice === String(band.min) && filters.maxPrice === String(band.max);
-                return (
-                  <button key={band.label} type="button" className={`lst-band ${on ? "on" : ""}`} aria-pressed={on}
-                          onClick={() => update(on ? { minPrice: "", maxPrice: "" } : { minPrice: String(band.min), maxPrice: String(band.max) })}>
-                    {band.label}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-          <button type="button" className="lst-clear"
-                  onClick={() => { setQText(""); setFilters({ q: "", code: "", tipo: "", purpose: "", minPrice: "", maxPrice: "", bedrooms: "", page: 1 }); }}>
-            Limpar filtros
-          </button>
         </form>
 
-        <p className="lst-count" role="status">
-          {loading ? "Buscando..." : error ? "" : `${total} ${total === 1 ? "imóvel encontrado" : "imóveis encontrados"}`}
-        </p>
+        <div className="lst-bar">
+          <button type="button" className="lst-open-sheet" onClick={openSheet}><IconFilter size={14} /> Filtros{activeCount > 0 ? ` (${activeCount})` : ""}</button>
+          <p className="lst-count" role="status">
+            {loading ? "Buscando..." : error ? "" : `${total} ${total === 1 ? "imóvel encontrado" : "imóveis encontrados"}`}
+          </p>
+        </div>
+
+        {chips.length > 0 && (
+          <div className="lst-chips">
+            {chips.map(chip => (
+              <button key={chip.key} type="button" className="lst-chip" aria-label={`Remover filtro: ${chip.label}`} onClick={() => update(chip.clear)}>
+                {chip.label} <span aria-hidden="true">×</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        <dialog ref={sheetRef} className="lst-sheet" aria-labelledby="sheet-title"
+                onClose={() => { document.body.style.overflow = ""; }}
+                onClick={(e) => { if (e.target === sheetRef.current) sheetRef.current.close(); }}>
+          <div className="lst-sheet-body">
+            <div className="lst-sheet-head">
+              <h2 id="sheet-title">Filtros</h2>
+              <button type="button" className="lst-sheet-close" aria-label="Fechar filtros" onClick={() => sheetRef.current.close()}><IconX size={18} /></button>
+            </div>
+            <div className="lst-sheet-fields">{filterFields("s", draft, (patch) => setDraft(d => ({ ...d, ...patch })))}</div>
+            <div className="lst-sheet-foot">
+              <button type="button" className="lst-clear" onClick={() => setDraft(d => ({ ...d, ...EMPTY_FILTERS }))}>Limpar</button>
+              <button type="button" className="btn-primary" onClick={applySheet}>Aplicar</button>
+            </div>
+          </div>
+        </dialog>
 
         {error && <div className="lst-error" role="alert">{error}</div>}
 
