@@ -1,6 +1,35 @@
 // Admin — contact requests and conversion counters
 
-const LEADS_PAGE_SIZE = 25;
+const LEADS_PAGE_SIZE = 100;
+const LEAD_KINDS = { contact: "Contato", visit: "Visita", seller: "Proprietário" };
+const LEAD_STATUSES = { novo: "Novo", contatado: "Contatado", visita: "Visita", fechado: "Fechado", perdido: "Perdido" };
+const MISSING_COLUMN_CODES = ["42703", "PGRST204"];
+
+function csvCell(value) {
+  let text = value == null ? "" : String(value);
+  // Spreadsheets run cells that start with these characters as formulas; plain phone numbers are exempt.
+  if (/^[=+\-@]/.test(text) && !/^\+\d+$/.test(text)) text = `'${text}`;
+  return /[",;\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function leadsToCsv(rows) {
+  const header = ["Recebido", "Tipo", "Nome", "Telefone", "E-mail", "Imóvel", "Interesse", "Mensagem", "Origem", "Página", "Referência", "Status"];
+  const lines = rows.map(lead => [
+    new Date(lead.created_at).toLocaleString("pt-BR"),
+    LEAD_KINDS[lead.kind] || lead.kind,
+    lead.name,
+    lead.phone,
+    lead.email,
+    lead.property_code,
+    lead.interest,
+    lead.message,
+    [lead.utm_source, lead.utm_medium, lead.utm_campaign].filter(Boolean).join(" / "),
+    lead.source_path,
+    lead.referrer,
+    lead.status ? LEAD_STATUSES[lead.status] || lead.status : "",
+  ].map(csvCell).join(";"));
+  return "﻿" + [header.map(csvCell).join(";"), ...lines].join("\r\n");
+}
 
 function LeadsView() {
   const [leads, setLeads]     = React.useState([]);
@@ -9,6 +38,9 @@ function LeadsView() {
   const [page, setPage]       = React.useState(1);
   const [loading, setLoading] = React.useState(true);
   const [error, setError]     = React.useState("");
+  const [kindFilter, setKindFilter] = React.useState("");
+  const [search, setSearch]   = React.useState("");
+  const [statusUnavailable, setStatusUnavailable] = React.useState(false);
 
   async function load() {
     setLoading(true); setError("");
@@ -42,6 +74,16 @@ function LeadsView() {
   React.useEffect(() => { load(); }, [page]);
   React.useEffect(() => { loadCounts(); }, []);
 
+  async function changeStatus(lead, status) {
+    const previous = lead.status;
+    setLeads(list => list.map(l => l.id === lead.id ? { ...l, status } : l));
+    const { error: err } = await window.sb.from("leads").update({ status }).eq("id", lead.id);
+    if (!err) return;
+    setLeads(list => list.map(l => l.id === lead.id ? { ...l, status: previous } : l));
+    if (MISSING_COLUMN_CODES.includes(err.code)) setStatusUnavailable(true);
+    else alert("Não foi possível atualizar o status. Tente novamente.");
+  }
+
   async function remove(id, name) {
     if (!confirm(`Excluir o contato de ${name}? Esta ação é permanente.`)) return;
     const { error: err } = await window.sb.from("leads").delete().eq("id", id);
@@ -51,6 +93,22 @@ function LeadsView() {
   }
 
   const pages = Math.max(1, Math.ceil(total / LEADS_PAGE_SIZE));
+  const term = search.trim().toLocaleLowerCase("pt-BR");
+  const visible = leads.filter(lead =>
+    (!kindFilter || lead.kind === kindFilter) &&
+    (!term || [lead.name, lead.phone, lead.email, lead.property_code].some(v => (v || "").toLocaleLowerCase("pt-BR").includes(term)))
+  );
+  const hasStatus = !statusUnavailable && leads.length > 0 && "status" in leads[0];
+
+  function exportCsv() {
+    const blob = new Blob([leadsToCsv(visible)], { type: "text/csv;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `contatos-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
+
   const EVENT_LABELS = {
     property_view: "Fichas abertas",
     whatsapp_click: "Cliques no WhatsApp",
@@ -75,15 +133,35 @@ function LeadsView() {
       </div>
 
       {counts.length > 0 && (
-        <div className="adm-metrics" aria-label="Eventos dos últimos 30 dias">
-          {counts.map(([name, value]) => (
-            <div key={name} className="adm-metric">
-              <span className="adm-metric-value">{value}</span>
-              <span className="adm-metric-label">{EVENT_LABELS[name] || name}</span>
-            </div>
-          ))}
-        </div>
+        <>
+          <p className="adm-metrics-title">Eventos (últimos 30 dias, até 5.000)</p>
+          <div className="adm-metrics" aria-label="Eventos (últimos 30 dias, até 5.000)">
+            {counts.map(([name, value]) => (
+              <div key={name} className="adm-metric">
+                <span className="adm-metric-value">{value}</span>
+                <span className="adm-metric-label">{EVENT_LABELS[name] || name}</span>
+              </div>
+            ))}
+          </div>
+        </>
       )}
+
+      <div className="adm-filters">
+        <div className="adm-field">
+          <label htmlFor="lead-kind">Tipo</label>
+          <select id="lead-kind" value={kindFilter} onChange={e => setKindFilter(e.target.value)}>
+            <option value="">Todos</option>
+            {Object.entries(LEAD_KINDS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select>
+        </div>
+        <div className="adm-field">
+          <label htmlFor="lead-search">Buscar</label>
+          <input id="lead-search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Nome, telefone, e-mail ou código" />
+        </div>
+        <button type="button" className="adm-btn adm-btn-ghost adm-btn-sm" onClick={exportCsv} disabled={visible.length === 0}>
+          Exportar CSV
+        </button>
+      </div>
 
       {error && <div className="adm-error" role="alert" style={{ marginBottom: 16 }}>{error}</div>}
 
@@ -92,39 +170,60 @@ function LeadsView() {
           <div className="adm-loading" role="status" aria-label="Carregando contatos">
             <div className="adm-spinner" />
           </div>
-        ) : leads.length === 0 ? (
+        ) : visible.length === 0 ? (
           <div className="adm-empty">
-            <h3>Nenhum contato ainda</h3>
-            <p>Os envios do formulário do site aparecem aqui.</p>
+            <h3>{leads.length === 0 ? "Nenhum contato ainda" : "Nenhum contato encontrado"}</h3>
+            <p>{leads.length === 0 ? "Os envios do formulário do site aparecem aqui." : "Ajuste o tipo ou a busca."}</p>
           </div>
         ) : (
           <table className="adm-table" aria-label="Contatos recebidos">
             <thead>
               <tr>
                 <th scope="col">Recebido</th>
+                <th scope="col">Tipo</th>
                 <th scope="col">Nome</th>
                 <th scope="col">Contato</th>
-                <th scope="col">Interesse</th>
+                <th scope="col">Imóvel</th>
+                <th scope="col">Mensagem</th>
                 <th scope="col">Origem</th>
+                {hasStatus && <th scope="col">Status</th>}
                 <th scope="col"><span className="sr-only">Ações</span></th>
               </tr>
             </thead>
             <tbody>
-              {leads.map(lead => (
+              {visible.map(lead => (
                 <tr key={lead.id}>
                   <td style={{ whiteSpace: "nowrap", color: "var(--ink-3)" }}>
                     {new Date(lead.created_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
                   </td>
+                  <td><span className={`adm-badge adm-badge-lead-${lead.kind}`}>{LEAD_KINDS[lead.kind] || lead.kind}</span></td>
                   <td>{lead.name}</td>
                   <td>
                     <a href={`https://wa.me/${lead.phone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer">
                       {lead.phone}
                     </a>
-                    <br />
-                    <a href={`mailto:${lead.email}`}>{lead.email}</a>
+                    {lead.email && <><br /><a href={`mailto:${encodeURIComponent(lead.email)}`}>{lead.email}</a></>}
                   </td>
-                  <td>{lead.interest || "—"}</td>
-                  <td style={{ color: "var(--ink-3)" }}>{lead.source_path || "—"}</td>
+                  <td>
+                    {lead.property_code
+                      ? <a href={`/imovel?code=${encodeURIComponent(lead.property_code)}`} target="_blank" rel="noopener noreferrer">{lead.property_code}</a>
+                      : "—"}
+                    {lead.interest && <div className="adm-lead-note">{lead.interest}</div>}
+                  </td>
+                  <td className="adm-lead-msg">{lead.message || "—"}</td>
+                  <td className="adm-lead-note">
+                    {lead.source_path || "—"}
+                    {(lead.utm_source || lead.utm_medium) && <div>{[lead.utm_source, lead.utm_medium].filter(Boolean).join(" / ")}</div>}
+                    {lead.referrer && <div title={lead.referrer}>{lead.referrer.replace(/^https?:\/\//, "").slice(0, 40)}</div>}
+                  </td>
+                  {hasStatus && (
+                    <td>
+                      <select className="adm-lead-status" value={lead.status} onChange={e => changeStatus(lead, e.target.value)}
+                              aria-label={`Status do contato de ${lead.name}`}>
+                        {Object.entries(LEAD_STATUSES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                      </select>
+                    </td>
+                  )}
                   <td>
                     <button className="adm-btn adm-btn-danger adm-btn-sm"
                             onClick={() => remove(lead.id, lead.name)}
