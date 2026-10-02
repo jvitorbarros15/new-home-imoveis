@@ -20,9 +20,7 @@ for (const candidate of candidates) {
     break;
   } catch {}
 }
-if (!executablePath) throw new Error("Chrome or Edge was not found.");
-
-const browser = await chromium.launch({ executablePath, headless: true });
+const browser = await chromium.launch({ ...(executablePath ? { executablePath } : {}), headless: true });
 const pages = [
   { name: "home", path: "/" },
   { name: "about", path: "/quem-somos" },
