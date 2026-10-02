@@ -269,6 +269,18 @@ checks.priceBandsFillInputs = (await mobile.locator("#f-min").inputValue()) === 
   && (await mobile.locator("#f-max").inputValue()) === "R$ 3.000.000"
   && mobile.url().includes("min=1500000&max=3000000");
 await mobile.setViewportSize({ width: 390, height: 844 });
+{
+  await mobile.setViewportSize({ width: 1440, height: 900 });
+  await mobile.goto(baseUrl + "/imoveis", { waitUntil: "networkidle" });
+  let priceRequests = 0;
+  const countRequests = (req) => { if (req.url().includes("/properties") && req.url().includes("price_brl")) priceRequests += 1; };
+  mobile.on("request", countRequests);
+  await mobile.locator("#f-max").pressSequentially("1500000", { delay: 30 });
+  await mobile.waitForTimeout(800);
+  mobile.off("request", countRequests);
+  checks.priceInputsAreDebounced = priceRequests === 1 && (await mobile.locator("#f-max").inputValue()) === "R$ 1.500.000";
+  await mobile.setViewportSize({ width: 390, height: 844 });
+}
 
 await mobile.goto(baseUrl + "/financiamento?valor=2000000&codigo=AP0001-NHB", { waitUntil: "networkidle" });
 checks.simulatorReadsValor = (await mobile.locator("#sim-value").inputValue()) === "R$ 2.000.000"

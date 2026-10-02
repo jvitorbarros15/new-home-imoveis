@@ -39,6 +39,24 @@ function writeFilters(filters) {
 const EMPTY_FILTERS = { tipo: "", purpose: "", minPrice: "", maxPrice: "", bedrooms: "" };
 const brlShort = (value) => `R$ ${Number(value).toLocaleString("pt-BR")}`;
 
+function PriceInput({ id, value, onCommit, placeholder, debounce }) {
+  const [draft, setDraft] = React.useState(null);
+  React.useEffect(() => setDraft(null), [value]);
+  React.useEffect(() => {
+    if (draft === null || draft === value) return;
+    const timer = setTimeout(() => onCommit(draft), 300);
+    return () => clearTimeout(timer);
+  }, [draft]);
+  return (
+    <input id={id} inputMode="numeric" autoComplete="off" value={formatBRLInput(draft ?? value)} placeholder={placeholder}
+           onChange={e => {
+             const next = String(parseBRL(e.target.value) ?? "");
+             if (debounce) setDraft(next);
+             else onCommit(next);
+           }} />
+  );
+}
+
 function ListingsPage() {
   const [filters, setFilters] = React.useState(readFilters);
   const [items, setItems] = React.useState([]);
@@ -135,7 +153,7 @@ function ListingsPage() {
   }
   const activeCount = chips.length;
 
-  const filterFields = (prefix, values, set) => {
+  const filterFields = (prefix, values, set, debounce) => {
     const bands = PRICE_BANDS[values.purpose];
     return (
       <>
@@ -161,13 +179,13 @@ function ListingsPage() {
         </div>
         <div className="lst-field">
           <label htmlFor={`${prefix}-min`}>Preço mínimo</label>
-          <input id={`${prefix}-min`} inputMode="numeric" autoComplete="off" value={formatBRLInput(values.minPrice)}
-                 onChange={e => set({ minPrice: String(parseBRL(e.target.value) ?? "") })} placeholder="Mínimo" />
+          <PriceInput id={`${prefix}-min`} value={values.minPrice} placeholder="Mínimo" debounce={debounce}
+                      onCommit={v => set({ minPrice: v })} />
         </div>
         <div className="lst-field">
           <label htmlFor={`${prefix}-max`}>Preço máximo</label>
-          <input id={`${prefix}-max`} inputMode="numeric" autoComplete="off" value={formatBRLInput(values.maxPrice)}
-                 onChange={e => set({ maxPrice: String(parseBRL(e.target.value) ?? "") })} placeholder="Máximo" />
+          <PriceInput id={`${prefix}-max`} value={values.maxPrice} placeholder="Máximo" debounce={debounce}
+                      onCommit={v => set({ maxPrice: v })} />
         </div>
         {bands && (
           <div className="lst-bands" role="group" aria-label="Faixas de preço">
@@ -205,7 +223,7 @@ function ListingsPage() {
                    placeholder="Barra da Tijuca, varanda gourmet..." />
           </div>
           <div className="lst-more">
-            {filterFields("f", filters, update)}
+            {filterFields("f", filters, update, true)}
             <button type="button" className="lst-clear" onClick={clearAll}>Limpar filtros</button>
           </div>
         </form>
