@@ -8,7 +8,7 @@ const MISSING_COLUMN_CODES = ["42703", "PGRST204"];
 function csvCell(value) {
   let text = value == null ? "" : String(value);
   // Spreadsheets run cells that start with these characters as formulas; plain phone numbers are exempt.
-  if (/^[=+\-@]/.test(text) && !/^\+\d+$/.test(text)) text = `'${text}`;
+  if (/^[=+\-@\t\r]/.test(text) && !/^\+\d+$/.test(text)) text = `'${text}`;
   return /[",;\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
