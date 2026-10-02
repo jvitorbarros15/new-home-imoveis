@@ -56,11 +56,12 @@ function mapDatabaseProperty(data) {
 
 async function loadSimilar(data) {
   if (!data.price_brl) return [];
-  const { data: rows, error } = await window.sb
+  let query = window.sb
     .from("properties")
     .select("code,title,type,region,price_brl,area_m2,bedrooms,parking,purpose")
-    .eq("purpose", data.purpose)
-    .eq("type", data.type)
+    .eq("purpose", data.purpose);
+  if (data.type) query = query.eq("type", data.type);
+  const { data: rows, error } = await query
     .neq("code", data.code)
     .gte("price_brl", Math.round(data.price_brl * 0.7))
     .lte("price_brl", Math.round(data.price_brl * 1.3))

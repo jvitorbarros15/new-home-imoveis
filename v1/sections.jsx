@@ -321,42 +321,47 @@ function Hero({ motion }) {
 function Destaques() {
   const [tab, setTab] = React.useState("Venda");
   const [hover, setHover] = React.useState(0);
-  const [items, setItems] = React.useState([]);
+  const [lists, setLists] = React.useState(null);
 
   React.useEffect(() => {
     if (!window.sb) return;
     let active = true;
-    window.sb
+    const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+    const load = (purpose) => window.sb
       .from("properties")
       .select("code,title,type,region,price_brl,area_m2,bedrooms,bathrooms,parking,images,status,purpose,featured")
       .eq("status", "active")
-      .eq("purpose", tab === "Venda" ? "sale" : "rent")
+      .eq("purpose", purpose)
       .order("featured", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(4)
-      .then(({ data, error }) => {
-        if (!active || error) return;
-        const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
-        setItems((data || []).map(p => ({
-          type:    p.type,
-          title:   p.title,
-          area:    p.area_m2 ? `${p.area_m2} m²` : "—",
-          rooms:   p.bedrooms ? plural(p.bedrooms, "Quarto", "Quartos") : "—",
-          baths:   p.bathrooms ? String(p.bathrooms) : "—",
-          parking: p.parking ? plural(p.parking, "Vaga", "Vagas") : "—",
-          region:  p.region,
-          price:   "R$ " + (p.price_brl / 100).toLocaleString("pt-BR", { maximumFractionDigits: 0 }) + (p.purpose === "rent" ? "/mês" : ""),
-          img:     p.images?.[0] || "",
-          code:    p.code,
-        })));
-        setHover(0);
-      });
+      .then(({ data, error }) => error ? [] : (data || []).map(p => ({
+        type:    p.type,
+        title:   p.title,
+        area:    p.area_m2 ? `${p.area_m2} m²` : "—",
+        rooms:   p.bedrooms ? plural(p.bedrooms, "Quarto", "Quartos") : "—",
+        baths:   p.bathrooms ? String(p.bathrooms) : "—",
+        parking: p.parking ? plural(p.parking, "Vaga", "Vagas") : "—",
+        region:  p.region,
+        price:   "R$ " + (p.price_brl / 100).toLocaleString("pt-BR", { maximumFractionDigits: 0 }) + (p.purpose === "rent" ? "/mês" : ""),
+        img:     p.images?.[0] || "",
+        code:    p.code,
+      })));
+    Promise.all([load("sale"), load("rent")]).then(([Venda, Aluguel]) => {
+      if (!active) return;
+      setLists({ Venda, Aluguel });
+      if (!Venda.length && Aluguel.length) setTab("Aluguel");
+    });
     return () => { active = false; };
-  }, [tab]);
+  }, []);
+
+  const items = lists?.[tab] || [];
+  const bothTabs = !!lists && lists.Venda.length > 0 && lists.Aluguel.length > 0;
+  const changeTab = (t) => { setTab(t); setHover(0); };
 
   const featured = items[hover] || items[0];
 
-  if (!featured && tab === "Venda") return null;
+  if (!featured) return null;
 
   return (
     <section id="destaques" className="reveal">
@@ -364,16 +369,15 @@ function Destaques() {
         <h2>Destaques da <em>curadoria</em></h2>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 18 }}>
           <p>Uma seleção mensal de propriedades que combinam localização, projeto e singularidade.</p>
-          <div className="seg">
+          {bothTabs && <div className="seg">
             {["Venda", "Aluguel"].map(t => (
-              <button key={t} className={tab === t ? "on" : ""} aria-pressed={tab === t} onClick={() => setTab(t)}>{t}</button>
+              <button key={t} className={tab === t ? "on" : ""} aria-pressed={tab === t} onClick={() => changeTab(t)}>{t}</button>
             ))}
-          </div>
+          </div>}
         </div>
       </div>
 
-      {!featured && <p className="dest-empty">Nenhum imóvel disponível nesta categoria no momento.</p>}
-      {featured && <div className="destaques">
+      <div className="destaques" data-count={items.length}>
         <a className="dest-hero dest-hero-link" href={`imovel.html?code=${encodeURIComponent(featured?.code || "")}`}
               onClick={() => track("listing_click", { code: featured?.code, detail: "hero" })}>
           <div className="img" style={{ backgroundImage: featured?.img ? `url("${featured.img}")` : undefined }} />
@@ -418,7 +422,7 @@ function Destaques() {
             </a>
           ))}
         </div>
-      </div>}
+      </div>
     </section>
   );
 }

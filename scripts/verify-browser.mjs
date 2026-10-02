@@ -275,6 +275,10 @@ checks.simulatorReadsValor = (await mobile.locator("#sim-value").inputValue()) =
 await mobile.goto(baseUrl + "/imovel?code=AP0001-NHB", { waitUntil: "networkidle" });
 checks.installmentTeaser = /R\$\s*9\.\d{3}\/mês/.test(await mobile.locator(".idn-price-est").innerText());
 
+await mobile.goto(baseUrl, { waitUntil: "networkidle" });
+await mobile.locator(".seg button", { hasText: "Aluguel" }).click();
+checks.featuredStaysVisibleOnTabSwitch = (await mobile.locator('.destaques[data-count="1"] .dest-hero').count()) === 1;
+
 report.push({ page: "checks", ...checks });
 await interactionContext.close();
 await browser.close();
