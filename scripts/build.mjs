@@ -1,5 +1,6 @@
 import { build } from "esbuild";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -81,6 +82,28 @@ for (const [name, files] of Object.entries(entries)) {
     target: ["es2019"],
     legalComments: "none",
   });
+}
+
+// Deployment-only HTML rewrites. They are skipped locally so tracked files stay
+// clean, and each one is idempotent so repeated builds produce the same output.
+if (process.env.VERCEL) {
+  const bundleHashes = {};
+  for (const file of await readdir(outDir)) {
+    if (!file.endsWith(".js")) continue;
+    bundleHashes[file] = createHash("sha256").update(await readFile(join(outDir, file))).digest("hex").slice(0, 10);
+  }
+
+  const htmlFiles = [
+    ...(await readdir(sourceRoot)).filter((file) => file.endsWith(".html")).map((file) => join(sourceRoot, file)),
+    join(root, "templates", "imovel.html"),
+  ];
+  for (const file of htmlFiles) {
+    const html = await readFile(file, "utf8");
+    const next = html.replace(/src="(\/?dist\/([\w-]+\.js))(?:\?v=[0-9a-f]+)?"/g, (match, src, name) =>
+      bundleHashes[name] ? `src="${src}?v=${bundleHashes[name]}"` : match
+    );
+    if (next !== html) await writeFile(file, next, "utf8");
+  }
 }
 
 const total = Object.keys(vendors).length + Object.keys(entries).length;
