@@ -1,5 +1,7 @@
 const PROPERTY_TYPES = ["Apartamento", "Cobertura", "Casa", "Casa em Condomínio", "Penthouse", "Terreno", "Comercial"];
 
+const REGIONS = ["Barra da Tijuca", "Recreio dos Bandeirantes", "Barra Olímpica", "Jacarepaguá", "Outra"];
+
 const PRICE_BANDS = {
   sale: [
     { label: "Até R$ 800 mil", min: "", max: 800000 },

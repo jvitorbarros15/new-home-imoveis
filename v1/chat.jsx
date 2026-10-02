@@ -1,35 +1,78 @@
-// New Home Imóveis — floating chat with consultor
+// New Home Imóveis — floating guided chat (buttons only, no free text)
+
+const CHAT_START_TEXT = "Olá! Sou o assistente automático da New Home. Como posso ajudar?";
+
+const CHAT_STEPS = {
+  start: { text: CHAT_START_TEXT, options: () => [
+    { label: "Quero comprar", set: { purpose: "sale" }, next: "region" },
+    { label: "Quero alugar", set: { purpose: "rent" }, next: "region" },
+    { label: "Quero anunciar meu imóvel", href: NH.listPropertyUrl, track: "anunciar" },
+    { label: "Falar com a equipe", next: "human" },
+  ] },
+  region: { text: "Em qual região?", options: () => REGIONS.map(r => ({ label: r, set: { region: r === "Outra" ? "" : r }, next: "price" })) },
+  price: { text: "Qual faixa de valor?", options: (a) => PRICE_BANDS[a.purpose].map(b => ({ label: b.label, set: { band: b }, next: "rooms" })) },
+  rooms: { text: "Quantos quartos, no mínimo?", options: () => [1, 2, 3, 4].map(n => ({ label: n === 4 ? "4 ou mais" : String(n), set: { rooms: n }, next: "result" })) },
+};
+
+function chatSearchUrl(a) {
+  const params = new URLSearchParams({ purpose: a.purpose });
+  if (a.region) params.set("q", a.region);
+  if (a.band.min !== "") params.set("min", a.band.min);
+  if (a.band.max !== "") params.set("max", a.band.max);
+  params.set("quartos", a.rooms);
+  return `${NH.listingsUrl}?${params}`;
+}
+
+function chatWhatsappMessage(a) {
+  const place = a.region ? ` em ${a.region}` : "";
+  return `Olá! Procuro imóvel para ${a.purpose === "rent" ? "alugar" : "comprar"}${place}, ${a.band.label}, com ${a.rooms} ${a.rooms === 1 ? "quarto" : "quartos"} ou mais.`;
+}
+
+async function chatCountListings(a) {
+  if (!window.sb) return null;
+  try {
+    let query = window.sb.from("properties").select("code", { count: "exact", head: true })
+      .eq("purpose", a.purpose).gte("bedrooms", a.rooms);
+    if (a.band.min !== "") query = query.gte("price_brl", a.band.min * 100);
+    if (a.band.max !== "") query = query.lte("price_brl", a.band.max * 100);
+    const term = a.region.replace(/[%,()*]/g, " ").trim();
+    if (term) query = query.or(`title.ilike.%${term}%,region.ilike.%${term}%`);
+    const { count, error } = await query;
+    return error ? null : count;
+  } catch (e) {
+    return null;
+  }
+}
 
 function Chat() {
   const [open, setOpen] = React.useState(false);
-  const [input, setInput] = React.useState("");
   const [typing, setTyping] = React.useState(false);
-  const [unread, setUnread] = React.useState(1);
+  const [step, setStep] = React.useState("start");
+  const [answers, setAnswers] = React.useState({});
+  const [count, setCount] = React.useState(null);
+  const [messages, setMessages] = React.useState([{ from: "agent", text: CHAT_START_TEXT }]);
   const lastFocus = React.useRef(null);
-  const [messages, setMessages] = React.useState([
-    {
-      from: "agent",
-      text: "Olá! Sou um assistente automático. Posso indicar o caminho para comprar, alugar ou anunciar um imóvel — e te levar até a equipe.",
-      time: "agora",
-    },
-  ]);
   const scrollRef = React.useRef(null);
-  const inputRef = React.useRef(null);
+  const optionsRef = React.useRef(null);
 
   React.useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [messages, typing, open]);
+  }, [messages, typing, open, step]);
 
   React.useEffect(() => {
     if (open) {
       lastFocus.current = document.activeElement;
-      setUnread(0);
-      requestAnimationFrame(() => inputRef.current?.focus());
     } else if (lastFocus.current) {
       lastFocus.current.focus?.();
       lastFocus.current = null;
     }
   }, [open]);
+
+  React.useEffect(() => {
+    if (!open || typing) return;
+    const frame = requestAnimationFrame(() => optionsRef.current?.querySelector("button, a")?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [open, step, typing]);
 
   React.useEffect(() => {
     if (!open) return;
@@ -38,41 +81,54 @@ function Chat() {
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
 
-  const QUICK = [
-    "Quero comprar um imóvel",
-    "Quero alugar",
-    "Anunciar meu imóvel",
-    "Falar com um humano",
-  ];
+  const options = (() => {
+    if (step === "human") {
+      return [
+        { label: "Abrir WhatsApp", href: NH.whatsapp(), external: true, primary: true, track: "equipe" },
+        { label: `Ligar ${NH.primaryPhoneDisplay}`, href: `tel:${NH.primaryPhone}`, track: "ligar" },
+      ];
+    }
+    if (step === "result") {
+      const list = { label: count > 0 ? `Ver ${count} ${count === 1 ? "imóvel" : "imóveis"}` : "Ver imóveis", href: chatSearchUrl(answers), track: "ver_imoveis" };
+      const whatsapp = { label: "Continuar no WhatsApp", href: NH.whatsapp(chatWhatsappMessage(answers)), external: true, track: "resultado" };
+      return count === 0 ? [{ ...whatsapp, primary: true }, list] : [{ ...list, primary: true }, whatsapp];
+    }
+    return CHAT_STEPS[step].options(answers);
+  })();
 
-  async function send(text) {
-    const trimmed = (text || "").trim();
-    if (!trimmed) return;
-    setInput("");
-    const next = [...messages, { from: "user", text: trimmed, time: "agora" }];
-    setMessages(next);
+  async function choose(option) {
+    if (typing) return;
+    const nextAnswers = { ...answers, ...option.set };
+    setMessages((m) => [...m, { from: "user", text: option.label }]);
+    setAnswers(nextAnswers);
     setTyping(true);
 
-    const normalized = trimmed.toLocaleLowerCase("pt-BR");
     let reply;
-    if (normalized.includes("humano") || normalized.includes("corretor") || normalized.includes("whatsapp")) {
-      reply = `Claro. Fale com a equipe pelo WhatsApp ${NH.primaryPhoneDisplay}; o botão está logo abaixo.`;
-    } else if (normalized.includes("alugar")) {
-      reply = "Temos opções para locação. Qual região e faixa de valor você procura?";
-    } else if (normalized.includes("anunciar") || normalized.includes("vender meu")) {
-      reply = "Podemos ajudar a anunciar seu imóvel. Em qual bairro ele fica?";
-    } else if (normalized.includes("comprar")) {
-      reply = "Ótimo. Qual região e faixa de valor você tem em mente?";
-    } else if (normalized.includes("barra") || normalized.includes("recreio") || normalized.includes("olímpica")) {
-      reply = "Essa é uma das regiões de atuação da New Home. Quantos quartos você precisa?";
+    let found = null;
+    if (option.next === "result") {
+      [found] = await Promise.all([chatCountListings(nextAnswers), new Promise((r) => setTimeout(r, 350))]);
+      reply = found === 0
+        ? "Não encontrei imóveis com esse perfil agora, mas a equipe pode procurar para você."
+        : found > 0
+          ? `Encontrei ${found} ${found === 1 ? "opção" : "opções"} para você.`
+          : "Veja as opções disponíveis para o seu perfil.";
+      track("chat_complete", { detail: `${nextAnswers.purpose}|${nextAnswers.region || "outra"}|${nextAnswers.band.label}|${nextAnswers.rooms}` });
     } else {
-      reply = "Não consigo responder isso automaticamente. Para falar com uma pessoa da equipe, use o WhatsApp abaixo.";
+      await new Promise((r) => setTimeout(r, 350));
+      reply = option.next === "human" ? "Fale direto com a equipe:" : CHAT_STEPS[option.next].text;
     }
-
-    // small natural delay
-    await new Promise((r) => setTimeout(r, 350));
+    setCount(found);
+    setStep(option.next);
     setTyping(false);
-    setMessages((m) => [...m, { from: "agent", text: reply, time: "agora" }]);
+    setMessages((m) => [...m, { from: "agent", text: reply }]);
+  }
+
+  function restart() {
+    setStep("start");
+    setAnswers({});
+    setCount(null);
+    setTyping(false);
+    setMessages([{ from: "agent", text: CHAT_START_TEXT }]);
   }
 
   return (
@@ -94,7 +150,6 @@ function Chat() {
             <line x1="6" y1="6" x2="18" y2="18" /><line x1="6" y1="18" x2="18" y2="6" />
           </svg>
         </span>
-        {unread > 0 && !open && <span className="chat-badge">{unread}</span>}
       </button>
 
       {open && <div className="chat-panel show" role="dialog" aria-label="Assistente automático New Home">
@@ -116,12 +171,11 @@ function Chat() {
           </button>
         </header>
 
-        <div className="chat-body" ref={scrollRef}>
+        <div className="chat-body" ref={scrollRef} role="log" aria-live="polite">
           <div className="chat-day">Hoje</div>
           {messages.map((m, i) => (
             <div key={i} className={`chat-msg ${m.from}`}>
               <div className="chat-bubble">{m.text}</div>
-              <div className="chat-time">{m.time}</div>
             </div>
           ))}
           {typing && (
@@ -131,40 +185,24 @@ function Chat() {
               </div>
             </div>
           )}
-          {messages.length === 1 && !typing && (
-            <div className="chat-quick">
-              {QUICK.map((q) => (
-                <button key={q} onClick={() => send(q)}>{q}</button>
+          {!typing && (
+            <div className="chat-quick" role="group" aria-label="Opções de resposta" ref={optionsRef}>
+              {options.map((o) => o.href ? (
+                <a key={o.label} className={o.primary ? "primary" : ""} href={o.href}
+                   {...(o.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                   onClick={() => track(o.external ? "whatsapp_click" : "chat_option", { detail: `chat_${o.track}` })}>{o.label}</a>
+              ) : (
+                <button key={o.label} type="button" onClick={() => choose(o)}>{o.label}</button>
               ))}
             </div>
           )}
         </div>
 
-        <form
-          className="chat-input"
-          onSubmit={(e) => { e.preventDefault(); send(input); }}
-        >
-          <input
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Escreva uma mensagem…"
-            aria-label="Mensagem"
-          />
-          <button type="submit" aria-label="Enviar" disabled={!input.trim()}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13" />
-              <polygon points="22 2 15 22 11 13 2 9 22 2" />
-            </svg>
-          </button>
-        </form>
-
         <div className="chat-foot">
-          Prefere outro canal?
+          {step !== "start" && <button type="button" className="chat-restart" onClick={restart}>Recomeçar</button>}
+          <span className="chat-foot-label">Prefere outro canal?</span>
           <a href={NH.whatsapp()} target="_blank" rel="noopener noreferrer"
              onClick={() => track("whatsapp_click", { detail: "chat" })}>WhatsApp</a>
-          ·
           <a href={`tel:${NH.primaryPhone}`}>Ligar</a>
         </div>
       </div>}

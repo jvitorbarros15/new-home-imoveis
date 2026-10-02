@@ -302,6 +302,21 @@ checks.filterSheetAppliesAndChips = !(await mobile.locator("dialog.lst-sheet[ope
 await mobile.locator(".lst-chip", { hasText: "Aluguel" }).click();
 checks.filterChipRemoves = !mobile.url().includes("purpose=");
 
+await mobile.goto(baseUrl, { waitUntil: "networkidle" });
+await mobile.getByRole("button", { name: /abrir chat/i }).click();
+checks.chatHasNoFakeBadge = (await mobile.locator(".chat-badge").count()) === 0;
+for (const label of ["Quero comprar", "Barra da Tijuca", "R$ 1,5 a 3 mi", "3"]) {
+  await mobile.locator(".chat-quick button").getByText(label, { exact: true }).click();
+  await mobile.locator(".chat-quick").waitFor();
+}
+const chatResultHref = await mobile.locator(".chat-quick a.primary").getAttribute("href");
+checks.chatGuidedFlowLinksToSearch = chatResultHref.includes("purpose=sale&q=Barra") && chatResultHref.includes("min=1500000&max=3000000") && chatResultHref.includes("quartos=3");
+checks.chatOffersWhatsappWithAnswers = decodeURIComponent(await mobile.locator('.chat-quick a[href*="wa.me"]').getAttribute("href")).includes("comprar em Barra da Tijuca");
+await mobile.getByRole("button", { name: "Recomeçar" }).click();
+checks.chatRestartResets = (await mobile.locator(".chat-quick button", { hasText: "Quero alugar" }).count()) === 1;
+checks.chatSellerGoesToForm = (await mobile.locator(".chat-quick a", { hasText: "anunciar" }).getAttribute("href")) === "anunciar.html";
+await mobile.keyboard.press("Escape");
+
 report.push({ page: "checks", ...checks });
 await interactionContext.close();
 await browser.close();
