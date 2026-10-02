@@ -261,6 +261,13 @@ await ctaForm.locator('input[name="consent"]').check();
 await ctaForm.locator("button[type=submit]").click();
 await mobile.locator(".cta-status.ok").waitFor({ timeout: 5000 }).catch(() => {});
 checks.homeFormSavesWithoutEmail = inserted.length === 1 && JSON.parse(inserted[0]).email === null;
+await ctaForm.locator('input[name="name"]').fill("Cliente Teste");
+await ctaForm.locator('input[name="phone"]').fill("(21) 99999-9999");
+await ctaForm.locator('input[name="email"]').fill("a@b");
+await ctaForm.locator('select[name="interest"]').selectOption({ index: 1 });
+await ctaForm.locator('input[name="consent"]').check();
+await ctaForm.locator("button[type=submit]").click();
+checks.shortEmailRejectedInline = (await ctaForm.locator('.cta-status.error', { hasText: "e-mail" }).count()) === 1 && inserted.length === 1;
 
 await mobile.setViewportSize({ width: 1440, height: 900 });
 await mobile.goto(baseUrl + "/imoveis?purpose=sale", { waitUntil: "networkidle" });

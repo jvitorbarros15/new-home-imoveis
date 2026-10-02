@@ -553,10 +553,12 @@ function CTA() {
     const data = new FormData(form);
     const phone = normalizePhoneBR(data.get("phone"));
     if (!phone) { setState("badphone"); return; }
+    const emailValue = String(data.get("email") || "").trim().slice(0, 200);
+    if (emailValue && emailValue.length < 5) { setState("bademail"); return; }
     const lead = {
       name: String(data.get("name") || "").trim().slice(0, 120),
       phone,
-      email: String(data.get("email") || "").trim().slice(0, 200) || null,
+      email: emailValue || null,
       interest: String(data.get("interest") || "").slice(0, 60),
       kind: "contact",
     };
@@ -591,7 +593,7 @@ function CTA() {
         <label>Nome<input name="name" required autoComplete="name" placeholder="Como prefere ser chamado" /></label>
         <label>WhatsApp<input name="phone" type="tel" required autoComplete="tel" placeholder="(21) 99999-9999"
           aria-invalid={state === "badphone"} /></label>
-        <label>E-mail (opcional)<input name="email" type="email" autoComplete="email" placeholder="seu@email.com" /></label>
+        <label>E-mail (opcional)<input name="email" type="email" autoComplete="email" placeholder="seu@email.com" aria-invalid={state === "bademail"} /></label>
         <label>O que procura?
           <select name="interest" defaultValue="" required>
             <option value="" disabled>Selecione</option>
@@ -608,6 +610,11 @@ function CTA() {
         {state === "badphone" && (
           <p className="cta-status error" role="alert">
             Informe um telefone válido com DDD, por exemplo (21) 99999-9999.
+          </p>
+        )}
+        {state === "bademail" && (
+          <p className="cta-status error" role="alert">
+            Informe um e-mail válido ou deixe o campo em branco.
           </p>
         )}
         {state === "unsaved" && (
