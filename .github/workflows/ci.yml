@@ -16,7 +16,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright-core install --with-deps chromium
       - name: Start static server
         run: |
           npx serve -l 8080 v1 > serve.log 2>&1 &
