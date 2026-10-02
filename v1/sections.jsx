@@ -714,16 +714,21 @@ function Footer() {
             <li><a href={`mailto:${NH.email}`}>{NH.email}</a></li>
             <li><a href={NH.mapUrl}>Av. Embaixador Abelardo Bueno, 3500 · Sala 1022</a></li>
             <li><span>CRECI {NH.creci}</span></li>
+            {NH.cnpj && <li><span>CNPJ {NH.cnpj}</span></li>}
           </ul>
         </div>
       </div>
       <div className="ft-demo">
-        Projeto de portfólio, sem vínculo com a empresa de mesmo nome. Dados de contato e imóveis
-        são ilustrativos. <a href={NH.officialSite} target="_blank" rel="noopener noreferrer">Site oficial</a>
+        {NH.isDemo ? <>
+          Projeto de portfólio, sem vínculo com a empresa de mesmo nome. Dados de contato e imóveis
+          são ilustrativos. <a href={NH.officialSite} target="_blank" rel="noopener noreferrer">Site oficial</a>
+        </> : <>
+          {NH.legalName} · CRECI {NH.creci}{NH.cnpj ? ` · CNPJ ${NH.cnpj}` : ""}
+        </>}
         {" · "}<a href={NH.privacyUrl}>Privacidade e LGPD</a>
       </div>
       <div className="ft-bot">
-        <span>© {new Date().getFullYear()} New Home Imóveis · projeto demonstrativo</span>
+        <span>© {new Date().getFullYear()} {NH.name}{NH.isDemo ? " · projeto demonstrativo" : ""}</span>
         <div className="ft-social">
           <a href={NH.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram"><IconIG /></a>
           <a href={NH.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook"><IconFB /></a>

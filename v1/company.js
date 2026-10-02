@@ -6,6 +6,7 @@ window.NH = Object.freeze({
   legalName: "New Home 2013 Imóveis LTDA",
   foundedYear: 2010,
   creci: "00000-J",
+  cnpj: "",
   address: "Avenida Embaixador Abelardo Bueno, 3500 · Sala 1022 · Barra da Tijuca · Rio de Janeiro / RJ",
   primaryPhone: "+5521900000000",
   primaryPhoneDisplay: "(21) 90000-0000",
