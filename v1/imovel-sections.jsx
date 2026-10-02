@@ -100,7 +100,7 @@ function GalleryHero({ prop, onOpen }) {
       ? <button type="button" className="gal-main" onClick={() => onOpen(0)} aria-label="Abrir imagem principal"><div className="img" style={{backgroundImage:`url(${prop.images[0].src})`}}/></button>
       : <div className="gal-main gal-empty" role="img" aria-label="Fotos em breve"><span>Fotos em breve</span></div>}
     <div className="gal-side">{prop.images.slice(1,5).map((image,index) => <button type="button" key={image.src} className="gal-thumb" onClick={() => onOpen(index + 1)} aria-label={`Abrir imagem ${index + 2}`}><div className="img" style={{backgroundImage:`url(${image.src})`}}/></button>)}</div>
-    {prop.images.length > 0 && <button type="button" className="gal-all" onClick={() => onOpen(0)}>Ver galeria · {prop.images.length} imagens</button>}
+    {prop.images.length > 0 && <button type="button" className="gal-all" onClick={() => onOpen(0)}><span className="gal-all-long">Ver galeria · {prop.images.length} imagens</span><span className="gal-all-short">{prop.images.length} {prop.images.length === 1 ? "foto" : "fotos"}</span></button>}
     <div className="gal-actions">
       <button type="button" className={`gal-action ${favorite ? "on" : ""}`} onClick={toggleFavorite} aria-pressed={favorite} aria-label={favorite ? "Remover dos favoritos" : "Salvar nos favoritos"}><I.Heart size={16}/></button>
       <button type="button" className="gal-action" onClick={share} aria-label="Compartilhar"><I.Share size={16}/></button>

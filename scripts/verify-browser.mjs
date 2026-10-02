@@ -40,9 +40,11 @@ const pages = [
 const fixtureProperty = {
   code: "AP0001-NHB", title: "Apartamento de teste", type: "Apartamento", region: "Barra da Tijuca",
   price_brl: 150000000, area_m2: 100, bedrooms: 3, suites: 1, bathrooms: 2, parking: 1,
-  images: [], status: "active", purpose: "sale", description: "Descrição de teste.",
+  images: ["/assets/logo-gold.png", "/assets/logo-gold.png", "/assets/logo-gold.png"], status: "active", purpose: "sale", description: "Descrição de teste.",
   tour_url: null, pet_friendly: true, condominio_brl: 0, iptu_brl: 0, featured: true,
 };
+
+const fixtureNoPhotos = { ...fixtureProperty, code: "AP0002-NHB", title: "Apartamento sem fotos", images: [], featured: false };
 
 async function mockBackend(context) {
   await context.route("**/config.js", (route) => route.fulfill({
@@ -56,7 +58,7 @@ async function mockBackend(context) {
     if (!url.pathname.endsWith("/properties")) return route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
     const code = url.searchParams.get("code");
     const wantsObject = (request.headers()["accept"] || "").includes("vnd.pgrst.object");
-    const rows = code === "eq.AP0001-NHB" || !code ? [fixtureProperty] : [];
+    const rows = code === "eq.AP0001-NHB" || !code ? [fixtureProperty] : code === "eq.AP0002-NHB" ? [fixtureNoPhotos] : [];
     if (wantsObject) {
       return rows.length
         ? route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(rows[0]) })
@@ -228,6 +230,14 @@ await mobile.goto(baseUrl + "/anunciar.html", { waitUntil: "networkidle" });
 checks.sellerSubmitStyled = await mobile.locator(".seller-submit").evaluate((el) => {
   const bg = getComputedStyle(el).backgroundColor;
   return bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent";
+});
+
+await mobile.goto(baseUrl + "/imovel?code=AP0001-NHB", { waitUntil: "networkidle" });
+checks.galleryControlsDontOverlap = await mobile.evaluate(() => {
+  const a = document.querySelector(".gal-all")?.getBoundingClientRect();
+  const b = document.querySelector(".gal-actions")?.getBoundingClientRect();
+  if (!b) return false;
+  return !a || a.width === 0 || a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top;
 });
 
 report.push({ page: "checks", ...checks });
