@@ -25,7 +25,8 @@ function chatSearchUrl(a) {
 
 function chatWhatsappMessage(a) {
   const place = a.region ? ` em ${a.region}` : "";
-  return `Olá! Procuro imóvel para ${a.purpose === "rent" ? "alugar" : "comprar"}${place}, ${a.band.label}, com ${a.rooms} ${a.rooms === 1 ? "quarto" : "quartos"} ou mais.`;
+  const band = a.band.label.replace(/^[A-ZÀ-Ú](?=[a-zà-ú])/, (c) => c.toLowerCase());
+  return `Olá! Procuro imóvel para ${a.purpose === "rent" ? "alugar" : "comprar"}${place}, ${band}, com ${a.rooms} ${a.rooms === 1 ? "quarto" : "quartos"} ou mais.`;
 }
 
 async function chatCountListings(a) {

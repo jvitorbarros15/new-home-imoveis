@@ -330,7 +330,9 @@ for (const label of ["Quero comprar", "Barra da Tijuca", "R$ 1,5 a 3 mi", "3"]) 
 }
 const chatResultHref = await mobile.locator(".chat-quick a.primary").getAttribute("href");
 checks.chatGuidedFlowLinksToSearch = chatResultHref.includes("purpose=sale&q=Barra") && chatResultHref.includes("min=1500000&max=3000000") && chatResultHref.includes("quartos=3");
-checks.chatOffersWhatsappWithAnswers = decodeURIComponent(await mobile.locator('.chat-quick a[href*="wa.me"]').getAttribute("href")).includes("comprar em Barra da Tijuca");
+checks.chatOffersWhatsappWithAnswers = decodeURIComponent(await mobile.locator('.chat-quick a[href*="wa.me"]').getAttribute("href")).includes("comprar em Barra da Tijuca, R$ 1,5 a 3 mi");
+checks.chatWhatsappLowercasesBandWords = await mobile.evaluate(() =>
+  chatWhatsappMessage({ purpose: "sale", region: "Recreio", band: PRICE_BANDS.sale[0], rooms: 2 }).includes("Recreio, até R$ 800 mil, com"));
 await mobile.getByRole("button", { name: "Recomeçar" }).click();
 checks.chatRestartResets = (await mobile.locator(".chat-quick button", { hasText: "Quero alugar" }).count()) === 1;
 checks.chatSellerGoesToForm = (await mobile.locator(".chat-quick a", { hasText: "anunciar" }).getAttribute("href")) === "anunciar.html";
