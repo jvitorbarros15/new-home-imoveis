@@ -25,12 +25,12 @@ if (!executablePath) throw new Error("Chrome or Edge was not found.");
 const browser = await chromium.launch({ executablePath, headless: true });
 const pages = [
   { name: "home", path: "/" },
-  { name: "about", path: "/quem-somos.html" },
-  { name: "listings", path: "/imoveis.html" },
-  { name: "favorites", path: "/favoritos.html" },
-  { name: "privacy", path: "/privacidade.html" },
-  { name: "seller", path: "/anunciar.html" },
-  { name: "finance", path: "/financiamento.html" },
+  { name: "about", path: "/quem-somos" },
+  { name: "listings", path: "/imoveis" },
+  { name: "favorites", path: "/favoritos" },
+  { name: "privacy", path: "/privacidade" },
+  { name: "seller", path: "/anunciar" },
+  { name: "finance", path: "/financiamento" },
   { name: "property", path: "/imovel?code=AP0001-NHB" },
   { name: "property-missing", path: "/imovel?code=ZZZ" },
   { name: "admin", path: "/admin.html" },
@@ -226,7 +226,7 @@ const checks = {};
 checks.navContactNotActiveOnHome = await mobile.goto(baseUrl, { waitUntil: "networkidle" }).then(() =>
   mobile.locator(".nav-links a.active", { hasText: "Contato" }).count()).then((n) => n === 0);
 
-await mobile.goto(baseUrl + "/anunciar.html", { waitUntil: "networkidle" });
+await mobile.goto(baseUrl + "/anunciar", { waitUntil: "networkidle" });
 checks.sellerSubmitStyled = await mobile.locator(".seller-submit").evaluate((el) => {
   const bg = getComputedStyle(el).backgroundColor;
   return bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent";
@@ -335,7 +335,7 @@ checks.chatWhatsappLowercasesBandWords = await mobile.evaluate(() =>
   chatWhatsappMessage({ purpose: "sale", region: "Recreio", band: PRICE_BANDS.sale[0], rooms: 2 }).includes("Recreio, até R$ 800 mil, com"));
 await mobile.getByRole("button", { name: "Recomeçar" }).click();
 checks.chatRestartResets = (await mobile.locator(".chat-quick button", { hasText: "Quero alugar" }).count()) === 1;
-checks.chatSellerGoesToForm = (await mobile.locator(".chat-quick a", { hasText: "anunciar" }).getAttribute("href")) === "anunciar.html";
+checks.chatSellerGoesToForm = (await mobile.locator(".chat-quick a", { hasText: "anunciar" }).getAttribute("href")) === "/anunciar";
 await mobile.keyboard.press("Escape");
 
 report.push({ page: "checks", ...checks });

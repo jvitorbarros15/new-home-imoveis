@@ -154,7 +154,7 @@ function FinanciamentoApp() {
       </section>
       <div className="page-wrap"><HowItWorks/><BanksGrid/><Simulator/><FAQ/></div>
       <section className="page-cta reveal"><div><h3>Vai comprar um imóvel <em>financiado</em>?</h3><p>Fale com a New Home sobre o imóvel e as etapas da negociação. A análise e a aprovação do crédito são feitas exclusivamente pelo banco.</p></div>
-        <div className="page-cta-actions"><a className="primary" href={NH.whatsapp("Olá! Gostaria de orientação sobre a compra de um imóvel financiado.")} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click", { detail: "financiamento_cta" })}>Falar com a New Home</a><a className="ghost" href="quem-somos.html">Sobre a empresa</a></div>
+        <div className="page-cta-actions"><a className="primary" href={NH.whatsapp("Olá! Gostaria de orientação sobre a compra de um imóvel financiado.")} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click", { detail: "financiamento_cta" })}>Falar com a New Home</a><a className="ghost" href="/quem-somos">Sobre a empresa</a></div>
       </section>
     </main><Footer/><Chat/></>;
 }

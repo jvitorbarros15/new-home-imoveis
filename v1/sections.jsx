@@ -125,15 +125,15 @@ function Nav() {
   const navLinks = [
     { href: NH.listingsUrl,         label: "Imóveis",       page: "imoveis" },
     { href: NH.favoritesUrl,        label: "Favoritos",     page: "favoritos" },
-    { href: "financiamento.html",   label: "Financiamento", page: "financiamento" },
-    { href: "quem-somos.html",      label: "Quem somos",    page: "quem-somos" },
-    { href: currentPage === "index" ? "#contato" : "index.html#contato", label: "Contato", page: "contato" },
+    { href: "/financiamento",   label: "Financiamento", page: "financiamento" },
+    { href: "/quem-somos",      label: "Quem somos",    page: "quem-somos" },
+    { href: currentPage === "index" ? "#contato" : "/#contato", label: "Contato", page: "contato" },
   ];
 
   return (
     <>
       <nav className={`nav ${scrolled ? "scrolled" : ""}`}>
-        <a className="nav-logo" href="index.html">
+        <a className="nav-logo" href="/">
           <img src="assets/logo-gold.png" alt="New Home Imóveis" />
         </a>
         <div className="nav-links">
@@ -384,7 +384,7 @@ function Destaques() {
       </div>
 
       <div className="destaques" data-count={items.length}>
-        <a className="dest-hero dest-hero-link" href={`imovel.html?code=${encodeURIComponent(featured?.code || "")}`}
+        <a className="dest-hero dest-hero-link" href={`/imovel?code=${encodeURIComponent(featured?.code || "")}`}
               onClick={() => track("listing_click", { code: featured?.code, detail: "hero" })}>
           <div className="img" style={{ backgroundImage: featured?.img ? `url("${featured.img}")` : undefined }} />
           <div className="meta">
@@ -407,7 +407,7 @@ function Destaques() {
 
         <div className="dest-list">
           {items.slice(1, 4).map((p, i) => (
-            <a key={p.code || i} className="dest-card" href={`imovel.html?code=${encodeURIComponent(p.code || "")}`}
+            <a key={p.code || i} className="dest-card" href={`/imovel?code=${encodeURIComponent(p.code || "")}`}
                onClick={() => track("listing_click", { code: p.code, detail: "destaques" })}
                onMouseEnter={() => setHover(i + 1)}
                onFocus={() => setHover(i + 1)}>
@@ -644,7 +644,7 @@ function ListingCard({ item }) {
   return (
     <a
       className="lst-card"
-      href={`imovel.html?code=${encodeURIComponent(item.code)}`}
+      href={`/imovel?code=${encodeURIComponent(item.code)}`}
       onClick={() => track("listing_click", { code: item.code, detail: "busca" })}
     >
       <div className="lst-cover">
@@ -701,8 +701,8 @@ function Footer() {
         <div className="ft-col">
           <h5>Institucional</h5>
           <ul>
-            <li><a href="quem-somos.html">Quem somos</a></li>
-            <li><a href="financiamento.html">Financiamento</a></li>
+            <li><a href="/quem-somos">Quem somos</a></li>
+            <li><a href="/financiamento">Financiamento</a></li>
             <li><a href={NH.listPropertyUrl}>Cadastre seu imóvel</a></li>
             <li><a href={NH.privacyUrl}>Política de privacidade</a></li>
           </ul>

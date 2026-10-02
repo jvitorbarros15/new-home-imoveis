@@ -449,7 +449,7 @@ function Sidebar({ view, setView, onLogout }) {
           </button>
         ))}
         <div className="adm-nav-sep" role="separator" />
-        <a className="adm-nav-item" href="index.html" target="_blank" rel="noopener noreferrer">
+        <a className="adm-nav-item" href="/" target="_blank" rel="noopener noreferrer">
           <IHome /> Ver site
         </a>
         <button className="adm-nav-item adm-logout" onClick={onLogout} aria-label="Sair da conta">

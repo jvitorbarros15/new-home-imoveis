@@ -86,7 +86,7 @@ function QuemSomos() {
         <div><h3>Vamos <em>conversar</em>?</h3><p>Conte o que procura e fale diretamente com a equipe New Home.</p></div>
         <div className="page-cta-actions">
           <a className="primary" href={NH.whatsapp("Olá! Gostaria de falar com a equipe New Home.")} target="_blank" rel="noopener noreferrer">Falar no WhatsApp</a>
-          <a className="ghost" href="index.html#contato">Enviar mensagem</a>
+          <a className="ghost" href="/#contato">Enviar mensagem</a>
         </div>
       </section>
     </main>
