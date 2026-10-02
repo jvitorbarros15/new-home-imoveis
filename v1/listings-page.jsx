@@ -107,6 +107,7 @@ function ListingsPage() {
 
   const update = (patch) => setFilters(f => ({ ...f, ...patch, page: 1 }));
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const bands = PRICE_BANDS[filters.purpose];
 
   return (
     <>
@@ -148,14 +149,27 @@ function ListingsPage() {
           </div>
           <div className="lst-field">
             <label htmlFor="f-min">Preço mínimo</label>
-            <input id="f-min" type="number" min="0" step="10000" value={filters.minPrice}
-                   onChange={e => update({ minPrice: e.target.value })} placeholder="500000" />
+            <input id="f-min" inputMode="numeric" autoComplete="off" value={formatBRLInput(filters.minPrice)}
+                   onChange={e => update({ minPrice: String(parseBRL(e.target.value) ?? "") })} placeholder="Mínimo" />
           </div>
           <div className="lst-field">
             <label htmlFor="f-max">Preço máximo</label>
-            <input id="f-max" type="number" min="0" step="10000" value={filters.maxPrice}
-                   onChange={e => update({ maxPrice: e.target.value })} placeholder="3000000" />
+            <input id="f-max" inputMode="numeric" autoComplete="off" value={formatBRLInput(filters.maxPrice)}
+                   onChange={e => update({ maxPrice: String(parseBRL(e.target.value) ?? "") })} placeholder="Máximo" />
           </div>
+          {bands && (
+            <div className="lst-bands" role="group" aria-label="Faixas de preço">
+              {bands.map(band => {
+                const on = filters.minPrice === String(band.min) && filters.maxPrice === String(band.max);
+                return (
+                  <button key={band.label} type="button" className={`lst-band ${on ? "on" : ""}`} aria-pressed={on}
+                          onClick={() => update(on ? { minPrice: "", maxPrice: "" } : { minPrice: String(band.min), maxPrice: String(band.max) })}>
+                    {band.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           <button type="button" className="lst-clear"
                   onClick={() => { setQText(""); setFilters({ q: "", code: "", tipo: "", purpose: "", minPrice: "", maxPrice: "", bedrooms: "", page: 1 }); }}>
             Limpar filtros

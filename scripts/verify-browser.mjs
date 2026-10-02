@@ -262,6 +262,12 @@ await ctaForm.locator("button[type=submit]").click();
 await mobile.locator(".cta-status.ok").waitFor({ timeout: 5000 }).catch(() => {});
 checks.homeFormSavesWithoutEmail = inserted.length === 1 && JSON.parse(inserted[0]).email === null;
 
+await mobile.goto(baseUrl + "/imoveis?purpose=sale", { waitUntil: "networkidle" });
+await mobile.locator(".lst-band", { hasText: "1,5 a 3 mi" }).click();
+checks.priceBandsFillInputs = (await mobile.locator("#f-min").inputValue()) === "R$ 1.500.000"
+  && (await mobile.locator("#f-max").inputValue()) === "R$ 3.000.000"
+  && mobile.url().includes("min=1500000&max=3000000");
+
 report.push({ page: "checks", ...checks });
 await interactionContext.close();
 await browser.close();

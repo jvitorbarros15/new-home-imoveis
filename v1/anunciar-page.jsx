@@ -79,7 +79,7 @@ function SellerPage() {
           </div>
           <div className="lst-field">
             <label htmlFor="s-price">Valor esperado (opcional)</label>
-            <input id="s-price" name="price" maxLength={40} placeholder="R$ 1.200.000" />
+            <input id="s-price" name="price" inputMode="numeric" autoComplete="off" maxLength={40} placeholder="R$ 1.200.000" onInput={e => { e.currentTarget.value = formatBRLInput(e.currentTarget.value); }} />
           </div>
           <label className="seller-consent">
             <input name="consent" type="checkbox" required />
