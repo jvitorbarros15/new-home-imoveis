@@ -372,8 +372,12 @@ section { padding: 120px var(--pad); max-width: var(--maxw); margin: 0 auto; }
 .dest-specs span { display: flex; align-items: center; gap: 6px; }
 .destaques[data-count="1"] { grid-template-columns: 1fr; }
 .destaques[data-count="1"] .dest-hero { aspect-ratio: 16 / 9; }
-.destaques[data-count="2"], .destaques[data-count="3"] { align-items: start; }
 .destaques[data-count="2"] .dest-hero, .destaques[data-count="3"] .dest-hero { aspect-ratio: 4 / 3; }
+@media (min-width: 1101px) {
+  .destaques[data-count="2"] .dest-hero, .destaques[data-count="3"] .dest-hero, .destaques[data-count="4"] .dest-hero { aspect-ratio: auto; min-height: 440px; }
+  .destaques[data-count="3"] .dest-card, .destaques[data-count="4"] .dest-card { flex: 1; align-items: center; }
+  .destaques[data-count="2"] .dest-list { justify-content: center; }
+}
 
 .dest-list { display: flex; flex-direction: column; gap: 18px; }
 .dest-card {
