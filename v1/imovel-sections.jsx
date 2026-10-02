@@ -95,11 +95,11 @@ function GalleryHero({ prop, onOpen }) {
     if (navigator.share) await navigator.share(data).catch(() => {});
     else await navigator.clipboard?.writeText(location.href);
   };
-  return <div className="gal">
+  return <div className={`gal${prop.images.length ? "" : " gal-noimg"}`}>
     {prop.images.length
       ? <button type="button" className="gal-main" onClick={() => onOpen(0)} aria-label="Abrir imagem principal"><div className="img" style={{backgroundImage:`url(${prop.images[0].src})`}}/></button>
-      : <div className="gal-main gal-empty" role="img" aria-label="Fotos em breve"><span>Fotos em breve</span></div>}
-    <div className="gal-side">{prop.images.slice(1,5).map((image,index) => <button type="button" key={image.src} className="gal-thumb" onClick={() => onOpen(index + 1)} aria-label={`Abrir imagem ${index + 2}`}><div className="img" style={{backgroundImage:`url(${image.src})`}}/></button>)}</div>
+      : <div className="gal-main gal-empty"><img src="assets/logo-gold.png" alt="" /><span>Fotos em breve</span><a href={propertyWhatsapp(prop, "Gostaria de receber as fotos deste imóvel.")} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click", { code: prop.code, detail: "pedir_fotos" })}>Pedir fotos pelo WhatsApp</a></div>}
+    {prop.images.length > 0 && <div className="gal-side">{prop.images.slice(1,5).map((image,index) => <button type="button" key={image.src} className="gal-thumb" onClick={() => onOpen(index + 1)} aria-label={`Abrir imagem ${index + 2}`}><div className="img" style={{backgroundImage:`url(${image.src})`}}/></button>)}</div>}
     {prop.images.length > 0 && <button type="button" className="gal-all" onClick={() => onOpen(0)}><span className="gal-all-long">Ver galeria · {prop.images.length} imagens</span><span className="gal-all-short">{prop.images.length} {prop.images.length === 1 ? "foto" : "fotos"}</span></button>}
     <div className="gal-actions">
       <button type="button" className={`gal-action ${favorite ? "on" : ""}`} onClick={toggleFavorite} aria-pressed={favorite} aria-label={favorite ? "Remover dos favoritos" : "Salvar nos favoritos"}><I.Heart size={16}/></button>

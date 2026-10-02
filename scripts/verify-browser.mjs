@@ -240,6 +240,12 @@ checks.galleryControlsDontOverlap = await mobile.evaluate(() => {
   return !a || a.width === 0 || a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top;
 });
 
+await mobile.goto(baseUrl + "/imovel?code=AP0002-NHB", { waitUntil: "networkidle" });
+checks.emptyGalleryIsCompact = await mobile.evaluate(() => {
+  const gal = document.querySelector(".gal.gal-noimg");
+  return !!gal && gal.getBoundingClientRect().height <= 220 && !!gal.querySelector(".gal-empty a[href*='wa.me']");
+});
+
 report.push({ page: "checks", ...checks });
 await interactionContext.close();
 await browser.close();
