@@ -379,6 +379,17 @@ checks.lightboxFocusStableOnArrows = await mobile.evaluate(() => document.active
 await mobile.keyboard.press("Escape");
 checks.lightboxReturnsFocus = await mobile.evaluate(() => document.activeElement?.classList.contains("gal-main"));
 
+await mobile.setViewportSize({ width: 1440, height: 900 });
+await mobile.goto(baseUrl, { waitUntil: "networkidle" });
+checks.desktopHeroSearchAboveFold = await mobile.evaluate(() => document.querySelector(".hs-btn").getBoundingClientRect().bottom <= innerHeight);
+await mobile.goto(baseUrl + "/imoveis", { waitUntil: "networkidle" });
+checks.clearFiltersSharesRow = await mobile.evaluate(() => {
+  const q = document.querySelector("#f-q").getBoundingClientRect();
+  const clear = document.querySelector(".lst-clear").getBoundingClientRect();
+  return Math.abs(clear.top - q.top) < q.height;
+});
+await mobile.setViewportSize({ width: 390, height: 844 });
+
 report.push({ page: "checks", ...checks });
 await interactionContext.close();
 await browser.close();
