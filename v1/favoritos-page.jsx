@@ -49,7 +49,8 @@ function FavoritesPage() {
     setCodes(readFavoriteCodes());
   }
 
-  const missing = codes.filter(code => !items.some(item => item.code === code));
+  const available = items.filter(item => item.status === "active");
+  const missing = codes.filter(code => !available.some(item => item.code === code));
 
   return (
     <>
@@ -74,11 +75,11 @@ function FavoritesPage() {
         )}
 
         <p className="lst-count" role="status">
-          {loading ? "Carregando..." : codes.length > 0 ? `${items.length} de ${codes.length} disponíveis` : ""}
+          {loading ? "Carregando..." : codes.length > 0 ? `${available.length} de ${codes.length} disponíveis` : ""}
         </p>
 
         <div className="lst-grid">
-          {items.map(item => (
+          {available.map(item => (
             <div key={item.code} className="fav-wrap">
               <ListingCard item={item} />
               <button type="button" className="fav-remove" onClick={() => remove(item.code)}

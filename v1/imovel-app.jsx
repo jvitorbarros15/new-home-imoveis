@@ -59,6 +59,7 @@ async function loadSimilar(data) {
   let query = window.sb
     .from("properties")
     .select("code,title,type,region,price_brl,area_m2,bedrooms,parking,purpose")
+    .eq("status", "active")
     .eq("purpose", data.purpose);
   if (data.type) query = query.eq("type", data.type);
   const { data: rows, error } = await query

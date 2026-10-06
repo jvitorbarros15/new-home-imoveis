@@ -95,6 +95,7 @@ function ListingsPage() {
       .order("created_at", { ascending: false })
       .range(from, from + PAGE_SIZE - 1);
 
+    query = query.eq("status", "active");
     if (filters.purpose) query = query.eq("purpose", filters.purpose);
     if (filters.tipo) query = query.eq("type", filters.tipo);
     if (filters.code) query = query.ilike("code", `%${filters.code}%`);

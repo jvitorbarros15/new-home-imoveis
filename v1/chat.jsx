@@ -33,7 +33,7 @@ async function chatCountListings(a) {
   if (!window.sb) return null;
   try {
     let query = window.sb.from("properties").select("code", { count: "exact", head: true })
-      .eq("purpose", a.purpose).gte("bedrooms", a.rooms);
+      .eq("status", "active").eq("purpose", a.purpose).gte("bedrooms", a.rooms);
     if (a.band.min !== "") query = query.gte("price_brl", a.band.min * 100);
     if (a.band.max !== "") query = query.lte("price_brl", a.band.max * 100);
     const term = a.region.replace(/[%,()*]/g, " ").trim();

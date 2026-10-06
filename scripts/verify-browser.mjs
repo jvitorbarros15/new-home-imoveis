@@ -336,6 +336,15 @@ checks.chatRestartResets = (await mobile.locator(".chat-quick button", { hasText
 checks.chatSellerGoesToForm = (await mobile.locator(".chat-quick a", { hasText: "anunciar" }).getAttribute("href")) === "/anunciar";
 await mobile.keyboard.press("Escape");
 
+{
+  const urls = [];
+  const collect = (req) => { if (req.url().includes("/rest/v1/properties")) urls.push(req.url()); };
+  mobile.on("request", collect);
+  await mobile.goto(baseUrl + "/imoveis", { waitUntil: "networkidle" });
+  mobile.off("request", collect);
+  checks.listingsQueryFiltersActive = urls.length > 0 && urls.every((url) => url.includes("status=eq.active"));
+}
+
 report.push({ page: "checks", ...checks });
 await interactionContext.close();
 await browser.close();
