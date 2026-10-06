@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "check": "npm run build",
+    "test": "node scripts/test-lead-api.mjs",
     "verify:browser": "node scripts/verify-browser.mjs",
     "smoke": "node scripts/verify-browser.mjs"
   },
