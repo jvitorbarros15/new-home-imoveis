@@ -101,18 +101,18 @@ async function submitLead(lead, form) {
     source_path: location.pathname.slice(0, 200),
     consent_version: LEAD_CONSENT_VERSION,
   };
-  const token = form ? await readTurnstileToken(form) : "";
-  const website = form ? String(new FormData(form).get("website") || "") : "";
+  const token = await readTurnstileToken(form);
+  const website = String(new FormData(form).get("website") || "");
   try {
     const response = await fetch("/api/lead", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...row, consent: true, website, turnstileToken: token }),
+      body: JSON.stringify({ ...row, consent: form.elements.consent?.checked === true, website, turnstileToken: token }),
     });
     if (response.status !== 404 && response.status !== 503) return { saved: response.ok };
   } catch (e) {
   } finally {
-    const box = form && form.querySelector(".nh-turnstile");
+    const box = form.querySelector(".nh-turnstile");
     if (box && box.firstChild && window.turnstile) window.turnstile.reset(box);
   }
   return saveLeadDirect(row);

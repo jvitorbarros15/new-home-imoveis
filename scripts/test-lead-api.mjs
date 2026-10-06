@@ -1,3 +1,6 @@
+// Rollout: v1/lead.js falls back to the direct anon insert on 404, 503 or a network error,
+// so a deploy before TURNSTILE_SECRET_KEY is set keeps saving leads until migration 017 is applied.
+// 400, 403, 429 and 502 are real rejections and are never retried.
 import assert from "node:assert/strict";
 import handler from "../api/lead.js";
 
