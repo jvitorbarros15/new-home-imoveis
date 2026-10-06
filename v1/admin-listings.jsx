@@ -3,6 +3,28 @@
 const ADM_PAGE_SIZE = 20;
 const STORAGE_MARKER = "/storage/v1/object/public/property-images/";
 
+// Resolves to true when the files are gone (or there was nothing to remove).
+async function removeStoredImages(urls) {
+  const paths = storagePathsFrom(urls);
+  if (!paths.length) return true;
+  try {
+    const { error } = await window.sb.storage.from("property-images").remove(paths);
+    return !error;
+  } catch (e) {
+    return false;
+  }
+}
+
+function imagesToDiscard(saved, ...earlier) {
+  return [...new Set(earlier.flat())].filter(url => !saved.includes(url));
+}
+
+async function deleteListingAndImages(id, images) {
+  const { error } = await window.sb.from("properties").delete().eq("id", id);
+  if (error) return { deleted: false, imagesRemoved: false };
+  return { deleted: true, imagesRemoved: await removeStoredImages(images) };
+}
+
 function storagePathsFrom(images) {
   if (!Array.isArray(images)) return [];
   return images.reduce((paths, url) => {
@@ -65,19 +87,9 @@ function ListingsView({ onEdit }) {
     if (!confirm(msg)) return;
     if (propStatus === "active" && !confirm(`Confirmar exclusão definitiva de ${code}?`)) return;
 
-    // Images go first: if this fails the row survives and the delete can be
-    // retried, instead of leaving files with nothing pointing at them.
-    const paths = storagePathsFrom(images);
-    if (paths.length) {
-      const { error: storageErr } = await window.sb.storage.from("property-images").remove(paths);
-      if (storageErr) {
-        alert("Não foi possível remover as imagens. O imóvel não foi excluído; tente novamente.");
-        return;
-      }
-    }
-
-    const { error: err } = await window.sb.from("properties").delete().eq("id", id);
-    if (err) { alert("As imagens foram removidas, mas o imóvel não pôde ser excluído. Tente novamente."); return; }
+    const { deleted, imagesRemoved } = await deleteListingAndImages(id, images);
+    if (!deleted) { alert("Não foi possível excluir o imóvel. Tente novamente."); return; }
+    if (!imagesRemoved) alert("O imóvel foi excluído, mas algumas imagens não puderam ser removidas do armazenamento.");
     setProps(p => p.filter(x => x.id !== id));
     setTotal(t => Math.max(0, t - 1));
   }

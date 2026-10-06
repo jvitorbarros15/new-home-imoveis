@@ -96,6 +96,13 @@ function PropertyForm({ prop, onSaved }) {
   const [error, setError]         = React.useState("");
   const [drag, setDrag]           = React.useState(false);
   const fileRef = React.useRef(null);
+  const initialImages = React.useRef(prop?.images || []);
+  const sessionUploads = React.useRef([]);
+  const saved = React.useRef(false);
+
+  React.useEffect(() => () => {
+    if (!saved.current && sessionUploads.current.length) removeStoredImages(sessionUploads.current);
+  }, []);
 
   function set(k, v) { setFields(f => ({ ...f, [k]: v })); }
 
@@ -107,24 +114,29 @@ function PropertyForm({ prop, onSaved }) {
     const codeSlug = (fields.code || "temp").replace(/[^a-zA-Z0-9-]/g, "_");
     const urls = [];
 
-    for (const original of Array.from(files)) {
-      const file = await toWebp(original);
-      const ext  = file.name.split(".").pop().toLowerCase();
-      const rand = Math.random().toString(16).slice(2, 10);
-      const path = `${codeSlug}/${Date.now()}-${rand}.${ext}`;
-      const { error: upErr } = await window.sb.storage
-        .from("property-images")
-        .upload(path, file, { upsert: false, contentType: file.type });
-      if (upErr) {
-        setError("Erro ao enviar uma ou mais imagens. Verifique o tamanho e o formato.");
-        continue;
+    try {
+      for (const original of Array.from(files)) {
+        const file = await toWebp(original);
+        const ext  = file.name.split(".").pop().toLowerCase();
+        const rand = Math.random().toString(16).slice(2, 10);
+        const path = `${codeSlug}/${Date.now()}-${rand}.${ext}`;
+        const { error: upErr } = await window.sb.storage
+          .from("property-images")
+          .upload(path, file, { upsert: false, contentType: file.type });
+        if (upErr) {
+          setError("Erro ao enviar uma ou mais imagens. Verifique o tamanho e o formato.");
+          continue;
+        }
+        const { data } = window.sb.storage.from("property-images").getPublicUrl(path);
+        urls.push(data.publicUrl);
+        sessionUploads.current.push(data.publicUrl);
       }
-      const { data } = window.sb.storage.from("property-images").getPublicUrl(path);
-      urls.push(data.publicUrl);
+      setImages(prev => [...prev, ...urls]);
+    } catch (e) {
+      setError("Erro ao enviar uma ou mais imagens. Verifique o tamanho e o formato.");
+    } finally {
+      setUploading(false);
     }
-
-    setImages(prev => [...prev, ...urls]);
-    setUploading(false);
   }
 
   function removeImage(url) { setImages(prev => prev.filter(u => u !== url)); }
@@ -203,6 +215,8 @@ function PropertyForm({ prop, onSaved }) {
       }
       return;
     }
+    saved.current = true;
+    removeStoredImages(imagesToDiscard(images, initialImages.current, sessionUploads.current));
     onSaved();
   }
 
