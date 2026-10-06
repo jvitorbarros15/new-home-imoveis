@@ -7,6 +7,7 @@ const LIST_PURPOSE = [
   { v: "rent", l: "Aluguel" },
 ];
 const PAGE_SIZE = 12;
+const LISTING_CODE_PATTERN = /^[A-Z]{2}\d{4}-NHB$/i;
 
 function readFilters() {
   const params = new URLSearchParams(location.search);
@@ -105,7 +106,8 @@ function ListingsPage() {
     if (filters.q) {
       // PostgREST treats these characters as filter syntax, so they are stripped.
       const term = filters.q.replace(/[%,()*]/g, " ").trim();
-      if (term) query = query.or(`title.ilike.%${term}%,region.ilike.%${term}%`);
+      if (LISTING_CODE_PATTERN.test(term)) query = query.ilike("code", term);
+      else if (term) query = query.or(`title.ilike.%${term}%,region.ilike.%${term}%`);
     }
 
     query.then(({ data, error: err, count }) => {

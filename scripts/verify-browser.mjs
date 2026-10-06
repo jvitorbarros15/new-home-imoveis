@@ -56,7 +56,7 @@ async function mockBackend(context) {
     if (!url.pathname.endsWith("/properties")) return route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
     const code = url.searchParams.get("code");
     const wantsObject = (request.headers()["accept"] || "").includes("vnd.pgrst.object");
-    const rows = code === "eq.AP0001-NHB" || !code ? [fixtureProperty] : code === "eq.AP0002-NHB" ? [fixtureNoPhotos] : [];
+    const rows = code === "eq.AP0001-NHB" || code === "ilike.ap0001-nhb" || !code ? [fixtureProperty] : code === "eq.AP0002-NHB" ? [fixtureNoPhotos] : [];
     if (wantsObject) {
       return rows.length
         ? route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(rows[0]) })
@@ -343,6 +343,16 @@ await mobile.keyboard.press("Escape");
   await mobile.goto(baseUrl + "/imoveis", { waitUntil: "networkidle" });
   mobile.off("request", collect);
   checks.listingsQueryFiltersActive = urls.length > 0 && urls.every((url) => url.includes("status=eq.active"));
+}
+
+{
+  const urls = [];
+  const collect = (req) => { if (req.url().includes("/rest/v1/properties")) urls.push(decodeURIComponent(req.url())); };
+  mobile.on("request", collect);
+  await mobile.goto(baseUrl + "/imoveis?q=ap0001-nhb", { waitUntil: "networkidle" });
+  mobile.off("request", collect);
+  checks.listingCodeSearchUsesCodeColumn = urls.some((url) => url.includes("code=ilike.ap0001-nhb")) && !urls.some((url) => url.includes("title.ilike"));
+  checks.listingCardShowsCode = (await mobile.locator(".lst-card .lst-code", { hasText: "AP0001-NHB" }).count()) === 1;
 }
 
 report.push({ page: "checks", ...checks });

@@ -389,7 +389,7 @@ function Destaques() {
           <div className="img" style={{ backgroundImage: featured?.img ? `url("${featured.img}")` : undefined }} />
           <div className="meta">
             <div>
-              <div className="dest-tag">{featured?.type} · {featured?.region}</div>
+              <div className="dest-tag">{featured?.type} · {featured?.region} · {featured?.code}</div>
               <h3>{featured?.title}</h3>
               <div className="dest-specs">
                 <span><IconArea /> {featured?.area}</span>
@@ -414,7 +414,7 @@ function Destaques() {
               <div className="dc-imgwrap"><div className="dc-img" style={{ backgroundImage: p.img ? `url("${p.img}")` : undefined }} /></div>
               <div className="dc-body">
                 <div>
-                  <div className="dc-type">{p.type} · {p.region.split(" · ")[0]}</div>
+                  <div className="dc-type">{p.type} · {p.region.split(" · ")[0]} · {p.code}</div>
                   <div className="dc-title">{p.title}</div>
                   <div className="dc-specs">
                     <span><IconArea /> {p.area}</span>
@@ -656,6 +656,7 @@ function ListingCard({ item }) {
       <div className="lst-body">
         <span className="lst-type">{item.type} · {item.region}</span>
         <h3>{item.title}</h3>
+        <span className="lst-code">Cód. {item.code}</span>
         <div className="lst-specs">
           {item.area_m2 ? <span>{item.area_m2} m²</span> : null}
           {item.bedrooms ? <span>{item.bedrooms} quartos</span> : null}
