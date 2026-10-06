@@ -109,7 +109,7 @@ async function submitLead(lead, form) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...row, consent: true, website, turnstileToken: token }),
     });
-    if (response.status !== 404) return { saved: response.ok };
+    if (response.status !== 404 && response.status !== 503) return { saved: response.ok };
   } catch (e) {
   } finally {
     const box = form && form.querySelector(".nh-turnstile");
