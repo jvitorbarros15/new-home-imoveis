@@ -36,6 +36,7 @@
   background-size: cover; background-position: center;
   transition: transform 1.2s ease;
 }
+.gal-main .img, .gal-thumb .img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .gal-main:hover .img { transform: scale(1.04); }
 .gal-main.gal-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: default; color: var(--ink-3); border: 1px dashed var(--line-2); }
 .gal-empty img { height: 44px; opacity: 0.8; }

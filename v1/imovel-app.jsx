@@ -1,7 +1,7 @@
 // Property page app shell
 
 function NotFoundProperty({ code }) {
-  return <><div className="grain"/><Nav/><DemoNotice/><main className="imovel-page" style={{minHeight:"70vh",display:"grid",placeItems:"center"}}>
+  return <><div className="grain"/><Nav/><DemoNotice/><main className="imovel-page" id="conteudo" style={{minHeight:"70vh",display:"grid",placeItems:"center"}}>
     <section className="blk" style={{maxWidth:720,textAlign:"center"}}>
       <span className="eyebrow">{code ? `Imóvel ${code}` : "Imóvel"}</span><h1>{code ? "Não encontramos este imóvel." : "Nenhum imóvel selecionado."}</h1>
       <p>A listagem pode ter sido removida, vendida ou o endereço pode estar incompleto. Veja os imóveis disponíveis ou fale com a equipe.</p>
@@ -82,6 +82,7 @@ function ImovelApp() {
   const [prop,setProp] = React.useState(null);
   const [loading,setLoading] = React.useState(true);
   const [notFound,setNotFound] = React.useState("");
+  const closeLightbox = React.useCallback(() => setLightboxOpen(false), []);
 
   React.useEffect(() => {
     document.documentElement.setAttribute("data-motion",theme.motion);
@@ -116,7 +117,7 @@ function ImovelApp() {
   const openLightbox = (index) => { setLightboxIndex(index); setLightboxOpen(true); };
 
   return <><div className="grain"/><Nav/><DemoNotice/>
-    <main className="imovel-page">
+    <main className="imovel-page" id="conteudo">
       <nav className="crumb" aria-label="Navegação estrutural"><a href="/">Home</a><span className="crumb-sep">›</span><a href={NH.listingsUrl}>Imóveis</a><span className="crumb-sep">›</span><span className="crumb-now">{prop.code}</span></nav>
       <GalleryHero prop={prop} onOpen={openLightbox}/><Identity prop={prop}/>
       <div className="body-grid"><div className="body-main">
@@ -129,7 +130,7 @@ function ImovelApp() {
       <Similar prop={prop}/>
     </main>
     <StickyContact prop={prop}/><Footer/><Chat/>
-    <Lightbox open={lightboxOpen} idx={lightboxIndex} setIdx={setLightboxIndex} onClose={() => setLightboxOpen(false)} images={prop.images}/>
+    <Lightbox open={lightboxOpen} idx={lightboxIndex} setIdx={setLightboxIndex} onClose={closeLightbox} images={prop.images} title={prop.title}/>
   </>;
 }
 

@@ -355,6 +355,30 @@ await mobile.keyboard.press("Escape");
   checks.listingCardShowsCode = (await mobile.locator(".lst-card .lst-code", { hasText: "AP0001-NHB" }).count()) === 1;
 }
 
+await mobile.goto(baseUrl, { waitUntil: "networkidle" });
+await mobile.getByRole("button", { name: /abrir menu/i }).click();
+const inMenu = () => mobile.evaluate(() => !!document.activeElement?.closest(".nav-mobile"));
+checks.menuFocusesFirstLink = await mobile.evaluate(() => document.activeElement?.classList.contains("nav-mobile-link"));
+let menuTrapped = true;
+for (let i = 0; i < 9; i += 1) { await mobile.keyboard.press("Tab"); menuTrapped = menuTrapped && (await inMenu()); }
+await mobile.keyboard.press("Shift+Tab");
+checks.menuTrapsTab = menuTrapped && (await inMenu());
+await mobile.keyboard.press("Escape");
+checks.menuEscapeReturnsFocus = await mobile.evaluate(() => document.activeElement?.getAttribute("aria-label") === "Abrir menu");
+checks.heroUsesNativeSelects = (await mobile.locator("select.hs-select").count()) === 2;
+
+await mobile.goto(baseUrl + "/imovel?code=AP0001-NHB", { waitUntil: "networkidle" });
+checks.propertyHasSkipTarget = (await mobile.locator("a.skip-link[href='#conteudo']").count()) === 1 && (await mobile.locator("main#conteudo").count()) === 1;
+checks.galleryImagesHaveAlt = await mobile.evaluate(() => [...document.querySelectorAll(".gal button img")].every((img) => /^Foto \d+ de \d+ — /.test(img.alt)));
+await mobile.locator(".gal-main").click();
+await mobile.waitForSelector(".lb.on");
+checks.lightboxFocusOnClose = await mobile.evaluate(() => document.activeElement?.classList.contains("lb-close"));
+await mobile.keyboard.press("ArrowRight");
+await mobile.keyboard.press("ArrowRight");
+checks.lightboxFocusStableOnArrows = await mobile.evaluate(() => document.activeElement?.classList.contains("lb-close") && document.querySelector(".lb-info span").textContent.startsWith("3 / "));
+await mobile.keyboard.press("Escape");
+checks.lightboxReturnsFocus = await mobile.evaluate(() => document.activeElement?.classList.contains("gal-main"));
+
 report.push({ page: "checks", ...checks });
 await interactionContext.close();
 await browser.close();

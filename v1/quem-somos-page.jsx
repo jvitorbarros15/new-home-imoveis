@@ -4,7 +4,7 @@ function QuemSomos() {
   const yearsInMarket = new Date().getFullYear() - NH.foundedYear;
 
   return (
-    <main className="page">
+    <main className="page" id="conteudo">
       <section className="ph-hero">
         <div>
           <span className="eyebrow ph-hero-eyebrow">Quem somos</span>

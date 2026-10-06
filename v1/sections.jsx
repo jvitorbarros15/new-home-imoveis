@@ -6,7 +6,6 @@ const SVG = ({ children, size = 16, ...rest }) => (
     {children}
   </svg>
 );
-const IconChev   = (p) => <SVG {...p}><polyline points="6 9 12 15 18 9" /></SVG>;
 const IconArrow  = (p) => <SVG {...p}><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></SVG>;
 const IconArrowL = (p) => <SVG {...p}><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></SVG>;
 const IconSearch = (p) => <SVG {...p}><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></SVG>;
@@ -91,6 +90,7 @@ function CountUp({ to, suffix = "" }) {
 function Nav() {
   const [scrolled, setScrolled] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const menuRef = React.useRef(null);
   const [theme, toggleTheme] = useTheme();
   const currentPage = (window.location.pathname.split("/").pop() || "index").replace(/\.html$/, "");
 
@@ -114,6 +114,28 @@ function Nav() {
   React.useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
+  }, [menuOpen]);
+
+  React.useEffect(() => {
+    if (!menuOpen) return;
+    const panel = menuRef.current;
+    const opener = document.activeElement;
+    panel.querySelector(".nav-mobile-link")?.focus();
+    const trap = (e) => {
+      if (e.key !== "Tab") return;
+      const items = [...panel.querySelectorAll("a, button")].filter((el) => el.tabIndex >= 0);
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      else if (!panel.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", trap);
+    return () => {
+      document.removeEventListener("keydown", trap);
+      opener?.focus?.();
+    };
   }, [menuOpen]);
 
   React.useEffect(() => {
@@ -164,13 +186,13 @@ function Nav() {
         </div>
       </nav>
 
-      <div className={`nav-mobile ${menuOpen ? "open" : ""}`} aria-hidden={!menuOpen} role="dialog" aria-modal={menuOpen || undefined} aria-label="Menu principal">
+      <div ref={menuRef} className={`nav-mobile ${menuOpen ? "open" : ""}`} aria-hidden={!menuOpen} role="dialog" aria-modal={menuOpen || undefined} aria-label="Menu principal">
         <button className="nav-mobile-close" onClick={() => setMenuOpen(false)} aria-label="Fechar menu" tabIndex={menuOpen ? 0 : -1}>
           <IconX size={20} />
         </button>
         {navLinks.map(({ href, label, page }) => (
           <a key={label} href={href}
-             className={currentPage === page ? "active" : ""}
+             className={`nav-mobile-link${currentPage === page ? " active" : ""}`}
              onClick={() => setMenuOpen(false)}
              tabIndex={menuOpen ? 0 : -1}
           >{label}</a>
@@ -190,8 +212,6 @@ function Hero({ motion }) {
   const [pretensao, setPretensao] = React.useState("Comprar");
   const [tipo, setTipo] = React.useState("");
   const [busca, setBusca] = React.useState("");
-  const [openP, setOpenP] = React.useState(false);
-  const [openT, setOpenT] = React.useState(false);
 
   React.useEffect(() => {
     if (motion === "off") return;
@@ -220,13 +240,6 @@ function Hero({ motion }) {
       images.forEach((image) => { image.onload = null; });
     };
   }, [idx]);
-
-  // close popovers on outside click
-  React.useEffect(() => {
-    const close = (e) => { if (!e.target.closest(".hs-field")) { setOpenP(false); setOpenT(false); } };
-    document.addEventListener("click", close);
-    return () => document.removeEventListener("click", close);
-  }, []);
 
   const PRETENSOES = ["Comprar", "Alugar"];
   const TIPOS = ["", ...PROPERTY_TYPES];
@@ -278,34 +291,18 @@ function Hero({ motion }) {
                       onClick={() => setPretensao(p)}>{p}</button>
             ))}
           </div>
-          <div className="hs-field hs-desktop" role="button" tabIndex="0" aria-haspopup="listbox" aria-expanded={openP}
-               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpenP(o => !o); setOpenT(false); } }}
-               onClick={(e) => { e.stopPropagation(); setOpenP(o => !o); setOpenT(false); }}>
+          <label className="hs-field hs-desktop">
             <span className="hs-label">Pretensão</span>
-            <span className="hs-value">{pretensao}<IconChev className="hs-chev" /></span>
-            {openP && (
-              <div className="hs-pop" onClick={(e) => e.stopPropagation()}>
-                {PRETENSOES.map(p => (
-                  <button type="button" key={p} className={p === pretensao ? "on" : ""}
-                          onClick={() => { setPretensao(p); setOpenP(false); }}>{p}</button>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="hs-field hs-desktop" role="button" tabIndex="0" aria-haspopup="listbox" aria-expanded={openT}
-               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpenT(o => !o); setOpenP(false); } }}
-               onClick={(e) => { e.stopPropagation(); setOpenT(o => !o); setOpenP(false); }}>
+            <select className="hs-select" value={pretensao} onChange={(e) => setPretensao(e.target.value)}>
+              {PRETENSOES.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </label>
+          <label className="hs-field hs-desktop">
             <span className="hs-label">Tipo de imóvel</span>
-            <span className="hs-value">{tipo || "Todos os tipos"}<IconChev className="hs-chev" /></span>
-            {openT && (
-              <div className="hs-pop" onClick={(e) => e.stopPropagation()}>
-                {TIPOS.map(p => (
-                  <button type="button" key={p} className={p === tipo ? "on" : ""}
-                          onClick={() => { setTipo(p); setOpenT(false); }}>{p || "Todos os tipos"}</button>
-                ))}
-              </div>
-            )}
-          </div>
+            <select className="hs-select" value={tipo} onChange={(e) => setTipo(e.target.value)}>
+              {TIPOS.map(p => <option key={p} value={p}>{p || "Todos os tipos"}</option>)}
+            </select>
+          </label>
           <div className="hs-field">
             <span className="hs-label">Localização</span>
             <span className="hs-value">

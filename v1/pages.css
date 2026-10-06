@@ -314,6 +314,7 @@
   background: var(--line-2); border-radius: 999px; outline: none; cursor: pointer;
   margin-top: 6px;
 }
+.sim-range:focus-visible, .sim-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
 .sim-range::-webkit-slider-thumb {
   appearance: none; width: 18px; height: 18px;
   background: var(--accent); border-radius: 999px;

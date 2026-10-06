@@ -54,27 +54,40 @@ function readFavorite(code) {
   try { return localStorage.getItem(`favorite:${code}`) === "1"; } catch (e) { return false; }
 }
 
-function Lightbox({ open, idx, setIdx, onClose, images }) {
+function Lightbox({ open, idx, setIdx, onClose, images, title }) {
   const closeRef = React.useRef(null);
+  const count = images.length;
+  const step = React.useCallback((delta) => setIdx((value) => (value + delta + count) % count), [setIdx, count]);
+
   React.useEffect(() => {
     if (!open) return;
+    const opener = document.activeElement;
     closeRef.current?.focus();
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+      opener?.focus?.();
+    };
+  }, [open]);
+
+  React.useEffect(() => {
+    if (!open) return;
     const handleKey = (event) => {
       if (event.key === "Escape") onClose();
-      if (event.key === "ArrowRight") setIdx((value) => (value + 1) % images.length);
-      if (event.key === "ArrowLeft") setIdx((value) => (value - 1 + images.length) % images.length);
+      else if (event.key === "ArrowRight") step(1);
+      else if (event.key === "ArrowLeft") step(-1);
     };
     document.addEventListener("keydown", handleKey);
-    document.body.style.overflow = "hidden";
-    return () => { document.removeEventListener("keydown", handleKey); document.body.style.overflow = ""; };
-  }, [open, images.length, onClose, setIdx]);
-  if (!open || !images.length) return null;
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [open, onClose, step]);
+
+  if (!open || !count) return null;
   const current = images[idx] || images[0];
   return <div className="lb on" role="dialog" aria-modal="true" aria-label="Galeria de imagens" onClick={onClose}>
-    <div className="lb-top" onClick={(e) => e.stopPropagation()}><div className="lb-info"><h4>{current.room}</h4><span>{idx + 1} / {images.length} · {current.caption}</span></div><button ref={closeRef} type="button" className="lb-close" onClick={onClose} aria-label="Fechar galeria"><I.X/></button></div>
-    <button type="button" className="lb-arrow prev" onClick={(e) => { e.stopPropagation(); setIdx((value) => (value - 1 + images.length) % images.length); }} aria-label="Imagem anterior">‹</button>
-    <div className="lb-stage" onClick={(e) => e.stopPropagation()}><img key={current.src} src={current.src} alt={current.caption} style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain"}}/></div>
-    <button type="button" className="lb-arrow next" onClick={(e) => { e.stopPropagation(); setIdx((value) => (value + 1) % images.length); }} aria-label="Próxima imagem">›</button>
+    <div className="lb-top" onClick={(e) => e.stopPropagation()}><div className="lb-info"><h4>{current.room}</h4><span>{idx + 1} / {count} · {current.caption}</span></div><button ref={closeRef} type="button" className="lb-close" onClick={onClose} aria-label="Fechar galeria"><I.X/></button></div>
+    <button type="button" className="lb-arrow prev" onClick={(e) => { e.stopPropagation(); step(-1); }} aria-label="Imagem anterior">‹</button>
+    <div className="lb-stage" onClick={(e) => e.stopPropagation()}><img key={current.src} src={current.src} alt={`Foto ${idx + 1} de ${count} — ${title}`} style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain"}}/></div>
+    <button type="button" className="lb-arrow next" onClick={(e) => { e.stopPropagation(); step(1); }} aria-label="Próxima imagem">›</button>
   </div>;
 }
 
@@ -99,9 +112,9 @@ function GalleryHero({ prop, onOpen }) {
   };
   return <div className={`gal${prop.images.length ? "" : " gal-noimg"}`}>
     {prop.images.length
-      ? <button type="button" className="gal-main" onClick={() => onOpen(0)} aria-label="Abrir imagem principal"><div className="img" style={{backgroundImage:`url(${prop.images[0].src})`}}/></button>
+      ? <button type="button" className="gal-main" onClick={() => onOpen(0)} aria-label="Abrir galeria de fotos"><img className="img" src={prop.images[0].src} alt={`Foto 1 de ${prop.images.length} — ${prop.title}`} decoding="async"/></button>
       : <div className="gal-main gal-empty"><img src="assets/logo-gold.png" alt="" /><span>Fotos em breve</span><a href={propertyWhatsapp(prop, "Gostaria de receber as fotos deste imóvel.")} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click", { code: prop.code, detail: "pedir_fotos" })}>Pedir fotos pelo WhatsApp</a></div>}
-    {prop.images.length > 0 && <div className="gal-side">{prop.images.slice(1,5).map((image,index) => <button type="button" key={image.src} className="gal-thumb" onClick={() => onOpen(index + 1)} aria-label={`Abrir imagem ${index + 2}`}><div className="img" style={{backgroundImage:`url(${image.src})`}}/></button>)}</div>}
+    {prop.images.length > 0 && <div className="gal-side">{prop.images.slice(1,5).map((image,index) => <button type="button" key={image.src} className="gal-thumb" onClick={() => onOpen(index + 1)} aria-label={`Abrir foto ${index + 2} de ${prop.images.length}`}><img className="img" src={image.src} alt={`Foto ${index + 2} de ${prop.images.length} — ${prop.title}`} loading="lazy" decoding="async"/></button>)}</div>}
     {prop.images.length > 0 && <button type="button" className="gal-all" onClick={() => onOpen(0)}><span className="gal-all-long">Ver galeria · {prop.images.length} {prop.images.length === 1 ? "imagem" : "imagens"}</span><span className="gal-all-short">{prop.images.length} {prop.images.length === 1 ? "foto" : "fotos"}</span></button>}
     <div className="gal-actions">
       <button type="button" className={`gal-action ${favorite ? "on" : ""}`} onClick={toggleFavorite} aria-pressed={favorite} aria-label={favorite ? "Remover dos favoritos" : "Salvar nos favoritos"}><I.Heart size={16}/></button>
