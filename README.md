@@ -28,9 +28,10 @@ Requirements: Node.js 20 or newer.
 ```bash
 npm install
 cp .env.example .env          # optional: only needed to talk to a real Supabase project
-node --env-file=.env scripts/build.mjs   # or: npm run build
-npx serve v1
+npm run dev                   # builds (reads .env if present) and serves v1 at http://localhost:8080
 ```
+
+`npm run dev` does not watch files: re-run it after editing a `.jsx` file.
 
 Open the URL printed by `serve` and rebuild after editing any `.jsx` or `.js` source. Without Supabase variables the site still loads; data-driven areas show their empty or unconfigured states. `v1/config.js`, `v1/imovel.html` and `v1/dist/` are generated and not tracked.
 

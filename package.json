@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "dev": "node --env-file-if-exists=.env scripts/build.mjs && npx --yes serve -l 8080 v1",
     "build": "node scripts/build.mjs",
     "check": "npm run build",
     "verify:browser": "node scripts/verify-browser.mjs",
