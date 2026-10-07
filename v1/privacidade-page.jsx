@@ -47,6 +47,11 @@ function PrivacyPage() {
               a nenhum servidor.
             </li>
           </ul>
+          <p>
+            As visitas também são contabilizadas de forma agregada pelo provedor de hospedagem
+            (Vercel Web Analytics): estatísticas de páginas visitadas, sem cookies e sem identificar
+            você individualmente.
+          </p>
           <p>Este site não usa cookies de rastreamento, publicidade ou perfilamento comportamental.</p>
         </section>
 

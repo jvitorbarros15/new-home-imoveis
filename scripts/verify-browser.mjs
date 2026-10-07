@@ -44,7 +44,12 @@ const fixtureProperty = {
 
 const fixtureNoPhotos = { ...fixtureProperty, code: "AP0002-NHB", title: "Apartamento sem fotos", images: [], featured: false };
 
+const TINY_GIF = Buffer.from("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", "base64");
+
 async function mockBackend(context) {
+  await context.route("https://images.unsplash.com/**", (route) => route.fulfill({ contentType: "image/gif", body: TINY_GIF }));
+  await context.route(/^https:\/\/fonts\.(googleapis|gstatic)\.com\//, (route) => route.fulfill({ status: 200, contentType: "text/css", body: "" }));
+  await context.route("**/_vercel/insights/**", (route) => route.fulfill({ contentType: "application/javascript", body: "" }));
   await context.route("**/config.js", (route) => route.fulfill({
     contentType: "application/javascript",
     body: 'window.NEW_HOME_CONFIG={"supabaseUrl":"https://fixture.supabase.co","supabaseAnonKey":"fixture","turnstileSiteKey":""};',
@@ -389,6 +394,26 @@ checks.clearFiltersSharesRow = await mobile.evaluate(() => {
   return Math.abs(clear.top - q.top) < q.height;
 });
 await mobile.setViewportSize({ width: 390, height: 844 });
+
+{
+  const probe = await interactionContext.newPage();
+  await probe.goto(baseUrl + "/imoveis", { waitUntil: "networkidle" });
+  const posts = [];
+  await probe.route("**/rest/v1/events*", (route) => {
+    posts.push(route.request().postData() || "");
+    return route.fulfill(posts.length === 1 ? { status: 500, contentType: "application/json", body: '{"message":"boom"}' } : { status: 201, body: "" });
+  });
+  await probe.route("**/__boom.js", (route) => route.fulfill({ contentType: "application/javascript", body: 'throw new Error("verifier boom");' }));
+  await probe.evaluate(() => {
+    const script = document.createElement("script");
+    script.src = "/__boom.js";
+    document.body.appendChild(script);
+  });
+  await probe.waitForTimeout(6500);
+  checks.jsErrorsAreReported = posts.some((body) => body.includes("js_error") && body.includes("verifier boom"));
+  checks.failedEventBatchesAreRetried = posts.length >= 2 && posts[1].includes("js_error");
+  await probe.close();
+}
 
 report.push({ page: "checks", ...checks });
 await interactionContext.close();
