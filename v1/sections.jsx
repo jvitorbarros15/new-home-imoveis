@@ -158,7 +158,8 @@ function Nav() {
 
   return (
     <>
-      <nav className={`nav ${scrolled ? "scrolled" : ""}`}>
+      <div className="scroll-progress" data-m="progress" aria-hidden="true" />
+      <nav className={`nav${scrolled ? " scrolled" : ""}${menuOpen ? " nav-open" : ""}`} data-m="nav">
         <a className="nav-logo" href="/">
           <img src="assets/logo-gold.png" alt="New Home Imóveis" />
         </a>
@@ -253,7 +254,7 @@ function Hero({ motion }) {
   };
 
   return (
-    <header className="hero">
+    <header className="hero" data-m="hero">
       <div className="hero-slides">
         {HERO_IMAGES.map((src, i) => (
           <div key={i} className={`hero-slide ${i === idx ? "active" : ""}`}
@@ -272,16 +273,7 @@ function Hero({ motion }) {
       <div className="hero-content">
         <div className="hero-headline">
           <div className="hero-eyebrow"><span className="eyebrow">New Home · Imóveis selecionados</span></div>
-          <h1>
-            <span className="kw"><span style={{ animationDelay: "0.05s" }}>Imóveis</span></span>{" "}
-            <span className="kw"><span style={{ animationDelay: "0.12s" }}>escolhidos</span></span>{" "}
-            <span className="kw"><span style={{ animationDelay: "0.19s" }}>para</span></span>{" "}
-            <span className="kw"><span style={{ animationDelay: "0.26s" }}>quem</span></span>{" "}
-            <br />
-            <span className="kw"><span style={{ animationDelay: "0.34s" }}>busca</span></span>{" "}
-            <em><span className="kw"><span style={{ animationDelay: "0.42s" }}>qualidade</span></span>{" "}
-            <span className="kw"><span style={{ animationDelay: "0.50s" }}>de vida.</span></span></em>
-          </h1>
+          <h1>Imóveis escolhidos para quem <br />busca <em>qualidade de vida.</em></h1>
           <p className="hero-sub">
             Desde 2010 no Rio de Janeiro, conectando compradores e proprietários com atendimento exclusivo,
             estratégia digital e acompanhamento em cada etapa do negócio.

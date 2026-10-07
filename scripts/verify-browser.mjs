@@ -83,6 +83,8 @@ async function mockBackend(context) {
 }
 const report = [];
 
+const settle = (page) => page.waitForFunction(() => !window.NHMotion || window.NHMotion.idle(), null, { timeout: 8000 }).catch(() => {});
+
 async function exerciseScroll(page) {
   const metrics = await page.evaluate(() => new Promise((resolve) => {
     const maxScroll = Math.max(0, document.documentElement.scrollHeight - innerHeight);
@@ -124,6 +126,7 @@ for (const item of pages) {
   });
   const response = await page.goto(baseUrl + item.path, { waitUntil: "domcontentloaded" });
   await page.waitForLoadState("networkidle").catch(() => {});
+  await settle(page);
   const scrollMetrics = await exerciseScroll(page);
   const contentLength = (await page.locator("body").innerText()).trim().length;
   const heading = await page.locator("h1").first().innerText().catch(() => "");
@@ -157,6 +160,7 @@ const narrow = await narrowContext.newPage();
 for (const item of pages.filter((entry) => entry.name !== "not-found")) {
   await narrow.goto(baseUrl + item.path, { waitUntil: "networkidle" });
   await narrow.waitForTimeout(800);
+  await settle(narrow);
   // body clips horizontal overflow, so scrollWidth hides it; count unclipped elements instead.
   const overflow = await narrow.evaluate(() => {
     const clipped = (el) => {
@@ -182,6 +186,12 @@ await narrowContext.close();
 const interactionContext = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "pt-BR" });
 await mockBackend(interactionContext);
 const mobile = await interactionContext.newPage();
+const goto = mobile.goto.bind(mobile);
+mobile.goto = async (...args) => {
+  const response = await goto(...args);
+  await settle(mobile);
+  return response;
+};
 const interactionErrors = [];
 mobile.on("pageerror", (error) => interactionErrors.push(error.message));
 await mobile.goto(baseUrl, { waitUntil: "networkidle" });
