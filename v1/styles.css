@@ -413,6 +413,21 @@ section { padding: 120px var(--pad); max-width: var(--maxw); margin: 0 auto; }
 }
 .dest-card:hover .dc-arrow { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); transform: translateY(-50%) translateX(4px); }
 
+/* destaques as a pinned horizontal rail (set at runtime by the motion layer) */
+#destaques.is-rail { --rail-h: clamp(380px, calc(100vh - 470px), 540px); overflow: clip; padding-top: 88px; padding-bottom: 48px; }
+#destaques.is-rail .sec-head { margin-bottom: 36px; }
+#destaques.is-rail .destaques { display: flex; gap: 24px; width: max-content; }
+#destaques.is-rail .dest-hero { flex: none; width: calc(var(--rail-h) * 1.6); height: var(--rail-h); min-height: 0; aspect-ratio: auto; }
+#destaques.is-rail .dest-list { display: contents; }
+#destaques.is-rail .dest-card {
+  flex: none; width: calc(var(--rail-h) * 0.95); height: var(--rail-h);
+  grid-template-columns: 1fr; grid-template-rows: 1fr 148px; align-items: stretch;
+}
+#destaques.is-rail .dc-imgwrap { aspect-ratio: auto; min-height: 0; }
+#destaques.is-rail .dc-body { padding: 0 4px 4px; }
+#destaques.is-rail .dc-arrow { top: 30px; right: 30px; transform: none; }
+#destaques.is-rail .dest-card:hover .dc-arrow { transform: translateX(4px); }
+
 /* segmented control */
 .seg {
   display: inline-flex; gap: 4px; padding: 4px;

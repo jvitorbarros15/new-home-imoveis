@@ -321,6 +321,8 @@ function Destaques() {
   const [tab, setTab] = React.useState("Venda");
   const [hover, setHover] = React.useState(0);
   const [lists, setLists] = React.useState(null);
+  const sectionRef = React.useRef(null);
+  const railOn = React.useRef(false);
 
   React.useEffect(() => {
     if (!window.sb) return;
@@ -357,13 +359,19 @@ function Destaques() {
   const items = lists?.[tab] || [];
   const bothTabs = !!lists && lists.Venda.length > 0 && lists.Aluguel.length > 0;
   const changeTab = (t) => { setTab(t); setHover(0); };
+  const preview = (i) => { if (!railOn.current) setHover(i); };
 
   const featured = items[hover] || items[0];
+
+  React.useLayoutEffect(() => {
+    if (!sectionRef.current || !window.NHMotion?.destaques) return;
+    return window.NHMotion.destaques(sectionRef.current, { onRail: (on) => { railOn.current = on; } });
+  }, [tab, items.length]);
 
   if (!featured) return null;
 
   return (
-    <section id="destaques" className="reveal">
+    <section id="destaques" ref={sectionRef}>
       <div className="sec-head">
         <h2>Destaques da <em>curadoria</em></h2>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 18 }}>
@@ -402,8 +410,8 @@ function Destaques() {
           {items.slice(1, 4).map((p, i) => (
             <a key={p.code || i} className="dest-card" href={`/imovel?code=${encodeURIComponent(p.code || "")}`}
                onClick={() => track("listing_click", { code: p.code, detail: "destaques" })}
-               onMouseEnter={() => setHover(i + 1)}
-               onFocus={() => setHover(i + 1)}>
+               onMouseEnter={() => preview(i + 1)}
+               onFocus={() => preview(i + 1)}>
               <div className="dc-imgwrap"><div className="dc-img" style={{ backgroundImage: p.img ? `url("${p.img}")` : undefined }} /></div>
               <div className="dc-body">
                 <div>
@@ -434,13 +442,13 @@ function Bairros() {
     railRef.current.scrollBy({ left: dir * 380, behavior: "smooth" });
   };
   return (
-    <section id="bairros" className="bairros reveal" style={{ maxWidth: "100%" }}>
+    <section id="bairros" className="bairros" style={{ maxWidth: "100%" }}>
       <div className="bairros-wrap">
         <div className="sec-head">
           <h2>O Rio em <em>bairros</em></h2>
           <p>Conheça as regiões em que a New Home atua. Da orla à floresta — cada bairro com a sua narrativa.</p>
         </div>
-        <div className="bairros-rail" ref={railRef}>
+        <div className="bairros-rail" ref={railRef} data-m="tiles">
           {BAIRROS.map((b, i) => (
             <a key={i} className="bairro" href={b.url} aria-label={`Ver imóveis em ${b.name}`}>
               <img className="img" src={b.img} alt="" loading="lazy" decoding="async" />

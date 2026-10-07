@@ -138,6 +138,20 @@
       });
     },
 
+    tiles(el) {
+      const tiles = [...el.children];
+      const images = tiles.map((tile) => tile.querySelector(".img"));
+      [...tiles, ...images].forEach(animating);
+      gsap.fromTo(tiles, { clipPath: "inset(100% 0% 0% 0%)" }, {
+        clipPath: "inset(0% 0% 0% 0%)", duration: time(1.3), ease: "expo.out", stagger: 0.1, clearProps: "clipPath",
+        scrollTrigger: enter(el, "top 85%"), onComplete: settled(...tiles),
+      });
+      gsap.fromTo(images, { scale: 1.15 }, {
+        scale: 1, duration: time(1.8), ease: "power3.out", stagger: 0.1, clearProps: "transform",
+        scrollTrigger: enter(el, "top 85%"), onComplete: settled(...images),
+      });
+    },
+
     hero(el) {
       const h1 = el.querySelector("h1");
       const eyebrow = el.querySelector(".hero-eyebrow");
@@ -159,6 +173,78 @@
         scrollTrigger: { trigger: el, start: "top top", end: "bottom top", scrub: true },
       });
     },
+  };
+
+  const cardIntro = (card) => {
+    const hero = card.matches(".dest-hero");
+    const frame = hero ? card.querySelector(".img") : card.querySelector(".dc-imgwrap");
+    const image = hero ? frame : card.querySelector(".dc-img");
+    const parts = [...new Set([card, frame, image])];
+    parts.forEach(animating);
+    const intro = gsap.timeline({ paused: true, onComplete: settled(...parts) });
+    intro.fromTo(card, { opacity: 0, y: dist(50) }, { opacity: 1, y: 0, duration: time(1), ease: "power3.out", clearProps: "transform,opacity" }, 0);
+    intro.fromTo(frame, { clipPath: "inset(100% 0% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: time(1.3), ease: "expo.out", clearProps: "clipPath" }, 0.1);
+    intro.fromTo(image, { scale: 1.15 }, { scale: 1, duration: time(1.8), ease: "power3.out", clearProps: "transform" }, 0.1);
+    return intro;
+  };
+
+  NHMotion.destaques = (section, { minItems = 3, onRail = () => {} } = {}) => {
+    const track = section.querySelector(".destaques");
+    const cards = [...section.querySelectorAll(".dest-hero, .dest-card")];
+    const media = gsap.matchMedia();
+
+    const stacked = () => {
+      const intros = new Map(cards.map((card) => [card, cardIntro(card)]));
+      ScrollTrigger.batch(cards, {
+        start: "top 88%", once: true,
+        onEnter: (batch) => batch.forEach((card, i) => intros.get(card).delay(i * 0.1).play()),
+      });
+    };
+
+    media.add({ wide: "(min-width: 1100px)" }, ({ conditions }) => {
+      const pad = () => parseFloat(getComputedStyle(section).paddingLeft);
+      const distance = () => Math.max(0, track.scrollWidth - (section.clientWidth - pad() * 2));
+      if (conditions.wide && cards.length >= minItems) section.classList.add("is-rail");
+      if (!section.classList.contains("is-rail") || distance() < 120) {
+        section.classList.remove("is-rail");
+        stacked();
+        return;
+      }
+
+      onRail(true);
+      const intros = cards.map(cardIntro);
+      const slide = gsap.to(track, { x: () => -distance(), ease: "none" });
+      const pin = ScrollTrigger.create({
+        animation: slide,
+        trigger: section,
+        start: `top ${NAV_OFFSET}px`,
+        end: () => `+=${distance()}`,
+        pin: true,
+        scrub: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+      });
+      ScrollTrigger.create({
+        trigger: section, start: "top 75%", once: true,
+        onEnter: () => intros.forEach((intro, i) => intro.delay(i * 0.1).play()),
+      });
+
+      const reveal = (event) => {
+        const x = Math.min(distance(), Math.max(0, event.currentTarget.offsetLeft - pad()));
+        const y = pin.start + (distance() ? (x / distance()) * (pin.end - pin.start) : 0);
+        if (Math.abs(y - window.scrollY) > 4) lenis.scrollTo(y, { immediate: true, force: true });
+      };
+      cards.forEach((card) => card.addEventListener("focusin", reveal));
+
+      return () => {
+        onRail(false);
+        cards.forEach((card) => card.removeEventListener("focusin", reveal));
+        section.classList.remove("is-rail");
+      };
+    });
+
+    ScrollTrigger.refresh();
+    return () => media.revert();
   };
 
   const auto = [
