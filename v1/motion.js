@@ -118,6 +118,11 @@
       });
     },
 
+    settle(el) {
+      animating(el);
+      gsap.fromTo(el, { scale: 1.08 }, { scale: 1, duration: time(1.8), ease: "power2.out", clearProps: "transform", onComplete: settled(el) });
+    },
+
     count(el) {
       const to = Number(el.dataset.to);
       const suffix = el.dataset.suffix || "";
