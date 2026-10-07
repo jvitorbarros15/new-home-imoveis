@@ -4,6 +4,7 @@ import { access } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
+const LIVE = process.env.VERIFY_LIVE === "1";
 const baseUrl = process.env.VERIFY_URL || "http://127.0.0.1:8080";
 const candidates = [
   process.env.CHROME_PATH,
@@ -21,7 +22,7 @@ for (const candidate of candidates) {
   } catch {}
 }
 const browser = await chromium.launch({ ...(executablePath ? { executablePath } : {}), headless: true });
-const pages = [
+const allPages = [
   { name: "home", path: "/" },
   { name: "about", path: "/quem-somos" },
   { name: "listings", path: "/imoveis" },
@@ -35,6 +36,10 @@ const pages = [
   { name: "not-found", path: "/404.html" },
 ];
 
+const pages = LIVE
+  ? [...allPages.filter((entry) => !entry.name.startsWith("property")), ...(process.env.VERIFY_PROPERTY_CODE ? [{ name: "property", path: `/imovel?code=${encodeURIComponent(process.env.VERIFY_PROPERTY_CODE)}` }] : [])]
+  : allPages;
+
 const fixtureProperty = {
   code: "AP0001-NHB", title: "Apartamento de teste", type: "Apartamento", region: "Barra da Tijuca",
   price_brl: 150000000, area_m2: 100, bedrooms: 3, suites: 1, bathrooms: 2, parking: 1,
@@ -47,6 +52,7 @@ const fixtureNoPhotos = { ...fixtureProperty, code: "AP0002-NHB", title: "Aparta
 const TINY_GIF = Buffer.from("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", "base64");
 
 async function mockBackend(context) {
+  if (LIVE) return;
   await context.route("https://images.unsplash.com/**", (route) => route.fulfill({ contentType: "image/gif", body: TINY_GIF }));
   await context.route(/^https:\/\/fonts\.(googleapis|gstatic)\.com\//, (route) => route.fulfill({ status: 200, contentType: "text/css", body: "" }));
   await context.route("**/_vercel/insights/**", (route) => route.fulfill({ contentType: "application/javascript", body: "" }));
@@ -114,7 +120,7 @@ for (const item of pages) {
   const runtimeErrors = [];
   page.on("pageerror", (error) => runtimeErrors.push(error.message));
   page.on("console", (message) => {
-    if (message.type() === "error") runtimeErrors.push(message.text());
+    if (message.type() === "error" && !message.location().url.includes("/_vercel/insights/")) runtimeErrors.push(message.text());
   });
   const response = await page.goto(baseUrl + item.path, { waitUntil: "domcontentloaded" });
   await page.waitForLoadState("networkidle").catch(() => {});
@@ -188,30 +194,36 @@ const chatVisible = await mobile.getByRole("dialog", { name: /assistente/i }).is
 await mobile.keyboard.press("Escape");
 await mobile.screenshot({ path: join(tmpdir(), "new-home-mobile.png"), fullPage: true });
 
-await mobile.goto(baseUrl + "/imovel?code=AP0001-NHB", { waitUntil: "networkidle" });
-const favorite = mobile.getByRole("button", { name: /salvar nos favoritos/i });
-await favorite.click();
-const favoriteSaved = await mobile.locator('.gal-action[aria-pressed="true"]').count() > 0;
-await mobile.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
-const stickyBarVisible = await mobile.evaluate(() => {
-  const bar = document.querySelector(".sticky-contact");
-  if (!bar) return false;
-  const box = bar.getBoundingClientRect();
-  return box.height > 0 && box.bottom <= innerHeight + 1 && box.top >= 0;
-});
-await mobile.evaluate(() => scrollTo(0, 0));
-const visitButton = mobile.getByRole("button", { name: /^solicitar visita$/i });
-const visitForm = mobile.locator("form.visit");
-await visitForm.locator('input[name="name"]').fill("Cliente Teste");
-await visitForm.locator('input[name="phone"]').fill("(21) 99999-9999");
-await visitForm.locator('input[name="consent"]').check();
-await mobile.evaluate(() => {
-  window.__verifyOpenedUrl = "";
-  window.open = (url) => { window.__verifyOpenedUrl = String(url); return null; };
-});
-await visitButton.click();
-const visitOpenedWhatsapp = (await mobile.evaluate(() => window.__verifyOpenedUrl)).includes("wa.me");
-const visitConfirmed = await mobile.locator(".visit-status.ok").waitFor({ timeout: 5000 }).then(() => true, () => false);
+let favoriteSaved;
+let stickyBarVisible;
+let visitOpenedWhatsapp;
+let visitConfirmed;
+if (!LIVE) {
+  await mobile.goto(baseUrl + "/imovel?code=AP0001-NHB", { waitUntil: "networkidle" });
+  const favorite = mobile.getByRole("button", { name: /salvar nos favoritos/i });
+  await favorite.click();
+  favoriteSaved = await mobile.locator('.gal-action[aria-pressed="true"]').count() > 0;
+  await mobile.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+  stickyBarVisible = await mobile.evaluate(() => {
+    const bar = document.querySelector(".sticky-contact");
+    if (!bar) return false;
+    const box = bar.getBoundingClientRect();
+    return box.height > 0 && box.bottom <= innerHeight + 1 && box.top >= 0;
+  });
+  await mobile.evaluate(() => scrollTo(0, 0));
+  const visitButton = mobile.getByRole("button", { name: /^solicitar visita$/i });
+  const visitForm = mobile.locator("form.visit");
+  await visitForm.locator('input[name="name"]').fill("Cliente Teste");
+  await visitForm.locator('input[name="phone"]').fill("(21) 99999-9999");
+  await visitForm.locator('input[name="consent"]').check();
+  await mobile.evaluate(() => {
+    window.__verifyOpenedUrl = "";
+    window.open = (url) => { window.__verifyOpenedUrl = String(url); return null; };
+  });
+  await visitButton.click();
+  visitOpenedWhatsapp = (await mobile.evaluate(() => window.__verifyOpenedUrl)).includes("wa.me");
+  visitConfirmed = await mobile.locator(".visit-status.ok").waitFor({ timeout: 5000 }).then(() => true, () => false);
+}
 
 report.push({
   page: "interactions-mobile",
@@ -235,42 +247,44 @@ checks.sellerSubmitStyled = await mobile.locator(".seller-submit").evaluate((el)
   return bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent";
 });
 
-await mobile.goto(baseUrl + "/imovel?code=AP0001-NHB", { waitUntil: "networkidle" });
-checks.galleryControlsDontOverlap = await mobile.evaluate(() => {
-  const a = document.querySelector(".gal-all")?.getBoundingClientRect();
-  const b = document.querySelector(".gal-actions")?.getBoundingClientRect();
-  if (!b) return false;
-  return !a || a.width === 0 || a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top;
-});
+if (!LIVE) {
+  await mobile.goto(baseUrl + "/imovel?code=AP0001-NHB", { waitUntil: "networkidle" });
+  checks.galleryControlsDontOverlap = await mobile.evaluate(() => {
+    const a = document.querySelector(".gal-all")?.getBoundingClientRect();
+    const b = document.querySelector(".gal-actions")?.getBoundingClientRect();
+    if (!b) return false;
+    return !a || a.width === 0 || a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top;
+  });
 
-await mobile.goto(baseUrl + "/imovel?code=AP0002-NHB", { waitUntil: "networkidle" });
-checks.emptyGalleryIsCompact = await mobile.evaluate(() => {
-  const gal = document.querySelector(".gal.gal-noimg");
-  return !!gal && gal.getBoundingClientRect().height <= 220 && !!gal.querySelector(".gal-empty a[href*='wa.me']");
-});
+  await mobile.goto(baseUrl + "/imovel?code=AP0002-NHB", { waitUntil: "networkidle" });
+  checks.emptyGalleryIsCompact = await mobile.evaluate(() => {
+    const gal = document.querySelector(".gal.gal-noimg");
+    return !!gal && gal.getBoundingClientRect().height <= 220 && !!gal.querySelector(".gal-empty a[href*='wa.me']");
+  });
 
-await mobile.goto(baseUrl + "/imovel?code=AP0001-NHB", { waitUntil: "networkidle" });
-checks.chatHiddenBehindStickyBar = await mobile.evaluate(() => getComputedStyle(document.querySelector(".chat-fab")).display === "none");
+  await mobile.goto(baseUrl + "/imovel?code=AP0001-NHB", { waitUntil: "networkidle" });
+  checks.chatHiddenBehindStickyBar = await mobile.evaluate(() => getComputedStyle(document.querySelector(".chat-fab")).display === "none");
 
-await mobile.goto(baseUrl, { waitUntil: "networkidle" });
-const inserted = [];
-mobile.on("request", (req) => { if (req.method() === "POST" && req.url().includes("/leads")) inserted.push(req.postData()); });
-await mobile.evaluate(() => { window.open = () => null; });
-const ctaForm = mobile.locator("form.cta-form");
-await ctaForm.locator('input[name="name"]').fill("Cliente Teste");
-await ctaForm.locator('input[name="phone"]').fill("(21) 99999-9999");
-await ctaForm.locator('select[name="interest"]').selectOption({ index: 1 });
-await ctaForm.locator('input[name="consent"]').check();
-await ctaForm.locator("button[type=submit]").click();
-await mobile.locator(".cta-status.ok").waitFor({ timeout: 5000 }).catch(() => {});
-checks.homeFormSavesWithoutEmail = inserted.length === 1 && JSON.parse(inserted[0]).email === null;
-await ctaForm.locator('input[name="name"]').fill("Cliente Teste");
-await ctaForm.locator('input[name="phone"]').fill("(21) 99999-9999");
-await ctaForm.locator('input[name="email"]').fill("a@b");
-await ctaForm.locator('select[name="interest"]').selectOption({ index: 1 });
-await ctaForm.locator('input[name="consent"]').check();
-await ctaForm.locator("button[type=submit]").click();
-checks.shortEmailRejectedInline = (await ctaForm.locator('.cta-status.error', { hasText: "e-mail" }).count()) === 1 && inserted.length === 1;
+  await mobile.goto(baseUrl, { waitUntil: "networkidle" });
+  const inserted = [];
+  mobile.on("request", (req) => { if (req.method() === "POST" && req.url().includes("/leads")) inserted.push(req.postData()); });
+  await mobile.evaluate(() => { window.open = () => null; });
+  const ctaForm = mobile.locator("form.cta-form");
+  await ctaForm.locator('input[name="name"]').fill("Cliente Teste");
+  await ctaForm.locator('input[name="phone"]').fill("(21) 99999-9999");
+  await ctaForm.locator('select[name="interest"]').selectOption({ index: 1 });
+  await ctaForm.locator('input[name="consent"]').check();
+  await ctaForm.locator("button[type=submit]").click();
+  await mobile.locator(".cta-status.ok").waitFor({ timeout: 5000 }).catch(() => {});
+  checks.homeFormSavesWithoutEmail = inserted.length === 1 && JSON.parse(inserted[0]).email === null;
+  await ctaForm.locator('input[name="name"]').fill("Cliente Teste");
+  await ctaForm.locator('input[name="phone"]').fill("(21) 99999-9999");
+  await ctaForm.locator('input[name="email"]').fill("a@b");
+  await ctaForm.locator('select[name="interest"]').selectOption({ index: 1 });
+  await ctaForm.locator('input[name="consent"]').check();
+  await ctaForm.locator("button[type=submit]").click();
+  checks.shortEmailRejectedInline = (await ctaForm.locator('.cta-status.error', { hasText: "e-mail" }).count()) === 1 && inserted.length === 1;
+}
 
 await mobile.setViewportSize({ width: 1440, height: 900 });
 await mobile.goto(baseUrl + "/imoveis?purpose=sale", { waitUntil: "networkidle" });
@@ -296,12 +310,14 @@ await mobile.goto(baseUrl + "/financiamento?valor=2000000&codigo=AP0001-NHB", { 
 checks.simulatorReadsValor = (await mobile.locator("#sim-value").inputValue()) === "R$ 2.000.000"
   && (await mobile.locator(".sim-for a").count()) === 1;
 
-await mobile.goto(baseUrl + "/imovel?code=AP0001-NHB", { waitUntil: "networkidle" });
-checks.installmentTeaser = /R\$\s*9\.\d{3}\/mês/.test(await mobile.locator(".idn-price-est").innerText());
+if (!LIVE) {
+  await mobile.goto(baseUrl + "/imovel?code=AP0001-NHB", { waitUntil: "networkidle" });
+  checks.installmentTeaser = /R\$\s*9\.\d{3}\/mês/.test(await mobile.locator(".idn-price-est").innerText());
 
-await mobile.goto(baseUrl, { waitUntil: "networkidle" });
-await mobile.locator(".seg button", { hasText: "Aluguel" }).click();
-checks.featuredStaysVisibleOnTabSwitch = (await mobile.locator('.destaques[data-count="1"] .dest-hero').count()) === 1;
+  await mobile.goto(baseUrl, { waitUntil: "networkidle" });
+  await mobile.locator(".seg button", { hasText: "Aluguel" }).click();
+  checks.featuredStaysVisibleOnTabSwitch = (await mobile.locator('.destaques[data-count="1"] .dest-hero').count()) === 1;
+}
 
 await mobile.goto(baseUrl, { waitUntil: "networkidle" });
 checks.mobileHeroSearchAboveFold = await mobile.evaluate(() => {
@@ -310,10 +326,12 @@ checks.mobileHeroSearchAboveFold = await mobile.evaluate(() => {
 });
 
 await mobile.goto(baseUrl + "/imoveis", { waitUntil: "networkidle" });
-checks.mobileFirstResultInFirstScreen = await mobile.evaluate(() => {
-  const card = document.querySelector(".lst-card");
-  return !!card && card.getBoundingClientRect().top < innerHeight;
-});
+if (!LIVE) {
+  checks.mobileFirstResultInFirstScreen = await mobile.evaluate(() => {
+    const card = document.querySelector(".lst-card");
+    return !!card && card.getBoundingClientRect().top < innerHeight;
+  });
+}
 await mobile.getByRole("button", { name: /^filtros/i }).click();
 checks.filterSheetOpens = await mobile.locator("dialog.lst-sheet[open]").isVisible();
 await mobile.locator("#s-purpose").selectOption("rent");
@@ -350,14 +368,16 @@ await mobile.keyboard.press("Escape");
   checks.listingsQueryFiltersActive = urls.length > 0 && urls.every((url) => url.includes("status=eq.active"));
 }
 
-{
-  const urls = [];
-  const collect = (req) => { if (req.url().includes("/rest/v1/properties")) urls.push(decodeURIComponent(req.url())); };
-  mobile.on("request", collect);
-  await mobile.goto(baseUrl + "/imoveis?q=ap0001-nhb", { waitUntil: "networkidle" });
-  mobile.off("request", collect);
-  checks.listingCodeSearchUsesCodeColumn = urls.some((url) => url.includes("code=ilike.ap0001-nhb")) && !urls.some((url) => url.includes("title.ilike"));
-  checks.listingCardShowsCode = (await mobile.locator(".lst-card .lst-code", { hasText: "AP0001-NHB" }).count()) === 1;
+if (!LIVE) {
+  {
+    const urls = [];
+    const collect = (req) => { if (req.url().includes("/rest/v1/properties")) urls.push(decodeURIComponent(req.url())); };
+    mobile.on("request", collect);
+    await mobile.goto(baseUrl + "/imoveis?q=ap0001-nhb", { waitUntil: "networkidle" });
+    mobile.off("request", collect);
+    checks.listingCodeSearchUsesCodeColumn = urls.some((url) => url.includes("code=ilike.ap0001-nhb")) && !urls.some((url) => url.includes("title.ilike"));
+    checks.listingCardShowsCode = (await mobile.locator(".lst-card .lst-code", { hasText: "AP0001-NHB" }).count()) === 1;
+  }
 }
 
 await mobile.goto(baseUrl, { waitUntil: "networkidle" });
@@ -372,17 +392,19 @@ await mobile.keyboard.press("Escape");
 checks.menuEscapeReturnsFocus = await mobile.evaluate(() => document.activeElement?.getAttribute("aria-label") === "Abrir menu");
 checks.heroUsesNativeSelects = (await mobile.locator("select.hs-select").count()) === 2;
 
-await mobile.goto(baseUrl + "/imovel?code=AP0001-NHB", { waitUntil: "networkidle" });
-checks.propertyHasSkipTarget = (await mobile.locator("a.skip-link[href='#conteudo']").count()) === 1 && (await mobile.locator("main#conteudo").count()) === 1;
-checks.galleryImagesHaveAlt = await mobile.evaluate(() => [...document.querySelectorAll(".gal button img")].every((img) => /^Foto \d+ de \d+ — /.test(img.alt)));
-await mobile.locator(".gal-main").click();
-await mobile.waitForSelector(".lb.on");
-checks.lightboxFocusOnClose = await mobile.evaluate(() => document.activeElement?.classList.contains("lb-close"));
-await mobile.keyboard.press("ArrowRight");
-await mobile.keyboard.press("ArrowRight");
-checks.lightboxFocusStableOnArrows = await mobile.evaluate(() => document.activeElement?.classList.contains("lb-close") && document.querySelector(".lb-info span").textContent.startsWith("3 / "));
-await mobile.keyboard.press("Escape");
-checks.lightboxReturnsFocus = await mobile.evaluate(() => document.activeElement?.classList.contains("gal-main"));
+if (!LIVE) {
+  await mobile.goto(baseUrl + "/imovel?code=AP0001-NHB", { waitUntil: "networkidle" });
+  checks.propertyHasSkipTarget = (await mobile.locator("a.skip-link[href='#conteudo']").count()) === 1 && (await mobile.locator("main#conteudo").count()) === 1;
+  checks.galleryImagesHaveAlt = await mobile.evaluate(() => [...document.querySelectorAll(".gal button img")].every((img) => /^Foto \d+ de \d+ — /.test(img.alt)));
+  await mobile.locator(".gal-main").click();
+  await mobile.waitForSelector(".lb.on");
+  checks.lightboxFocusOnClose = await mobile.evaluate(() => document.activeElement?.classList.contains("lb-close"));
+  await mobile.keyboard.press("ArrowRight");
+  await mobile.keyboard.press("ArrowRight");
+  checks.lightboxFocusStableOnArrows = await mobile.evaluate(() => document.activeElement?.classList.contains("lb-close") && document.querySelector(".lb-info span").textContent.startsWith("3 / "));
+  await mobile.keyboard.press("Escape");
+  checks.lightboxReturnsFocus = await mobile.evaluate(() => document.activeElement?.classList.contains("gal-main"));
+}
 
 await mobile.setViewportSize({ width: 1440, height: 900 });
 await mobile.goto(baseUrl, { waitUntil: "networkidle" });
@@ -421,7 +443,7 @@ await browser.close();
 console.log(JSON.stringify(report, null, 2));
 
 const failed = report.some((item) =>
-  (item.status && item.status >= 400) ||
+  (item.status && item.status >= 400 && !(LIVE && item.page === "not-found")) ||
   item.contentLength === 0 ||
   item.overlay > 0 ||
   item.runtimeErrors?.length ||

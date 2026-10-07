@@ -6,7 +6,8 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "check": "npm run build",
-    "verify:browser": "node scripts/verify-browser.mjs"
+    "verify:browser": "node scripts/verify-browser.mjs",
+    "smoke": "node scripts/verify-browser.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
