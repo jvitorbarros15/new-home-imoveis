@@ -298,6 +298,20 @@
     [".reveal:not([data-m])", "up"],
   ];
 
+  const groups = [
+    [".lst-card", (cards) => {
+      cards.forEach(animating);
+      gsap.set(cards, { opacity: 0, y: dist(40) });
+      ScrollTrigger.batch(cards, {
+        start: "top 94%", once: true,
+        onEnter: (batch) => gsap.to(batch, {
+          opacity: 1, y: 0, duration: time(0.9), ease: "power3.out", stagger: 0.08, clearProps: "transform,opacity",
+          onComplete: settled(...batch),
+        }),
+      });
+    }],
+  ];
+
   const bind = (el, type) => {
     el.setAttribute("data-m-ok", "");
     effects[type]?.(el);
@@ -309,6 +323,13 @@
     document.querySelectorAll("[data-m]:not([data-m-ok])").forEach((el) => { bound += 1; bind(el, el.dataset.m); });
     auto.forEach(([selector, type]) => {
       document.querySelectorAll(`${selector}:not([data-m-ok])`).forEach((el) => { bound += 1; bind(el, type); });
+    });
+    groups.forEach(([selector, play]) => {
+      const fresh = [...document.querySelectorAll(`${selector}:not([data-m-ok])`)];
+      if (!fresh.length) return;
+      fresh.forEach((el) => el.setAttribute("data-m-ok", ""));
+      bound += fresh.length;
+      play(fresh);
     });
     if (bound !== before) {
       clearTimeout(scan.timer);
