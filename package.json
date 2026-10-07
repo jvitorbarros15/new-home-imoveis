@@ -4,17 +4,19 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "dev": "node --env-file-if-exists=.env scripts/build.mjs && npx --yes serve -l 8080 v1",
     "build": "node scripts/build.mjs",
     "check": "npm run build",
-    "verify:browser": "node scripts/verify-browser.mjs"
+    "verify:browser": "node scripts/verify-browser.mjs",
+    "smoke": "node scripts/verify-browser.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
     "esbuild": "0.25.9",
-    "playwright-core": "^1.62.1"
+    "playwright-core": "^1.63.0"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.112.4",
+    "@supabase/supabase-js": "^2.117.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   }

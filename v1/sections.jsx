@@ -6,7 +6,6 @@ const SVG = ({ children, size = 16, ...rest }) => (
     {children}
   </svg>
 );
-const IconChev   = (p) => <SVG {...p}><polyline points="6 9 12 15 18 9" /></SVG>;
 const IconArrow  = (p) => <SVG {...p}><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></SVG>;
 const IconArrowL = (p) => <SVG {...p}><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></SVG>;
 const IconSearch = (p) => <SVG {...p}><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></SVG>;
@@ -24,46 +23,6 @@ const IconMoon   = (p) => <SVG {...p}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0
 const IconSun    = (p) => <SVG {...p}><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></SVG>;
 const IconMenu   = (p) => <SVG {...p}><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></SVG>;
 const IconX      = (p) => <SVG {...p}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></SVG>;
-
-/* ------ Property data --------------------------------------------- */
-const FEATURED = [
-  {
-    code: "AP9680-NHB",
-    type: "Apartamento",
-    title: "Apartamento decorado com vista para a lagoa",
-    area: "133 m²", rooms: "3 Quartos", baths: "3", parking: "2 Vagas",
-    region: "Barra da Tijuca · Rio de Janeiro",
-    price: "R$ 2.290.000",
-    img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80&auto=format&fit=crop",
-  },
-  {
-    code: "AP0694-NHB",
-    type: "Apartamento",
-    title: "Apartamento com 3 quartos na Região Olímpica",
-    area: "92 m²", rooms: "3 Quartos", baths: "3", parking: "1 Vaga",
-    region: "Barra Olímpica · Rio de Janeiro",
-    price: "R$ 1.100.000",
-    img: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&q=80&auto=format&fit=crop",
-  },
-  {
-    code: "AP9886-NHB",
-    type: "Apartamento",
-    title: "Apartamento com 3 quartos na Barra da Tijuca",
-    area: "110 m²", rooms: "3 Quartos", baths: "3", parking: "2 Vagas",
-    region: "Barra da Tijuca · Rio de Janeiro",
-    price: "R$ 1.200.000",
-    img: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800&q=80&auto=format&fit=crop",
-  },
-  {
-    code: "AP9879-NHB",
-    type: "Apartamento",
-    title: "Apartamento com 4 quartos para venda ou locação",
-    area: "136 m²", rooms: "4 Quartos", baths: "—", parking: "2 Vagas",
-    region: "Barra Olímpica · Rio de Janeiro",
-    price: "R$ 1.470.000",
-    img: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80&auto=format&fit=crop",
-  },
-];
 
 const HERO_IMAGES = [
   "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1600&q=72&auto=format&fit=crop",
@@ -90,8 +49,8 @@ const SERVICE_PILLARS = [
 function listingsSearchUrl({ pretensao, tipo, busca }) {
   const clean = (busca || "").trim();
   const params = new URLSearchParams();
-  if (pretensao === "Alugar") params.set("status", "rented");
-  else if (pretensao === "Comprar") params.set("status", "active");
+  if (pretensao === "Alugar") params.set("purpose", "rent");
+  else if (pretensao === "Comprar") params.set("purpose", "sale");
   if (tipo) params.set("tipo", tipo);
   if (/^[A-Z]{2}\d{4}-NHB$/i.test(clean)) params.set("code", clean.toUpperCase());
   else if (clean) params.set("q", clean);
@@ -131,6 +90,7 @@ function CountUp({ to, suffix = "" }) {
 function Nav() {
   const [scrolled, setScrolled] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const menuRef = React.useRef(null);
   const [theme, toggleTheme] = useTheme();
   const currentPage = (window.location.pathname.split("/").pop() || "index").replace(/\.html$/, "");
 
@@ -157,6 +117,28 @@ function Nav() {
   }, [menuOpen]);
 
   React.useEffect(() => {
+    if (!menuOpen) return;
+    const panel = menuRef.current;
+    const opener = document.activeElement;
+    panel.querySelector(".nav-mobile-link")?.focus();
+    const trap = (e) => {
+      if (e.key !== "Tab") return;
+      const items = [...panel.querySelectorAll("a, button")].filter((el) => el.tabIndex >= 0);
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      else if (!panel.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", trap);
+    return () => {
+      document.removeEventListener("keydown", trap);
+      opener?.focus?.();
+    };
+  }, [menuOpen]);
+
+  React.useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") setMenuOpen(false); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -165,15 +147,15 @@ function Nav() {
   const navLinks = [
     { href: NH.listingsUrl,         label: "Imóveis",       page: "imoveis" },
     { href: NH.favoritesUrl,        label: "Favoritos",     page: "favoritos" },
-    { href: "financiamento.html",   label: "Financiamento", page: "financiamento" },
-    { href: "quem-somos.html",      label: "Quem somos",    page: "quem-somos" },
-    { href: "index.html#contato",   label: "Contato",       page: "index" },
+    { href: "/financiamento",   label: "Financiamento", page: "financiamento" },
+    { href: "/quem-somos",      label: "Quem somos",    page: "quem-somos" },
+    { href: currentPage === "index" ? "#contato" : "/#contato", label: "Contato", page: "contato" },
   ];
 
   return (
     <>
       <nav className={`nav ${scrolled ? "scrolled" : ""}`}>
-        <a className="nav-logo" href="index.html">
+        <a className="nav-logo" href="/">
           <img src="assets/logo-gold.png" alt="New Home Imóveis" />
         </a>
         <div className="nav-links">
@@ -204,13 +186,13 @@ function Nav() {
         </div>
       </nav>
 
-      <div className={`nav-mobile ${menuOpen ? "open" : ""}`} aria-hidden={!menuOpen} role="dialog" aria-modal={menuOpen || undefined} aria-label="Menu principal">
+      <div ref={menuRef} className={`nav-mobile ${menuOpen ? "open" : ""}`} aria-hidden={!menuOpen} role="dialog" aria-modal={menuOpen || undefined} aria-label="Menu principal">
         <button className="nav-mobile-close" onClick={() => setMenuOpen(false)} aria-label="Fechar menu" tabIndex={menuOpen ? 0 : -1}>
           <IconX size={20} />
         </button>
         {navLinks.map(({ href, label, page }) => (
           <a key={label} href={href}
-             className={currentPage === page ? "active" : ""}
+             className={`nav-mobile-link${currentPage === page ? " active" : ""}`}
              onClick={() => setMenuOpen(false)}
              tabIndex={menuOpen ? 0 : -1}
           >{label}</a>
@@ -228,10 +210,8 @@ function Hero({ motion }) {
   const [idx, setIdx] = React.useState(0);
   const [loadedSlides, setLoadedSlides] = React.useState(() => new Set([0]));
   const [pretensao, setPretensao] = React.useState("Comprar");
-  const [tipo, setTipo] = React.useState("Apartamento");
+  const [tipo, setTipo] = React.useState("");
   const [busca, setBusca] = React.useState("");
-  const [openP, setOpenP] = React.useState(false);
-  const [openT, setOpenT] = React.useState(false);
 
   React.useEffect(() => {
     if (motion === "off") return;
@@ -261,15 +241,8 @@ function Hero({ motion }) {
     };
   }, [idx]);
 
-  // close popovers on outside click
-  React.useEffect(() => {
-    const close = (e) => { if (!e.target.closest(".hs-field")) { setOpenP(false); setOpenT(false); } };
-    document.addEventListener("click", close);
-    return () => document.removeEventListener("click", close);
-  }, []);
-
-  const PRETENSOES = ["Comprar", "Alugar", "Lançamentos"];
-  const TIPOS = ["Apartamento", "Cobertura", "Casa", "Casa em condomínio", "Terreno", "Comercial"];
+  const PRETENSOES = ["Comprar", "Alugar"];
+  const TIPOS = ["", ...PROPERTY_TYPES];
   const submitSearch = (e) => {
     e.preventDefault();
     window.location.href = listingsSearchUrl({ pretensao, tipo, busca });
@@ -312,34 +285,24 @@ function Hero({ motion }) {
         </div>
 
         <form className="hero-search" onSubmit={submitSearch}>
-          <div className="hs-field" role="button" tabIndex="0" aria-haspopup="listbox" aria-expanded={openP}
-               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpenP(o => !o); setOpenT(false); } }}
-               onClick={(e) => { e.stopPropagation(); setOpenP(o => !o); setOpenT(false); }}>
+          <div className="hs-toggle" role="group" aria-label="Pretensão">
+            {PRETENSOES.map(p => (
+              <button type="button" key={p} className={p === pretensao ? "on" : ""} aria-pressed={p === pretensao}
+                      onClick={() => setPretensao(p)}>{p}</button>
+            ))}
+          </div>
+          <label className="hs-field hs-desktop">
             <span className="hs-label">Pretensão</span>
-            <span className="hs-value">{pretensao}<IconChev className="hs-chev" /></span>
-            {openP && (
-              <div className="hs-pop" onClick={(e) => e.stopPropagation()}>
-                {PRETENSOES.map(p => (
-                  <button type="button" key={p} className={p === pretensao ? "on" : ""}
-                          onClick={() => { setPretensao(p); setOpenP(false); }}>{p}</button>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="hs-field" role="button" tabIndex="0" aria-haspopup="listbox" aria-expanded={openT}
-               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpenT(o => !o); setOpenP(false); } }}
-               onClick={(e) => { e.stopPropagation(); setOpenT(o => !o); setOpenP(false); }}>
+            <select className="hs-select" value={pretensao} onChange={(e) => setPretensao(e.target.value)}>
+              {PRETENSOES.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </label>
+          <label className="hs-field hs-desktop">
             <span className="hs-label">Tipo de imóvel</span>
-            <span className="hs-value">{tipo}<IconChev className="hs-chev" /></span>
-            {openT && (
-              <div className="hs-pop" onClick={(e) => e.stopPropagation()}>
-                {TIPOS.map(p => (
-                  <button type="button" key={p} className={p === tipo ? "on" : ""}
-                          onClick={() => { setTipo(p); setOpenT(false); }}>{p}</button>
-                ))}
-              </div>
-            )}
-          </div>
+            <select className="hs-select" value={tipo} onChange={(e) => setTipo(e.target.value)}>
+              {TIPOS.map(p => <option key={p} value={p}>{p || "Todos os tipos"}</option>)}
+            </select>
+          </label>
           <div className="hs-field">
             <span className="hs-label">Localização</span>
             <span className="hs-value">
@@ -347,7 +310,7 @@ function Hero({ motion }) {
               <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Bairro, condomínio ou código" aria-label="Localização ou código do imóvel" />
             </span>
           </div>
-          <button type="button" className="hs-filter" onClick={() => { window.location.href = NH.listingsUrl; }}><IconFilter size={14} /> Mais filtros</button>
+          <button type="button" className="hs-filter" onClick={() => { window.location.href = listingsSearchUrl({ pretensao, tipo, busca }); }}><IconFilter size={14} /> Mais filtros</button>
           <button type="submit" className="hs-btn">Encontrar <IconArrow size={14} /></button>
         </form>
       </div>
@@ -361,37 +324,47 @@ function Hero({ motion }) {
 function Destaques() {
   const [tab, setTab] = React.useState("Venda");
   const [hover, setHover] = React.useState(0);
-  const [items, setItems] = React.useState(FEATURED);
+  const [lists, setLists] = React.useState(null);
 
   React.useEffect(() => {
     if (!window.sb) return;
-    window.sb
+    let active = true;
+    const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+    const load = (purpose) => window.sb
       .from("properties")
-      .select("code,title,type,region,price_brl,area_m2,bedrooms,bathrooms,parking,images,status,featured")
+      .select("code,title,type,region,price_brl,area_m2,bedrooms,bathrooms,parking,images,status,purpose,featured")
       .eq("status", "active")
+      .eq("purpose", purpose)
       .order("featured", { ascending: false })
       .order("created_at", { ascending: false })
-      .limit(8)
-      .then(({ data, error }) => {
-        if (!error && data && data.length > 0) {
-          setItems(data.map(p => ({
-            type:    p.type,
-            title:   p.title,
-            area:    p.area_m2 ? `${p.area_m2} m²` : "—",
-            rooms:   p.bedrooms ? `${p.bedrooms} Quartos` : "—",
-            baths:   p.bathrooms ? String(p.bathrooms) : "—",
-            parking: p.parking ? `${p.parking} Vagas` : "—",
-            region:  p.region,
-            price:   "R$ " + (p.price_brl / 100).toLocaleString("pt-BR", { maximumFractionDigits: 0 }),
-            img:     p.images?.[0] || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80",
-            code:    p.code,
-          })));
-          setHover(0);
-        }
-      });
+      .limit(4)
+      .then(({ data, error }) => error ? [] : (data || []).map(p => ({
+        type:    p.type,
+        title:   p.title,
+        area:    p.area_m2 ? `${p.area_m2} m²` : "—",
+        rooms:   p.bedrooms ? plural(p.bedrooms, "Quarto", "Quartos") : "—",
+        baths:   p.bathrooms ? String(p.bathrooms) : "—",
+        parking: p.parking ? plural(p.parking, "Vaga", "Vagas") : "—",
+        region:  p.region,
+        price:   "R$ " + (p.price_brl / 100).toLocaleString("pt-BR", { maximumFractionDigits: 0 }) + (p.purpose === "rent" ? "/mês" : ""),
+        img:     p.images?.[0] || "",
+        code:    p.code,
+      })));
+    Promise.all([load("sale"), load("rent")]).then(([Venda, Aluguel]) => {
+      if (!active) return;
+      setLists({ Venda, Aluguel });
+      if (!Venda.length && Aluguel.length) setTab("Aluguel");
+    });
+    return () => { active = false; };
   }, []);
 
+  const items = lists?.[tab] || [];
+  const bothTabs = !!lists && lists.Venda.length > 0 && lists.Aluguel.length > 0;
+  const changeTab = (t) => { setTab(t); setHover(0); };
+
   const featured = items[hover] || items[0];
+
+  if (!featured) return null;
 
   return (
     <section id="destaques" className="reveal">
@@ -399,25 +372,21 @@ function Destaques() {
         <h2>Destaques da <em>curadoria</em></h2>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 18 }}>
           <p>Uma seleção mensal de propriedades que combinam localização, projeto e singularidade.</p>
-          <div className="seg">
-            {["Venda", "Aluguel", "Lançamentos"].map(t => (
-              <button key={t} className={tab === t ? "on" : ""} onClick={() => {
-                setTab(t);
-                const status = t === "Venda" ? "active" : t === "Aluguel" ? "rented" : "";
-                window.location.href = status ? `${NH.listingsUrl}?status=${status}` : NH.listingsUrl;
-              }}>{t}</button>
+          {bothTabs && <div className="seg">
+            {["Venda", "Aluguel"].map(t => (
+              <button key={t} className={tab === t ? "on" : ""} aria-pressed={tab === t} onClick={() => changeTab(t)}>{t}</button>
             ))}
-          </div>
+          </div>}
         </div>
       </div>
 
-      <div className="destaques">
-        <a className="dest-hero dest-hero-link" href={`imovel.html?code=${encodeURIComponent(featured?.code || "")}`}
+      <div className="destaques" data-count={items.length}>
+        <a className="dest-hero dest-hero-link" href={`/imovel?code=${encodeURIComponent(featured?.code || "")}`}
               onClick={() => track("listing_click", { code: featured?.code, detail: "hero" })}>
-          <div className="img" style={{ backgroundImage: `url("${featured?.img}")` }} />
+          <div className="img" style={{ backgroundImage: featured?.img ? `url("${featured.img}")` : undefined }} />
           <div className="meta">
             <div>
-              <div className="dest-tag">{featured?.type} · {featured?.region}</div>
+              <div className="dest-tag">{featured?.type} · {featured?.region} · {featured?.code}</div>
               <h3>{featured?.title}</h3>
               <div className="dest-specs">
                 <span><IconArea /> {featured?.area}</span>
@@ -427,7 +396,7 @@ function Destaques() {
               </div>
             </div>
             <div className="dest-price">
-              <small>A partir de</small>
+              <small>Valor</small>
               {featured?.price}
             </div>
           </div>
@@ -435,14 +404,14 @@ function Destaques() {
 
         <div className="dest-list">
           {items.slice(1, 4).map((p, i) => (
-            <a key={p.code || i} className="dest-card" href={`imovel.html?code=${encodeURIComponent(p.code || "")}`}
+            <a key={p.code || i} className="dest-card" href={`/imovel?code=${encodeURIComponent(p.code || "")}`}
                onClick={() => track("listing_click", { code: p.code, detail: "destaques" })}
                onMouseEnter={() => setHover(i + 1)}
                onFocus={() => setHover(i + 1)}>
-              <div className="dc-imgwrap"><div className="dc-img" style={{ backgroundImage: `url("${p.img}")` }} /></div>
+              <div className="dc-imgwrap"><div className="dc-img" style={{ backgroundImage: p.img ? `url("${p.img}")` : undefined }} /></div>
               <div className="dc-body">
                 <div>
-                  <div className="dc-type">{p.type} · {p.region.split(" · ")[0]}</div>
+                  <div className="dc-type">{p.type} · {p.region.split(" · ")[0]} · {p.code}</div>
                   <div className="dc-title">{p.title}</div>
                   <div className="dc-specs">
                     <span><IconArea /> {p.area}</span>
@@ -515,7 +484,7 @@ function Stats() {
         <div className="lbl">Barra da Tijuca, Recreio e Região Olímpica</div>
       </div>
       <div className="stat">
-        <div className="num">7609 J</div>
+        <div className="num">{NH.creci}</div>
         <div className="lbl">Registro da imobiliária no CRECI-RJ</div>
       </div>
     </section>
@@ -579,32 +548,33 @@ function CTA() {
     e.preventDefault();
     const form = e.currentTarget;
     const data = new FormData(form);
+    const phone = normalizePhoneBR(data.get("phone"));
+    if (!phone) { setState("badphone"); return; }
+    const emailValue = String(data.get("email") || "").trim().slice(0, 200);
+    if (emailValue && emailValue.length < 5) { setState("bademail"); return; }
     const lead = {
       name: String(data.get("name") || "").trim().slice(0, 120),
-      phone: String(data.get("phone") || "").trim().slice(0, 40),
-      email: String(data.get("email") || "").trim().slice(0, 200),
+      phone,
+      email: emailValue || null,
       interest: String(data.get("interest") || "").slice(0, 60),
-      source_path: location.pathname.slice(0, 200),
+      kind: "contact",
     };
-
-    setState("sending");
-    // Stored before the hand-off so an abandoned WhatsApp window loses nothing.
-    if (window.sb) {
-      const { error } = await window.sb.from("leads").insert(lead);
-      if (error) { setState("error"); return; }
-    }
-    track("lead_submit", { detail: lead.interest });
 
     const message = [
       "Olá! Gostaria de atendimento da New Home Imóveis.",
       `Nome: ${lead.name}`,
-      `WhatsApp: ${lead.phone}`,
-      `E-mail: ${lead.email}`,
+      `WhatsApp: ${data.get("phone")}`,
+      lead.email && `E-mail: ${lead.email}`,
       `Interesse: ${lead.interest}`,
-    ].join("\n");
-    setState("sent");
-    form.reset();
+    ].filter(Boolean).join("\n");
+    // Opened inside the click handler so popup blockers allow it.
     window.open(NH.whatsapp(message), "_blank", "noopener,noreferrer");
+
+    setState("sending");
+    const { saved } = await submitLead(lead);
+    track("lead_submit", { detail: lead.interest });
+    setState(saved ? "sent" : "unsaved");
+    if (saved) form.reset();
   };
   return (
     <section id="contato" className="cta reveal" style={{ maxWidth: "100%" }}>
@@ -618,8 +588,9 @@ function CTA() {
       <form className="cta-form" onSubmit={submit}>
         <h3>Fale com um consultor</h3>
         <label>Nome<input name="name" required autoComplete="name" placeholder="Como prefere ser chamado" /></label>
-        <label>WhatsApp<input name="phone" type="tel" required autoComplete="tel" placeholder="(21) 99999-9999" /></label>
-        <label>E-mail<input name="email" type="email" required autoComplete="email" placeholder="seu@email.com" /></label>
+        <label>WhatsApp<input name="phone" type="tel" required autoComplete="tel" placeholder="(21) 99999-9999"
+          aria-invalid={state === "badphone"} /></label>
+        <label>E-mail (opcional)<input name="email" type="email" autoComplete="email" placeholder="seu@email.com" aria-invalid={state === "bademail"} /></label>
         <label>O que procura?
           <select name="interest" defaultValue="" required>
             <option value="" disabled>Selecione</option>
@@ -633,9 +604,19 @@ function CTA() {
           <input name="consent" type="checkbox" required />
           <span>Concordo com a <a href={NH.privacyUrl}>política de privacidade</a> e autorizo o contato da equipe.</span>
         </label>
-        {state === "error" && (
+        {state === "badphone" && (
           <p className="cta-status error" role="alert">
-            Não foi possível registrar o contato. Fale direto no WhatsApp {NH.primaryPhoneDisplay}.
+            Informe um telefone válido com DDD, por exemplo (21) 99999-9999.
+          </p>
+        )}
+        {state === "bademail" && (
+          <p className="cta-status error" role="alert">
+            Informe um e-mail válido ou deixe o campo em branco.
+          </p>
+        )}
+        {state === "unsaved" && (
+          <p className="cta-status error" role="alert">
+            Não conseguimos registrar seu contato, mas o WhatsApp foi aberto. Continue a conversa por lá.
           </p>
         )}
         {state === "sent" && (
@@ -643,7 +624,7 @@ function CTA() {
             Contato registrado. Abrimos o WhatsApp para continuar a conversa.
           </p>
         )}
-        <button type="submit" disabled={state === "sending"}>
+        <button type="submit" className="btn-primary" disabled={state === "sending"}>
           {state === "sending" ? "Enviando..." : "Solicitar contato"}
         </button>
       </form>
@@ -653,13 +634,14 @@ function CTA() {
 
 /* ------ Listing card (shared by search and favourites) ------------ */
 function ListingCard({ item }) {
-  const price = typeof item.price_brl === "number" ? BRL_FMT(item.price_brl / 100) : "Consulte";
+  const isRent = item.purpose === "rent";
+  const price = typeof item.price_brl === "number" ? BRL_FMT(item.price_brl / 100) + (isRent ? "/mês" : "") : "Consulte";
   const cover = item.images && item.images[0];
-  const badge = item.status === "rented" ? "Locação" : item.status === "sold" ? "Vendido" : "Venda";
+  const badge = item.status === "sold" ? "Vendido" : item.status === "rented" ? "Alugado" : isRent ? "Aluguel" : "Venda";
   return (
     <a
       className="lst-card"
-      href={`imovel.html?code=${encodeURIComponent(item.code)}`}
+      href={`/imovel?code=${encodeURIComponent(item.code)}`}
       onClick={() => track("listing_click", { code: item.code, detail: "busca" })}
     >
       <div className="lst-cover">
@@ -671,6 +653,7 @@ function ListingCard({ item }) {
       <div className="lst-body">
         <span className="lst-type">{item.type} · {item.region}</span>
         <h3>{item.title}</h3>
+        <span className="lst-code">Cód. {item.code}</span>
         <div className="lst-specs">
           {item.area_m2 ? <span>{item.area_m2} m²</span> : null}
           {item.bedrooms ? <span>{item.bedrooms} quartos</span> : null}
@@ -708,17 +691,17 @@ function Footer() {
           <h5>Navegue</h5>
           <ul>
             <li><a href={NH.listingsUrl}>Todos os imóveis</a></li>
-            <li><a href={`${NH.listingsUrl}?status=active`}>Imóveis à venda</a></li>
-            <li><a href={`${NH.listingsUrl}?status=rented`}>Imóveis para alugar</a></li>
+            <li><a href={`${NH.listingsUrl}?purpose=sale`}>Imóveis à venda</a></li>
+            <li><a href={`${NH.listingsUrl}?purpose=rent`}>Imóveis para alugar</a></li>
             <li><a href={NH.favoritesUrl}>Meus favoritos</a></li>
           </ul>
         </div>
         <div className="ft-col">
           <h5>Institucional</h5>
           <ul>
-            <li><a href="quem-somos.html">Quem somos</a></li>
-            <li><a href="financiamento.html">Financiamento</a></li>
-            <li><a href={NH.listPropertyUrl} target="_blank" rel="noopener noreferrer">Cadastre seu imóvel</a></li>
+            <li><a href="/quem-somos">Quem somos</a></li>
+            <li><a href="/financiamento">Financiamento</a></li>
+            <li><a href={NH.listPropertyUrl}>Cadastre seu imóvel</a></li>
             <li><a href={NH.privacyUrl}>Política de privacidade</a></li>
           </ul>
         </div>
@@ -729,16 +712,21 @@ function Footer() {
             <li><a href={`mailto:${NH.email}`}>{NH.email}</a></li>
             <li><a href={NH.mapUrl}>Av. Embaixador Abelardo Bueno, 3500 · Sala 1022</a></li>
             <li><span>CRECI {NH.creci}</span></li>
+            {NH.cnpj && <li><span>CNPJ {NH.cnpj}</span></li>}
           </ul>
         </div>
       </div>
       <div className="ft-demo">
-        Projeto de portfólio, sem vínculo com a empresa de mesmo nome. Dados de contato e imóveis
-        são ilustrativos. <a href={NH.officialSite} target="_blank" rel="noopener noreferrer">Site oficial</a>
+        {NH.isDemo ? <>
+          Projeto de portfólio, sem vínculo com a empresa de mesmo nome. Dados de contato e imóveis
+          são ilustrativos. <a href={NH.officialSite} target="_blank" rel="noopener noreferrer">Site oficial</a>
+        </> : <>
+          {NH.legalName} · CRECI {NH.creci}{NH.cnpj ? ` · CNPJ ${NH.cnpj}` : ""}
+        </>}
         {" · "}<a href={NH.privacyUrl}>Privacidade e LGPD</a>
       </div>
       <div className="ft-bot">
-        <span>© {new Date().getFullYear()} New Home Imóveis · projeto demonstrativo</span>
+        <span>© {new Date().getFullYear()} {NH.name}{NH.isDemo ? " · projeto demonstrativo" : ""}</span>
         <div className="ft-social">
           <a href={NH.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram"><IconIG /></a>
           <a href={NH.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook"><IconFB /></a>

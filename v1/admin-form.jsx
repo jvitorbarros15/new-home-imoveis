@@ -1,6 +1,7 @@
 // Admin — create / edit property form
 
-const TIPOS = ["Apartamento", "Cobertura", "Casa", "Casa em Condomínio", "Penthouse", "Terreno", "Comercial"];
+const TIPOS = PROPERTY_TYPES;
+const PURPOSES = [{ v: "sale", l: "Venda" }, { v: "rent", l: "Aluguel" }];
 const STATUSES = [{ v: "active", l: "Ativo" }, { v: "sold", l: "Vendido" }, { v: "rented", l: "Alugado" }];
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const ALLOWED_EXTS  = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
@@ -55,6 +56,15 @@ function clamp(v, min, max) {
   return String(Math.max(min, Math.min(max, n)));
 }
 
+function Field({ label, id, children, full }) {
+  return (
+    <div className={`adm-field${full ? " adm-field-full" : ""}`}>
+      <label htmlFor={id}>{label}</label>
+      {children}
+    </div>
+  );
+}
+
 function PropertyForm({ prop, onSaved }) {
   const isEdit = !!prop;
 
@@ -63,6 +73,7 @@ function PropertyForm({ prop, onSaved }) {
     title:          prop?.title         || "",
     type:           prop?.type          || "Apartamento",
     status:         prop?.status        || "active",
+    purpose:        prop?.purpose       || "sale",
     region:         prop?.region        || "",
     address:        prop?.address       || "",
     price_brl:      prop ? (prop.price_brl / 100).toString() : "",
@@ -85,6 +96,13 @@ function PropertyForm({ prop, onSaved }) {
   const [error, setError]         = React.useState("");
   const [drag, setDrag]           = React.useState(false);
   const fileRef = React.useRef(null);
+  const initialImages = React.useRef(prop?.images || []);
+  const sessionUploads = React.useRef([]);
+  const saved = React.useRef(false);
+
+  React.useEffect(() => () => {
+    if (!saved.current && sessionUploads.current.length) removeStoredImages(sessionUploads.current);
+  }, []);
 
   function set(k, v) { setFields(f => ({ ...f, [k]: v })); }
 
@@ -96,24 +114,29 @@ function PropertyForm({ prop, onSaved }) {
     const codeSlug = (fields.code || "temp").replace(/[^a-zA-Z0-9-]/g, "_");
     const urls = [];
 
-    for (const original of Array.from(files)) {
-      const file = await toWebp(original);
-      const ext  = file.name.split(".").pop().toLowerCase();
-      const rand = Math.random().toString(16).slice(2, 10);
-      const path = `${codeSlug}/${Date.now()}-${rand}.${ext}`;
-      const { error: upErr } = await window.sb.storage
-        .from("property-images")
-        .upload(path, file, { upsert: false, contentType: file.type });
-      if (upErr) {
-        setError("Erro ao enviar uma ou mais imagens. Verifique o tamanho e o formato.");
-        continue;
+    try {
+      for (const original of Array.from(files)) {
+        const file = await toWebp(original);
+        const ext  = file.name.split(".").pop().toLowerCase();
+        const rand = Math.random().toString(16).slice(2, 10);
+        const path = `${codeSlug}/${Date.now()}-${rand}.${ext}`;
+        const { error: upErr } = await window.sb.storage
+          .from("property-images")
+          .upload(path, file, { upsert: false, contentType: file.type });
+        if (upErr) {
+          setError("Erro ao enviar uma ou mais imagens. Verifique o tamanho e o formato.");
+          continue;
+        }
+        const { data } = window.sb.storage.from("property-images").getPublicUrl(path);
+        urls.push(data.publicUrl);
+        sessionUploads.current.push(data.publicUrl);
       }
-      const { data } = window.sb.storage.from("property-images").getPublicUrl(path);
-      urls.push(data.publicUrl);
+      setImages(prev => [...prev, ...urls]);
+    } catch (e) {
+      setError("Erro ao enviar uma ou mais imagens. Verifique o tamanho e o formato.");
+    } finally {
+      setUploading(false);
     }
-
-    setImages(prev => [...prev, ...urls]);
-    setUploading(false);
   }
 
   function removeImage(url) { setImages(prev => prev.filter(u => u !== url)); }
@@ -156,6 +179,7 @@ function PropertyForm({ prop, onSaved }) {
       title:          fields.title.trim(),
       type:           fields.type,
       status:         fields.status,
+      purpose:        fields.purpose,
       region:         fields.region.trim(),
       address:        fields.address.trim() || null,
       price_brl:      Math.round(parseFloat(fields.price_brl) * 100),
@@ -191,16 +215,9 @@ function PropertyForm({ prop, onSaved }) {
       }
       return;
     }
+    saved.current = true;
+    removeStoredImages(imagesToDiscard(images, initialImages.current, sessionUploads.current));
     onSaved();
-  }
-
-  function Field({ label, id, children, full }) {
-    return (
-      <div className={`adm-field${full ? " adm-field-full" : ""}`}>
-        <label htmlFor={id}>{label}</label>
-        {children}
-      </div>
-    );
   }
 
   return (
@@ -249,6 +266,11 @@ function PropertyForm({ prop, onSaved }) {
             </Field>
           </div>
           <div className="adm-form-row" style={{ marginTop: 16 }}>
+            <Field label="Finalidade" id="f-purpose">
+              <select id="f-purpose" value={fields.purpose} onChange={e => set("purpose", e.target.value)}>
+                {PURPOSES.map(s => <option key={s.v} value={s.v}>{s.l}</option>)}
+              </select>
+            </Field>
             <Field label="Status" id="f-status">
               <select id="f-status" value={fields.status} onChange={e => set("status", e.target.value)}>
                 {STATUSES.map(s => <option key={s.v} value={s.v}>{s.l}</option>)}

@@ -1,8 +1,10 @@
 import { build } from "esbuild";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = new URL("../", import.meta.url).pathname.replace(/^\/(.:\/)/, "$1");
+const root = fileURLToPath(new URL("../", import.meta.url));
 const sourceRoot = join(root, "v1");
 const outDir = join(sourceRoot, "dist");
 
@@ -12,14 +14,15 @@ const vendors = {
 };
 
 const entries = {
-  home: ["company.js", "analytics.js", "sections.jsx", "chat.jsx", "app.jsx"],
-  property: ["company.js", "analytics.js", "sections.jsx", "chat.jsx", "imovel-sections.jsx", "imovel-app.jsx"],
-  listings: ["company.js", "analytics.js", "sections.jsx", "chat.jsx", "listings-page.jsx"],
-  favorites: ["company.js", "analytics.js", "sections.jsx", "chat.jsx", "favoritos-page.jsx"],
-  about: ["company.js", "analytics.js", "sections.jsx", "chat.jsx", "quem-somos-page.jsx"],
-  finance: ["company.js", "analytics.js", "sections.jsx", "chat.jsx", "financiamento-page.jsx"],
-  privacy: ["company.js", "analytics.js", "sections.jsx", "chat.jsx", "privacidade-page.jsx"],
-  admin: ["company.js", "admin-listings.jsx", "admin-leads.jsx", "admin-form.jsx", "admin-app.jsx"],
+  home: ["constants.js", "company.js", "analytics.js", "lead.js", "sections.jsx", "chat.jsx", "app.jsx"],
+  property: ["constants.js", "company.js", "analytics.js", "lead.js", "sections.jsx", "chat.jsx", "imovel-sections.jsx", "imovel-app.jsx"],
+  listings: ["constants.js", "company.js", "analytics.js", "lead.js", "sections.jsx", "chat.jsx", "listings-page.jsx"],
+  favorites: ["constants.js", "company.js", "analytics.js", "lead.js", "sections.jsx", "chat.jsx", "favoritos-page.jsx"],
+  about: ["constants.js", "company.js", "analytics.js", "lead.js", "sections.jsx", "chat.jsx", "quem-somos-page.jsx"],
+  finance: ["constants.js", "company.js", "analytics.js", "lead.js", "sections.jsx", "chat.jsx", "financiamento-page.jsx"],
+  seller: ["constants.js", "company.js", "analytics.js", "lead.js", "sections.jsx", "chat.jsx", "anunciar-page.jsx"],
+  privacy: ["constants.js", "company.js", "analytics.js", "lead.js", "sections.jsx", "chat.jsx", "privacidade-page.jsx"],
+  admin: ["constants.js", "company.js", "admin-listings.jsx", "admin-leads.jsx", "admin-metrics.jsx", "admin-form.jsx", "admin-app.jsx"],
 };
 
 await mkdir(outDir, { recursive: true });
@@ -34,7 +37,15 @@ if (!process.env.VERCEL) {
 
 // Public browser configuration is generated from the deployment environment so
 // that no project identifiers are committed to the repository.
+if (process.env.VERCEL && (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY)) {
+  throw new Error("SUPABASE_URL and SUPABASE_ANON_KEY must be set for Vercel builds.");
+}
+
+const DEFAULT_SITE_URL = "https://new-home-imoveis.vercel.app";
+const siteUrl = (process.env.SITE_URL || DEFAULT_SITE_URL).replace(/\/+$/, "");
+
 const publicConfig = {
+  siteUrl,
   supabaseUrl: process.env.SUPABASE_URL || "",
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY || "",
   turnstileSiteKey: process.env.TURNSTILE_SITE_KEY || "",
@@ -75,6 +86,35 @@ for (const [name, files] of Object.entries(entries)) {
     target: ["es2019"],
     legalComments: "none",
   });
+}
+
+// Deployment-only HTML rewrites. They are skipped locally so tracked files stay
+// clean, and each one is idempotent so repeated builds produce the same output.
+if (process.env.VERCEL) {
+  const bundleHashes = {};
+  for (const file of await readdir(outDir)) {
+    if (!file.endsWith(".js")) continue;
+    bundleHashes[file] = createHash("sha256").update(await readFile(join(outDir, file))).digest("hex").slice(0, 10);
+  }
+
+  const htmlFiles = [
+    ...(await readdir(sourceRoot)).filter((file) => file.endsWith(".html")).map((file) => join(sourceRoot, file)),
+    join(root, "templates", "imovel.html"),
+  ];
+  for (const file of htmlFiles) {
+    const html = await readFile(file, "utf8");
+    const next = html.replace(/src="(\/?dist\/([\w-]+\.js))(?:\?v=[0-9a-f]+)?"/g, (match, src, name) =>
+      bundleHashes[name] ? `src="${src}?v=${bundleHashes[name]}"` : match
+    );
+    if (next !== html) await writeFile(file, next, "utf8");
+  }
+
+  if (siteUrl !== DEFAULT_SITE_URL) {
+    for (const file of htmlFiles.filter((file) => file.startsWith(sourceRoot))) {
+      const html = await readFile(file, "utf8");
+      if (html.includes(DEFAULT_SITE_URL)) await writeFile(file, html.replaceAll(DEFAULT_SITE_URL, siteUrl), "utf8");
+    }
+  }
 }
 
 const total = Object.keys(vendors).length + Object.keys(entries).length;

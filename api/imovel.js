@@ -1,7 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-const SITE_URL = process.env.SITE_URL || "https://new-home-imoveis.vercel.app";
+const DEFAULT_SITE_URL = "https://new-home-imoveis.vercel.app";
+const SITE_URL = (process.env.SITE_URL || DEFAULT_SITE_URL).replace(/\/+$/, "");
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "";
 const CODE_PATTERN = /^[A-Za-z0-9-]{1,32}$/;
@@ -10,7 +11,8 @@ let templateCache;
 
 async function loadTemplate() {
   if (templateCache) return templateCache;
-  templateCache = await readFile(join(process.cwd(), "templates", "imovel.html"), "utf8");
+  const template = await readFile(join(process.cwd(), "templates", "imovel.html"), "utf8");
+  templateCache = template.replaceAll(DEFAULT_SITE_URL, SITE_URL);
   return templateCache;
 }
 
@@ -23,8 +25,10 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
+// Resolves to the row, null when the listing does not exist, and undefined when
+// the lookup is unavailable (not configured). Network and HTTP errors throw.
 async function fetchProperty(code) {
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return undefined;
   const query = new URLSearchParams({
     code: `eq.${code}`,
     status: "eq.active",
@@ -35,7 +39,7 @@ async function fetchProperty(code) {
     headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
     signal: AbortSignal.timeout(3000),
   });
-  if (!response.ok) return null;
+  if (!response.ok) throw new Error(`Supabase responded ${response.status}`);
   const rows = await response.json();
   return Array.isArray(rows) && rows.length ? rows[0] : null;
 }
@@ -70,6 +74,10 @@ function applyMeta(html, meta) {
   out = set(out, /<meta property="og:description" content="[^"]*" \/>/, `<meta property="og:description" content="${escapeHtml(meta.description)}" />`);
   out = set(out, /<meta property="og:url" content="[^"]*" \/>/, `<meta property="og:url" content="${escapeHtml(meta.url)}" />`);
   out = set(out, /<meta property="og:image" content="[^"]*" \/>/, `<meta property="og:image" content="${escapeHtml(meta.image)}" />`);
+  out = set(out, /<meta property="og:type" content="[^"]*" \/>/, `<meta property="og:type" content="product" />`);
+  out = set(out, /<meta name="twitter:title" content="[^"]*" \/>/, `<meta name="twitter:title" content="${escapeHtml(meta.title)}" />`);
+  out = set(out, /<meta name="twitter:description" content="[^"]*" \/>/, `<meta name="twitter:description" content="${escapeHtml(meta.description)}" />`);
+  out = set(out, /<meta name="twitter:image" content="[^"]*" \/>/, `<meta name="twitter:image" content="${escapeHtml(meta.image)}" />`);
   return out;
 }
 
@@ -79,16 +87,22 @@ export default async function handler(request, response) {
   const code = (url.searchParams.get("code") || "").trim();
 
   let html = template;
-  if (code && CODE_PATTERN.test(code)) {
+  let status = 200;
+  let cacheControl = "public, s-maxage=300, stale-while-revalidate=3600";
+  if (!code || !CODE_PATTERN.test(code)) {
+    status = 404;
+  } else {
     try {
       const property = await fetchProperty(code);
       if (property) html = applyMeta(template, buildMeta(property, property.code));
+      else if (property === null) status = 404;
     } catch {
       // Metadata enrichment is best-effort; the shell still renders.
     }
   }
+  if (status === 404) cacheControl = "public, s-maxage=60";
 
   response.setHeader("Content-Type", "text/html; charset=utf-8");
-  response.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=3600");
-  response.status(200).send(html);
+  response.setHeader("Cache-Control", cacheControl);
+  response.status(status).send(html);
 }

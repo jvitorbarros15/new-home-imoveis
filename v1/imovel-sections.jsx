@@ -1,49 +1,31 @@
 // Property page sections
 
 const PROP = {
-  code: "AP9680-NHB",
-  status: "À venda",
-  type: "Apartamento",
-  title: "Apartamento decorado no Saint Michael, Ilha Pura",
-  address: "Ilha Pura · Barra da Tijuca · Rio de Janeiro / RJ",
-  region: "Barra da Tijuca",
-  price: 2290000,
-  condominio: 2000,
-  iptu: 500,
-  m2Value: 17218,
-  specs: { areaUtil: 133, areaBruta: 133, quartos: 3, suites: 2, banheiros: 3, vagas: 2, pet: true },
-  description: [
-    "Apartamento decorado no condomínio Saint Michael, no Ilha Pura, com vista para a lagoa e acabamento de alto padrão.",
-    "A planta tem três quartos, incluindo duas suítes, sala em dois ambientes, varanda gourmet, lavabo e área de serviço. A suíte principal possui closet. O anúncio informa automação com Alexa, móveis da Casa Shopping e venda com porteira fechada.",
-  ],
-  highlights: [
-    { icon: "view", title: "Vista para a lagoa", desc: "Uma das características informadas no anúncio da unidade." },
-    { icon: "key", title: "Porteira fechada", desc: "O imóvel é anunciado decorado e mobiliado." },
-    { icon: "sun", title: "Varanda gourmet", desc: "Área externa integrada ao apartamento." },
-  ],
-  features: {
-    "Imóvel": ["Área de serviço", "Banheiro de serviço", "Quarto de serviço", "Lavabo", "Lavanderia", "Porcelanato", "Varanda", "Varanda gourmet"],
-    "Condomínio": ["Campo de futebol", "Churrasqueira", "Piscina", "Quadra poliesportiva", "Sauna"],
-  },
+  code: "",
+  status: "",
+  type: "Imóvel",
+  title: "",
+  address: "",
+  region: "",
+  price: null,
+  condominio: null,
+  iptu: null,
+  m2Value: null,
+  specs: { areaUtil: "—", quartos: "—", suites: "—", banheiros: "—", vagas: "—", pet: false },
+  description: [],
+  highlights: [],
+  features: {},
   nearby: [],
-  images: [
-    { src: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1600&q=82&auto=format&fit=crop", caption: "Imagem ilustrativa — confirme as fotos oficiais", room: "Referência visual" },
-    { src: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1600&q=82&auto=format&fit=crop", caption: "Imagem ilustrativa — confirme as fotos oficiais", room: "Referência visual" },
-    { src: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=1600&q=82&auto=format&fit=crop", caption: "Imagem ilustrativa — confirme as fotos oficiais", room: "Referência visual" },
-    { src: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1600&q=82&auto=format&fit=crop", caption: "Imagem ilustrativa — confirme as fotos oficiais", room: "Referência visual" },
-    { src: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=82&auto=format&fit=crop", caption: "Imagem ilustrativa — confirme as fotos oficiais", room: "Referência visual" },
-  ],
-  imagesAreIllustrative: true,
+  images: [],
+  imagesAreIllustrative: false,
   tourUrl: null,
-  officialUrl: "https://www.imoveisnewhome.com.br/imoveis?codigo=AP9680-NHB",
-  agent: { name: "Erick Leonardo", creci: "51.507", phone: NH.primaryPhone, phoneDisplay: NH.primaryPhoneDisplay },
-  similar: [
-    { code: "AP0694-NHB", type: "Apartamento", title: "Apartamento de 92 m² com três quartos", region: "Barra Olímpica", area: 92, rooms: 3, parking: 1, price: 1100000 },
-    { code: "AP9886-NHB", type: "Apartamento", title: "Apartamento de 110 m² com três quartos", region: "Barra da Tijuca", area: 110, rooms: 3, parking: 2, price: 1200000 },
-    { code: "AP9879-NHB", type: "Apartamento", title: "Apartamento de 136 m² com quatro quartos", region: "Barra Olímpica", area: 136, rooms: 4, parking: 2, price: 1470000 },
-  ],
+  officialUrl: null,
+  agent: { name: NH.name, creci: NH.creci, phone: NH.primaryPhone, phoneDisplay: NH.primaryPhoneDisplay },
+  similar: [],
 };
 
+const isMoney = (value) => typeof value === "number";
+const rentTotal = (prop) => prop.purpose === "rent" && isMoney(prop.price) && isMoney(prop.condominio) && isMoney(prop.iptu) ? prop.price + prop.condominio + prop.iptu : null;
 const BRL = (value) => typeof value === "number" ? value.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }) : "Consulte";
 const propertyWhatsapp = (prop, extra = "Gostaria de mais informações.") =>
   NH.whatsapp(`Olá! Tenho interesse no imóvel ${prop.code} — ${prop.title}. ${extra}`);
@@ -72,27 +54,40 @@ function readFavorite(code) {
   try { return localStorage.getItem(`favorite:${code}`) === "1"; } catch (e) { return false; }
 }
 
-function Lightbox({ open, idx, setIdx, onClose, images }) {
+function Lightbox({ open, idx, setIdx, onClose, images, title }) {
   const closeRef = React.useRef(null);
+  const count = images.length;
+  const step = React.useCallback((delta) => setIdx((value) => (value + delta + count) % count), [setIdx, count]);
+
   React.useEffect(() => {
     if (!open) return;
+    const opener = document.activeElement;
     closeRef.current?.focus();
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+      opener?.focus?.();
+    };
+  }, [open]);
+
+  React.useEffect(() => {
+    if (!open) return;
     const handleKey = (event) => {
       if (event.key === "Escape") onClose();
-      if (event.key === "ArrowRight") setIdx((value) => (value + 1) % images.length);
-      if (event.key === "ArrowLeft") setIdx((value) => (value - 1 + images.length) % images.length);
+      else if (event.key === "ArrowRight") step(1);
+      else if (event.key === "ArrowLeft") step(-1);
     };
     document.addEventListener("keydown", handleKey);
-    document.body.style.overflow = "hidden";
-    return () => { document.removeEventListener("keydown", handleKey); document.body.style.overflow = ""; };
-  }, [open, images.length, onClose, setIdx]);
-  if (!open || !images.length) return null;
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [open, onClose, step]);
+
+  if (!open || !count) return null;
   const current = images[idx] || images[0];
   return <div className="lb on" role="dialog" aria-modal="true" aria-label="Galeria de imagens" onClick={onClose}>
-    <div className="lb-top" onClick={(e) => e.stopPropagation()}><div className="lb-info"><h4>{current.room}</h4><span>{idx + 1} / {images.length} · {current.caption}</span></div><button ref={closeRef} type="button" className="lb-close" onClick={onClose} aria-label="Fechar galeria"><I.X/></button></div>
-    <button type="button" className="lb-arrow prev" onClick={(e) => { e.stopPropagation(); setIdx((value) => (value - 1 + images.length) % images.length); }} aria-label="Imagem anterior">‹</button>
-    <div className="lb-stage" onClick={(e) => e.stopPropagation()}><img key={current.src} src={current.src} alt={current.caption} style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain"}}/></div>
-    <button type="button" className="lb-arrow next" onClick={(e) => { e.stopPropagation(); setIdx((value) => (value + 1) % images.length); }} aria-label="Próxima imagem">›</button>
+    <div className="lb-top" onClick={(e) => e.stopPropagation()}><div className="lb-info"><h4>{current.room}</h4><span>{idx + 1} / {count} · {current.caption}</span></div><button ref={closeRef} type="button" className="lb-close" onClick={onClose} aria-label="Fechar galeria"><I.X/></button></div>
+    <button type="button" className="lb-arrow prev" onClick={(e) => { e.stopPropagation(); step(-1); }} aria-label="Imagem anterior">‹</button>
+    <div className="lb-stage" onClick={(e) => e.stopPropagation()}><img key={current.src} src={current.src} alt={`Foto ${idx + 1} de ${count} — ${title}`} style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain"}}/></div>
+    <button type="button" className="lb-arrow next" onClick={(e) => { e.stopPropagation(); step(1); }} aria-label="Próxima imagem">›</button>
   </div>;
 }
 
@@ -115,10 +110,12 @@ function GalleryHero({ prop, onOpen }) {
     if (navigator.share) await navigator.share(data).catch(() => {});
     else await navigator.clipboard?.writeText(location.href);
   };
-  return <div className="gal">
-    <button type="button" className="gal-main" onClick={() => onOpen(0)} aria-label="Abrir imagem principal"><div className="img" style={{backgroundImage:`url(${prop.images[0]?.src})`}}/></button>
-    <div className="gal-side">{prop.images.slice(1,5).map((image,index) => <button type="button" key={image.src} className="gal-thumb" onClick={() => onOpen(index + 1)} aria-label={`Abrir imagem ${index + 2}`}><div className="img" style={{backgroundImage:`url(${image.src})`}}/></button>)}</div>
-    <button type="button" className="gal-all" onClick={() => onOpen(0)}>Ver galeria · {prop.images.length} imagens</button>
+  return <div className={`gal${prop.images.length ? "" : " gal-noimg"}`}>
+    {prop.images.length
+      ? <button type="button" className="gal-main" onClick={() => onOpen(0)} aria-label="Abrir galeria de fotos"><img className="img" src={prop.images[0].src} alt={`Foto 1 de ${prop.images.length} — ${prop.title}`} decoding="async"/></button>
+      : <div className="gal-main gal-empty"><img src="assets/logo-gold.png" alt="" /><span>Fotos em breve</span><a href={propertyWhatsapp(prop, "Gostaria de receber as fotos deste imóvel.")} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click", { code: prop.code, detail: "pedir_fotos" })}>Pedir fotos pelo WhatsApp</a></div>}
+    {prop.images.length > 0 && <div className="gal-side">{prop.images.slice(1,5).map((image,index) => <button type="button" key={image.src} className="gal-thumb" onClick={() => onOpen(index + 1)} aria-label={`Abrir foto ${index + 2} de ${prop.images.length}`}><img className="img" src={image.src} alt={`Foto ${index + 2} de ${prop.images.length} — ${prop.title}`} loading="lazy" decoding="async"/></button>)}</div>}
+    {prop.images.length > 0 && <button type="button" className="gal-all" onClick={() => onOpen(0)}><span className="gal-all-long">Ver galeria · {prop.images.length} {prop.images.length === 1 ? "imagem" : "imagens"}</span><span className="gal-all-short">{prop.images.length} {prop.images.length === 1 ? "foto" : "fotos"}</span></button>}
     <div className="gal-actions">
       <button type="button" className={`gal-action ${favorite ? "on" : ""}`} onClick={toggleFavorite} aria-pressed={favorite} aria-label={favorite ? "Remover dos favoritos" : "Salvar nos favoritos"}><I.Heart size={16}/></button>
       <button type="button" className="gal-action" onClick={share} aria-label="Compartilhar"><I.Share size={16}/></button>
@@ -129,13 +126,19 @@ function GalleryHero({ prop, onOpen }) {
 }
 
 function Identity({ prop }) {
+  const rent = prop.purpose === "rent";
+  const total = rentTotal(prop);
+  const forSale = prop.purpose !== "rent" && prop.price > 0;
+  const installment = forSale ? priceInstallment(prop.price * (1 - SIM_DEFAULTS.entrada), SIM_DEFAULTS.taxa, SIM_DEFAULTS.anos) : 0;
   return <><div className="idn">
     <div><div className="idn-tags"><span className="idn-tag accent">{prop.status}</span><span className="idn-tag">{prop.type}</span><span className="idn-tag">Cód. {prop.code}</span></div>
       <h1>{prop.title}</h1><div className="idn-loc"><I.Pin size={16}/>{prop.address}</div>
       {prop.officialUrl && <a className="agent-btn ghost" href={prop.officialUrl} target="_blank" rel="noopener noreferrer" style={{marginTop:14}}>Ver anúncio e fotos oficiais ↗</a>}
     </div>
-    <div className="idn-price-block"><span className="idn-price-label">Valor anunciado</span><span className="idn-price">{BRL(prop.price)}</span>
-      <div className="idn-price-meta"><span>Cond. <b>{BRL(prop.condominio)}</b></span><span>IPTU <b>{BRL(prop.iptu)}/mês</b></span><span>m² <b>{BRL(prop.m2Value)}</b></span></div>
+    <div className="idn-price-block"><span className="idn-price-label">{rent ? "Aluguel mensal" : "Valor anunciado"}</span><span className="idn-price">{BRL(prop.price)}{rent && isMoney(prop.price) ? <small className="idn-price-unit">/mês</small> : null}</span>
+      <div className="idn-price-meta"><span>{isMoney(prop.condominio) ? <>Cond. <b>{BRL(prop.condominio)}</b></> : "Cond. sob consulta"}</span><span>{isMoney(prop.iptu) ? <>IPTU <b>{BRL(prop.iptu)}/mês</b></> : "IPTU sob consulta"}</span>{!rent && <span>m² <b>{BRL(prop.m2Value)}</b></span>}</div>
+      {total !== null && <div className="idn-price-total">Total mensal estimado <b>{BRL(total)}</b></div>}
+      {installment > 0 && <a className="idn-price-est" href={`financiamento?valor=${Math.round(prop.price)}&codigo=${encodeURIComponent(prop.code)}#simulador`}><span>Parcela estimada a partir de <b>{BRL(installment)}/mês</b></span><small>Entrada de {SIM_DEFAULTS.entrada * 100}%, {SIM_DEFAULTS.anos} anos, {String(SIM_DEFAULTS.taxa).replace(".", ",")}% a.a. Simule →</small></a>}
     </div>
   </div>
   <div className="specs">
@@ -149,7 +152,12 @@ function Identity({ prop }) {
 }
 
 function Description({ prop }) {
-  const summary = `${prop.type} de ${prop.specs.areaUtil} m² em ${prop.region}, com ${prop.specs.quartos} quartos, ${prop.specs.suites} suítes e ${prop.specs.vagas} vagas. ${prop.highlights.map((item) => item.title).join(", ")}.`;
+  const summary = [
+    `${prop.type}${prop.specs.areaUtil !== "—" ? ` de ${prop.specs.areaUtil} m²` : ""} em ${prop.region}`,
+    prop.specs.quartos !== "—" && `${prop.specs.quartos} quartos`,
+    prop.specs.suites !== "—" && `${prop.specs.suites} suítes`,
+    prop.specs.vagas !== "—" && `${prop.specs.vagas} vagas`,
+  ].filter(Boolean).join(", ") + ".";
   const [showSummary, setShowSummary] = React.useState(false);
   return <div className="blk"><div className="blk-head"><h2>Sobre o <em>imóvel</em></h2><div className="desc-tab">
     <button type="button" className={!showSummary ? "on" : ""} onClick={() => setShowSummary(false)}>Descrição</button>
@@ -184,21 +192,24 @@ function Localizacao({ prop }) {
 }
 
 function Custos({ prop }) {
+  const forSale = prop.purpose !== "rent" && prop.price > 0;
   return <div className="blk"><div className="blk-head"><h2>Custos do <em>imóvel</em></h2><span className="blk-aside">Valores sujeitos a alteração</span></div>
     <div className="custos"><div className="custos-table">
-      <div className="custos-row"><span className="l">Valor anunciado</span><span className="v">{BRL(prop.price)}</span></div>
-      <div className="custos-row"><span className="l">Condomínio mensal</span><span className="v">{BRL(prop.condominio)}</span></div>
-      <div className="custos-row"><span className="l">IPTU mensal informado</span><span className="v">{BRL(prop.iptu)}</span></div>
-      <div className="custos-row"><span className="l">Valor aproximado do m²</span><span className="v">{BRL(prop.m2Value)}</span></div>
+      <div className="custos-row"><span className="l">{prop.purpose === "rent" ? "Aluguel mensal" : "Valor anunciado"}</span><span className="v">{BRL(prop.price)}</span></div>
+      <div className="custos-row"><span className="l">Condomínio mensal</span><span className="v">{isMoney(prop.condominio) ? BRL(prop.condominio) : "Sob consulta"}</span></div>
+      <div className="custos-row"><span className="l">IPTU mensal informado</span><span className="v">{isMoney(prop.iptu) ? BRL(prop.iptu) : "Sob consulta"}</span></div>
+      {prop.purpose === "rent"
+        ? rentTotal(prop) !== null && <div className="custos-row"><span className="l">Total mensal estimado</span><span className="v">{BRL(rentTotal(prop))}</span></div>
+        : <div className="custos-row"><span className="l">Valor aproximado do m²</span><span className="v">{BRL(prop.m2Value)}</span></div>}
     </div>
-    <a className="custos-cta" href="financiamento.html"><span className="custos-cta-eyebrow">Planejamento</span><span className="custos-cta-title">Faça uma estimativa de financiamento</span><span className="custos-cta-go">Abrir simulador →</span></a></div>
+    {forSale && <a className="custos-cta" href={`financiamento?valor=${Math.round(prop.price)}&codigo=${encodeURIComponent(prop.code)}#simulador`}><span className="custos-cta-eyebrow">Planejamento</span><span className="custos-cta-title">Faça uma estimativa de financiamento</span><span className="custos-cta-go">Abrir simulador →</span></a>}</div>
     <p className="sim-fine">Preço, condomínio, IPTU, disponibilidade e condições podem mudar sem aviso. Confirme as informações antes da visita ou proposta.</p>
   </div>;
 }
 
 function Sidebar({ prop }) {
   return <aside className="side"><div className="agent-card">
-    <div className="agent-top"><div><div className="agent-name">{prop.agent.name}</div><div className="agent-meta">Corretor · CRECI-RJ {prop.agent.creci}</div></div></div>
+    <div className="agent-top"><div><div className="agent-name">{prop.agent.name}</div><div className="agent-meta">CRECI {prop.agent.creci}</div></div></div>
     <div className="agent-actions">
       <a className="agent-btn primary" href={propertyWhatsapp(prop)} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click", { code: prop.code, detail: "sidebar" })}><I.WA size={16}/>Conversar no WhatsApp</a>
       <a className="agent-btn ghost" href={`tel:${prop.agent.phone}`}><I.Phone size={14}/>{prop.agent.phoneDisplay}</a>
@@ -216,27 +227,53 @@ function VisitScheduler({ prop }) {
     return { iso: date.toISOString().slice(0,10), label: date.toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"short"}) };
   }), []);
   const times=["10:00","12:00","14:00","16:00","18:00"];
-  const submit = (event) => {
+  const [state, setState] = React.useState("");
+  const submit = async (event) => {
     event.preventDefault();
-    const message = `Gostaria de solicitar uma visita ${mode} ao imóvel ${prop.code} em ${days[day].label}, às ${time}. Aguardo confirmação de disponibilidade.`;
+    const data = new FormData(event.currentTarget);
+    const phone = normalizePhoneBR(data.get("phone"));
+    if (!phone) { setState("badphone"); return; }
+    const name = String(data.get("name") || "").trim().slice(0, 120);
+    const slot = `${days[day].label}, às ${time}`;
+    const message = `Gostaria de solicitar uma visita ${mode} ao imóvel ${prop.code} em ${slot}. Meu nome é ${name}. Aguardo confirmação de disponibilidade.`;
     window.open(propertyWhatsapp(prop, message), "_blank", "noopener,noreferrer");
+    setState("sending");
+    const { saved } = await submitLead({ kind: "visit", name, phone, property_code: prop.code, interest: `Visita ${mode}`.slice(0, 60), message: slot });
+    track("visit_request", { code: prop.code, detail: mode });
+    setState(saved ? "sent" : "unsaved");
   };
-  return <form className="visit" onSubmit={submit}><h4>Solicitar visita</h4><div className="visit-sub">A data depende de confirmação da equipe e do responsável pelo imóvel.</div>
+  return <form className="visit" id="visita" onSubmit={submit}><h4>Solicitar visita</h4><div className="visit-sub">A data depende de confirmação da equipe e do responsável pelo imóvel.</div>
     <div className="visit-days">{days.map((item,index) => <button type="button" key={item.iso} className={`visit-day ${index===day?"on":""}`} aria-pressed={index===day} onClick={() => setDay(index)}><span className="dn">{item.label}</span></button>)}</div>
     <div className="visit-times">{times.map((item) => <button type="button" key={item} className={`visit-time ${item===time?"on":""}`} aria-pressed={item===time} onClick={() => setTime(item)}>{item}</button>)}</div>
     <div className="visit-mode"><button type="button" className={mode==="presencial"?"on":""} aria-pressed={mode==="presencial"} onClick={() => setMode("presencial")}>Presencial</button><button type="button" className={mode==="video"?"on":""} aria-pressed={mode==="video"} onClick={() => setMode("video")}>Vídeo</button></div>
-    <button type="submit" className="visit-cta">Solicitar pelo WhatsApp</button>
+    <div className="visit-contact">
+      <label>Nome<input name="name" required autoComplete="name" maxLength={120} /></label>
+      <label>WhatsApp<input name="phone" type="tel" required autoComplete="tel" placeholder="(21) 99999-9999" aria-invalid={state === "badphone"} /></label>
+    </div>
+    <label className="visit-consent"><input name="consent" type="checkbox" required /><span>Concordo com a <a href={NH.privacyUrl}>política de privacidade</a> e autorizo o contato da equipe.</span></label>
+    {state === "badphone" && <p className="visit-status error" role="alert">Informe um telefone válido com DDD.</p>}
+    {state === "sent" && <p className="visit-status ok" role="status">Pedido de visita enviado. Abrimos o WhatsApp para confirmar o horário.</p>}
+    {state === "unsaved" && <p className="visit-status error" role="alert">Não conseguimos registrar o pedido, mas o WhatsApp foi aberto. Continue a conversa por lá.</p>}
+    <button type="submit" className="visit-cta" disabled={state === "sending"}>{state === "sending" ? "Enviando..." : "Solicitar visita"}</button>
   </form>;
+}
+
+function StickyContact({ prop }) {
+  return <div className="sticky-contact" role="region" aria-label="Contato rápido">
+    <a className="sc-btn primary" href={propertyWhatsapp(prop, location.href)} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click", { code: prop.code, detail: "barra_fixa" })}><I.WA size={16}/>WhatsApp</a>
+    <a className="sc-btn" href={`tel:${prop.agent.phone}`} onClick={() => track("phone_click", { code: prop.code, detail: "barra_fixa" })}><I.Phone size={14}/>Ligar</a>
+    <a className="sc-btn" href="#visita">Visita</a>
+  </div>;
 }
 
 function Similar({ prop }) {
   if (!prop.similar?.length) return null;
-  return <section className="similar"><div className="sec-head" style={{paddingTop:0}}><h2>Outras <em>opções</em></h2><p>Consulte disponibilidade, endereço e valores atualizados no portal oficial.</p></div>
-    <div className="similar-rail">{prop.similar.map((item) => <a key={item.code} className="sim-card" href={`imovel.html?code=${encodeURIComponent(item.code)}`} onClick={() => track("listing_click", { code: item.code, detail: "similares" })}>
+  return <section className="similar"><div className="sec-head" style={{paddingTop:0}}><h2>Outras <em>opções</em></h2><p>Imóveis parecidos com este, na mesma faixa de valor.</p></div>
+    <div className="similar-rail">{prop.similar.map((item) => <a key={item.code} className="sim-card" href={`/imovel?code=${encodeURIComponent(item.code)}`} onClick={() => track("listing_click", { code: item.code, detail: "similares" })}>
       <div className="sim-body"><span className="sim-type">{item.type} · {item.region}</span><span className="sim-title">{item.title}</span>
-        <div className="sim-specs"><span>{item.area} m²</span><span>·</span><span>{item.rooms} quartos</span><span>·</span><span>{item.parking} vaga{item.parking===1?"":"s"}</span></div><span className="sim-price">{BRL(item.price)}</span>
+        <div className="sim-specs">{[item.area ? `${item.area} m²` : null, item.rooms ? `${item.rooms} ${item.rooms===1?"quarto":"quartos"}` : null, item.parking ? `${item.parking} vaga${item.parking===1?"":"s"}` : null].filter(Boolean).map((text,index) => <React.Fragment key={text}>{index > 0 && <span>·</span>}<span>{text}</span></React.Fragment>)}</div><span className="sim-price">{BRL(item.price)}{item.purpose === "rent" ? "/mês" : ""}</span>
       </div></a>)}</div>
   </section>;
 }
 
-Object.assign(window, { PROP, GalleryHero, Lightbox, Identity, Description, Highlights, Features, Localizacao, Custos, Sidebar, Similar });
+Object.assign(window, { PROP, StickyContact, GalleryHero, Lightbox, Identity, Description, Highlights, Features, Localizacao, Custos, Sidebar, Similar });

@@ -32,7 +32,7 @@ function FavoritesPage() {
     setLoading(true);
     window.sb
       .from("properties")
-      .select("code,title,type,region,price_brl,area_m2,bedrooms,suites,parking,images,status")
+      .select("code,title,type,region,price_brl,area_m2,bedrooms,suites,parking,images,status,purpose")
       .in("code", codes)
       .then(({ data, error: err }) => {
         if (!active) return;
@@ -49,7 +49,8 @@ function FavoritesPage() {
     setCodes(readFavoriteCodes());
   }
 
-  const missing = codes.filter(code => !items.some(item => item.code === code));
+  const available = items.filter(item => item.status === "active");
+  const missing = codes.filter(code => !available.some(item => item.code === code));
 
   return (
     <>
@@ -69,16 +70,16 @@ function FavoritesPage() {
           <div className="lst-empty">
             <h2>Você ainda não salvou nenhum imóvel.</h2>
             <p>Use o ícone de coração na página de um imóvel para guardá-lo aqui.</p>
-            <a className="primary" href={NH.listingsUrl}>Ver imóveis</a>
+            <a className="btn-primary" href={NH.listingsUrl}>Ver imóveis</a>
           </div>
         )}
 
         <p className="lst-count" role="status">
-          {loading ? "Carregando..." : codes.length > 0 ? `${items.length} de ${codes.length} disponíveis` : ""}
+          {loading ? "Carregando..." : codes.length > 0 ? `${available.length} de ${codes.length} disponíveis` : ""}
         </p>
 
         <div className="lst-grid">
-          {items.map(item => (
+          {available.map(item => (
             <div key={item.code} className="fav-wrap">
               <ListingCard item={item} />
               <button type="button" className="fav-remove" onClick={() => remove(item.code)}

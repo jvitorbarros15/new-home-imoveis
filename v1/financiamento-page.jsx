@@ -51,17 +51,22 @@ function BanksGrid() {
   </section>;
 }
 
+const SIM_MIN_VALUE = 50000;
+const SIM_MAX_VALUE = 50000000;
+
 function Simulator() {
-  const [valor, setValor] = React.useState(1500000);
-  const [entrada, setEntrada] = React.useState(0.25);
-  const [anos, setAnos] = React.useState(30);
-  const [taxa, setTaxa] = React.useState(10.5);
+  const query = React.useMemo(() => new URLSearchParams(location.search), []);
+  const [valor, setValor] = React.useState(() => {
+    const fromUrl = parseInt(query.get("valor"), 10);
+    return fromUrl > 0 ? Math.min(Math.max(fromUrl, SIM_MIN_VALUE), SIM_MAX_VALUE) : 1500000;
+  });
+  const code = /^[A-Za-z0-9-]{3,20}$/.test(query.get("codigo") || "") && query.get("valor") ? query.get("codigo") : "";
+  const [entrada, setEntrada] = React.useState(SIM_DEFAULTS.entrada);
+  const [anos, setAnos] = React.useState(SIM_DEFAULTS.anos);
+  const [taxa, setTaxa] = React.useState(SIM_DEFAULTS.taxa);
   const principal = Math.max(0, valor * (1 - entrada));
-  const monthlyRate = Math.pow(1 + taxa / 100, 1 / 12) - 1;
   const months = anos * 12;
-  const parcela = principal > 0 && monthlyRate > 0
-    ? principal * (monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1)
-    : 0;
+  const parcela = priceInstallment(principal, taxa, anos);
   const totalPago = parcela * months;
   const juros = Math.max(0, totalPago - principal);
   const money = (value) => `R$ ${Math.round(value).toLocaleString("pt-BR")}`;
@@ -77,6 +82,7 @@ function Simulator() {
 
   return <section className="page-section reveal" id="simulador">
     <div className="page-section-head"><h2>Estime sua <em>parcela</em></h2><p>Cálculo educativo pelo sistema Price, sem seguros, tarifas ou indexadores.</p></div>
+    {code && <p className="sim-for">Simulação para o imóvel <b>{code}</b> · <a href={`imovel?code=${encodeURIComponent(code)}`}>Voltar ao imóvel</a></p>}
     <div className="sim-wrap">
       <div className="sim-card"><h3>Parâmetros</h3>
         <div className="sim-field">
@@ -138,7 +144,7 @@ function FinanciamentoApp() {
   }, [theme.motion]);
   useReveal();
   return <><div className="grain"/><Nav/><DemoNotice/>
-    <main className="page">
+    <main className="page" id="conteudo">
       <section className="ph-hero">
         <div><span className="eyebrow ph-hero-eyebrow">Planejamento financeiro</span><h1>Entenda os números<br/>antes das <em>chaves</em>.</h1><p>Faça uma estimativa inicial, compare propostas oficiais e avalie o custo total antes de contratar um financiamento.</p></div>
         <div className="ph-hero-meta"><dl>
@@ -148,7 +154,7 @@ function FinanciamentoApp() {
       </section>
       <div className="page-wrap"><HowItWorks/><BanksGrid/><Simulator/><FAQ/></div>
       <section className="page-cta reveal"><div><h3>Vai comprar um imóvel <em>financiado</em>?</h3><p>Fale com a New Home sobre o imóvel e as etapas da negociação. A análise e a aprovação do crédito são feitas exclusivamente pelo banco.</p></div>
-        <div className="page-cta-actions"><a className="primary" href={NH.whatsapp("Olá! Gostaria de orientação sobre a compra de um imóvel financiado.")} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click", { detail: "financiamento_cta" })}>Falar com a New Home</a><a className="ghost" href="quem-somos.html">Sobre a empresa</a></div>
+        <div className="page-cta-actions"><a className="primary" href={NH.whatsapp("Olá! Gostaria de orientação sobre a compra de um imóvel financiado.")} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click", { detail: "financiamento_cta" })}>Falar com a New Home</a><a className="ghost" href="/quem-somos">Sobre a empresa</a></div>
       </section>
     </main><Footer/><Chat/></>;
 }

@@ -1,6 +1,6 @@
 // Admin app — auth gate + shell
 
-const ADM_VIEWS = { listings: "listings", newProp: "newProp", editProp: "editProp", leads: "leads", security: "security" };
+const ADM_VIEWS = { listings: "listings", newProp: "newProp", editProp: "editProp", leads: "leads", metrics: "metrics", security: "security" };
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_SECONDS = 60;
 
@@ -16,6 +16,7 @@ const IPlus   = () => <AIcon d="M12 5v14M5 12h14" />;
 const ILogout = () => <AIcon d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />;
 const IHome   = () => <AIcon d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10" />;
 const IInbox  = () => <AIcon d="M22 12h-6l-2 3h-4l-2-3H2M5 5h14l3 7v5a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-5z" />;
+const IChart  = () => <AIcon d="M3 3v18h18M7 15l4-4 3 3 5-6" />;
 const IShield = () => <AIcon d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />;
 
 /* ------ Cloudflare Turnstile ------ */
@@ -86,6 +87,10 @@ function Login({ notice = "" }) {
 
   // Client-side throttling is a courtesy only. The enforced limits are the
   // Supabase Auth rate limits and the Turnstile challenge above.
+  React.useEffect(() => {
+    if (lockout === 0 && attempts >= MAX_ATTEMPTS) setAttempts(0);
+  }, [lockout]);
+
   const locked = lockout > 0 || attempts >= MAX_ATTEMPTS;
 
   function registerFailure(message) {
@@ -425,6 +430,7 @@ function Sidebar({ view, setView, onLogout }) {
     { id: ADM_VIEWS.listings, label: "Imóveis",     icon: <IList /> },
     { id: ADM_VIEWS.newProp,  label: "Novo imóvel", icon: <IPlus /> },
     { id: ADM_VIEWS.leads,    label: "Contatos",    icon: <IInbox /> },
+    { id: ADM_VIEWS.metrics,  label: "Métricas",    icon: <IChart /> },
     { id: ADM_VIEWS.security, label: "Segurança",   icon: <IShield /> },
   ];
   return (
@@ -445,7 +451,7 @@ function Sidebar({ view, setView, onLogout }) {
           </button>
         ))}
         <div className="adm-nav-sep" role="separator" />
-        <a className="adm-nav-item" href="index.html" target="_blank" rel="noopener noreferrer">
+        <a className="adm-nav-item" href="/" target="_blank" rel="noopener noreferrer">
           <IHome /> Ver site
         </a>
         <button className="adm-nav-item adm-logout" onClick={onLogout} aria-label="Sair da conta">
@@ -473,14 +479,18 @@ function AdminApp() {
     }
 
     let active = true;
+    let firstCheck = true;
     async function verify(candidate) {
       if (!active) return;
       if (!candidate) {
         setSession(null);
         setChecking(false);
+        firstCheck = false;
         return;
       }
-      setChecking(true);
+      // Only the first check replaces the screen; later checks must not unmount
+      // the login step or a form with unsaved edits.
+      if (firstCheck) setChecking(true);
       const { data, error } = await window.sb
         .from("admin_users")
         .select("user_id")
@@ -492,16 +502,23 @@ function AdminApp() {
         await window.sb.auth.signOut();
         setSession(null);
       } else {
-        setAccessError("");
-        setSession(candidate);
+        const { data: aal } = await window.sb.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (!active) return;
+        if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
+          setSession(null);
+        } else {
+          setAccessError("");
+          setSession(candidate);
+        }
       }
       setChecking(false);
+      firstCheck = false;
     }
 
     window.sb.auth.getSession().then(({ data }) => verify(data.session));
     const { data: { subscription } } = window.sb.auth.onAuthStateChange((event, candidate) => {
       if (event === "PASSWORD_RECOVERY") { setRecovery(true); setChecking(false); return; }
-      verify(candidate);
+      if (["SIGNED_IN", "SIGNED_OUT", "USER_UPDATED", "MFA_CHALLENGE_VERIFIED"].includes(event)) verify(candidate);
     });
     return () => { active = false; subscription.unsubscribe(); };
   }, []);
@@ -550,6 +567,7 @@ function AdminApp() {
         {view === ADM_VIEWS.newProp  && <PropertyForm onSaved={handleSaved} />}
         {view === ADM_VIEWS.editProp && editProp && <PropertyForm prop={editProp} onSaved={handleSaved} />}
         {view === ADM_VIEWS.leads    && <LeadsView />}
+        {view === ADM_VIEWS.metrics  && <MetricsView />}
         {view === ADM_VIEWS.security && <SecurityView />}
       </main>
     </div>

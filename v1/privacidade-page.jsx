@@ -16,11 +16,17 @@ function PrivacyPage() {
 
         <section className="blk reveal">
           <h2>Quem opera este site</h2>
-          <p>
-            Este endereço hospeda um projeto de portfólio, criado para demonstrar desenvolvimento web.
-            Ele não é operado pela empresa cujo nome e identidade visual serviram de referência, nem
-            possui vínculo, afiliação ou endosso dela. Os dados de contato exibidos são ilustrativos.
-          </p>
+          {NH.isDemo ? (
+            <p>
+              Este endereço hospeda um projeto de portfólio, criado para demonstrar desenvolvimento web.
+              Ele não é operado pela empresa cujo nome e identidade visual serviram de referência, nem
+              possui vínculo, afiliação ou endosso dela. Os dados de contato exibidos são ilustrativos.
+            </p>
+          ) : (
+            <p>
+              Este site é operado por {NH.legalName}, CRECI {NH.creci}{NH.cnpj ? `, CNPJ ${NH.cnpj}` : ""}, com sede em {NH.address}.
+            </p>
+          )}
         </section>
 
         <section className="blk reveal">
@@ -41,6 +47,11 @@ function PrivacyPage() {
               a nenhum servidor.
             </li>
           </ul>
+          <p>
+            As visitas também são contabilizadas de forma agregada pelo provedor de hospedagem
+            (Vercel Web Analytics): estatísticas de páginas visitadas, sem cookies e sem identificar
+            você individualmente.
+          </p>
           <p>Este site não usa cookies de rastreamento, publicidade ou perfilamento comportamental.</p>
         </section>
 
