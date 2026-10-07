@@ -11,6 +11,7 @@ const outDir = join(sourceRoot, "dist");
 const vendors = {
   "vendor-react": "vendor-react.js",
   "vendor-supabase": "vendor-supabase.js",
+  "vendor-motion": "vendor-motion.js",
 };
 
 const entries = {
