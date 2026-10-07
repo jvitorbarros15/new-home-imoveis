@@ -447,6 +447,34 @@ await mobile.setViewportSize({ width: 390, height: 844 });
   await probe.close();
 }
 
+{
+  const reduced = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "pt-BR", reducedMotion: "reduce" });
+  await mockBackend(reduced);
+  const rm = await reduced.newPage();
+  const rmErrors = [];
+  rm.on("pageerror", (error) => rmErrors.push(error.message));
+  const pagesToCheck = [["/", "home"], ["/imoveis", "listings"], ...(LIVE ? [] : [["/imovel?code=AP0001-NHB", "property"]])];
+  const reducedReport = { page: "reduced-motion", runtimeErrors: rmErrors };
+  for (const [path, name] of pagesToCheck) {
+    await rm.goto(baseUrl + path, { waitUntil: "networkidle" });
+    await rm.waitForTimeout(500);
+    reducedReport[`${name}LenisOff`] = await rm.evaluate(() => !document.documentElement.classList.contains("lenis"));
+    reducedReport[`${name}ContentStatic`] = await rm.evaluate(() => {
+      const els = [...document.querySelectorAll("h1, h2, .lst-card, .dest-hero, .dest-card, .stat, .hero-search, .cta-form")];
+      return els.length > 0 && els.every((el) => {
+        const style = getComputedStyle(el);
+        return style.opacity === "1" && (style.transform === "none" || style.transform === "matrix(1, 0, 0, 1, 0, 0)");
+      });
+    });
+  }
+  await rm.goto(baseUrl, { waitUntil: "networkidle" });
+  reducedReport.homeNoPin = await rm.evaluate(() => document.querySelectorAll(".pin-spacer").length === 0);
+  const rmAxe = await new AxeBuilder({ page: rm }).withTags(["wcag2a", "wcag2aa"]).analyze();
+  reducedReport.seriousA11y = rmAxe.violations.filter((v) => ["serious", "critical"].includes(v.impact)).map((v) => v.id);
+  report.push(reducedReport);
+  await reduced.close();
+}
+
 report.push({ page: "checks", ...checks });
 await interactionContext.close();
 await browser.close();
@@ -465,6 +493,7 @@ const failed = report.some((item) =>
   item.stickyBarVisible === false ||
   item.visitConfirmed === false ||
   item.horizontalOverflow > 0 ||
-  (item.page === "checks" && Object.values(item).slice(1).includes(false))
+  (item.page === "checks" && Object.values(item).slice(1).includes(false)) ||
+  (item.page === "reduced-motion" && (Object.values(item).includes(false) || item.runtimeErrors.length || item.seriousA11y.length))
 );
 if (failed) process.exitCode = 1;
