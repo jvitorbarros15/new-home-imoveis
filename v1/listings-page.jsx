@@ -138,6 +138,7 @@ function ListingsPage() {
   const openSheet = () => {
     setDraft(filters);
     document.body.style.overflow = "hidden";
+    window.NHMotion?.stop();
     sheetRef.current.showModal();
   };
   const applySheet = () => {
@@ -248,8 +249,8 @@ function ListingsPage() {
           </div>
         )}
 
-        <dialog ref={sheetRef} className="lst-sheet" aria-labelledby="sheet-title"
-                onClose={() => { document.body.style.overflow = ""; }}
+        <dialog ref={sheetRef} className="lst-sheet" aria-labelledby="sheet-title" data-lenis-prevent
+                onClose={() => { document.body.style.overflow = ""; window.NHMotion?.start(); }}
                 onClick={(e) => { if (e.target === sheetRef.current) sheetRef.current.close(); }}>
           <div className="lst-sheet-body">
             <div className="lst-sheet-head">

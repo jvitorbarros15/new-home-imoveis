@@ -64,8 +64,10 @@ function Lightbox({ open, idx, setIdx, onClose, images, title }) {
     const opener = document.activeElement;
     closeRef.current?.focus();
     document.body.style.overflow = "hidden";
+    window.NHMotion?.stop();
     return () => {
       document.body.style.overflow = "";
+      window.NHMotion?.start();
       opener?.focus?.();
     };
   }, [open]);

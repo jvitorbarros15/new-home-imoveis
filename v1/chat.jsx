@@ -76,6 +76,12 @@ function Chat() {
   }, [open, step, typing]);
 
   React.useEffect(() => {
+    if (!open || !window.matchMedia("(max-width: 480px)").matches) return;
+    window.NHMotion?.stop();
+    return () => window.NHMotion?.start();
+  }, [open]);
+
+  React.useEffect(() => {
     if (!open) return;
     const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
     document.addEventListener("keydown", onKey);
@@ -172,7 +178,7 @@ function Chat() {
           </button>
         </header>
 
-        <div className="chat-body" ref={scrollRef} role="log" aria-live="polite">
+        <div className="chat-body" ref={scrollRef} data-lenis-prevent role="log" aria-live="polite">
           <div className="chat-day">Hoje</div>
           {messages.map((m, i) => (
             <div key={i} className={`chat-msg ${m.from}`}>

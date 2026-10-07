@@ -113,7 +113,11 @@ function Nav() {
 
   React.useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    if (menuOpen) window.NHMotion?.stop();
+    return () => {
+      document.body.style.overflow = "";
+      if (menuOpen) window.NHMotion?.start();
+    };
   }, [menuOpen]);
 
   React.useEffect(() => {
@@ -186,7 +190,7 @@ function Nav() {
         </div>
       </nav>
 
-      <div ref={menuRef} className={`nav-mobile ${menuOpen ? "open" : ""}`} aria-hidden={!menuOpen} role="dialog" aria-modal={menuOpen || undefined} aria-label="Menu principal">
+      <div ref={menuRef} data-lenis-prevent className={`nav-mobile ${menuOpen ? "open" : ""}`} aria-hidden={!menuOpen} role="dialog" aria-modal={menuOpen || undefined} aria-label="Menu principal">
         <button className="nav-mobile-close" onClick={() => setMenuOpen(false)} aria-label="Fechar menu" tabIndex={menuOpen ? 0 : -1}>
           <IconX size={20} />
         </button>
