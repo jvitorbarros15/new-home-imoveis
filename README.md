@@ -86,6 +86,20 @@ Apply every file in `supabase/migrations/` in numeric order, either by pasting e
 
 Until `015` and `016` are applied the admin UI degrades gracefully: the status selector is hidden and the metrics view aggregates the latest 5,000 events in the browser.
 
+## Lead pipeline
+
+Public forms post to `api/lead.js`, which validates the lead, checks the honeypot and Cloudflare Turnstile, rate limits per IP, inserts into `public.leads` with the service-role key and emails the team through Resend.
+
+Server-side environment variables (Vercel, never in the browser): `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `TURNSTILE_SECRET_KEY`, `RESEND_API_KEY`, `LEAD_NOTIFY_TO`, `LEAD_NOTIFY_FROM` (optional), `SITE_URL`. `TURNSTILE_SITE_KEY` feeds the widget at build time. Without `TURNSTILE_SECRET_KEY` the endpoint returns 503 in production.
+
+Rollout order:
+
+1. Deploy with the environment variables above set.
+2. Submit a test lead from each form (home, visit, seller) and confirm the row and the email.
+3. Apply `017_leads_server_only.sql`, which removes direct anon inserts.
+
+Until 017 is applied, `v1/lead.js` falls back to the direct Supabase insert when `/api/lead` returns 404 or 503 or the request fails, so leads are not lost during rollout. Other statuses (400, 403, 429, 502) are real rejections and are not retried. After 017 the fallback fails closed. `npm test` runs the handler tests.
+
 ## Admin setup
 
 1. Create the administrator in Supabase *Authentication → Users*.
