@@ -66,6 +66,7 @@ function LeadsView() {
       window.sb.from("leads").select("*", { count: "exact" }), kindFilter, search
     )
       .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
       .range(from, from + LEADS_PAGE_SIZE - 1);
     if (err) { setError("Erro ao carregar contatos."); setLoading(false); return; }
     setLeads(data || []);
@@ -120,15 +121,22 @@ function LeadsView() {
   async function exportCsv() {
     setExporting(true);
     const rows = [];
-    for (let from = 0; from < LEADS_EXPORT_CAP; from += LEADS_EXPORT_PAGE) {
-      const { data, error: err } = await applyLeadFilters(window.sb.from("leads").select("*"), kindFilter, search)
-        .order("created_at", { ascending: false })
-        .range(from, from + LEADS_EXPORT_PAGE - 1);
-      if (err) { alert("Não foi possível exportar. Tente novamente."); setExporting(false); return; }
-      rows.push(...data);
-      if (data.length < LEADS_EXPORT_PAGE) break;
+    try {
+      for (let from = 0; from < LEADS_EXPORT_CAP; from += LEADS_EXPORT_PAGE) {
+        const { data, error: err } = await applyLeadFilters(window.sb.from("leads").select("*"), kindFilter, search)
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false })
+          .range(from, from + LEADS_EXPORT_PAGE - 1);
+        if (err) throw err;
+        rows.push(...data);
+        if (data.length < LEADS_EXPORT_PAGE) break;
+      }
+    } catch (e) {
+      alert("Não foi possível exportar. Tente novamente.");
+      return;
+    } finally {
+      setExporting(false);
     }
-    setExporting(false);
     const blob = new Blob([leadsToCsv(rows)], { type: "text/csv;charset=utf-8" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
