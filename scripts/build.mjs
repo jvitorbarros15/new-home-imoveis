@@ -22,7 +22,7 @@ const entries = {
   finance: ["constants.js", "company.js", "analytics.js", "lead.js", "sections.jsx", "chat.jsx", "financiamento-page.jsx"],
   seller: ["constants.js", "company.js", "analytics.js", "lead.js", "sections.jsx", "chat.jsx", "anunciar-page.jsx"],
   privacy: ["constants.js", "company.js", "analytics.js", "lead.js", "sections.jsx", "chat.jsx", "privacidade-page.jsx"],
-  admin: ["constants.js", "company.js", "admin-listings.jsx", "admin-leads.jsx", "admin-form.jsx", "admin-app.jsx"],
+  admin: ["constants.js", "company.js", "admin-listings.jsx", "admin-leads.jsx", "admin-metrics.jsx", "admin-form.jsx", "admin-app.jsx"],
 };
 
 await mkdir(outDir, { recursive: true });

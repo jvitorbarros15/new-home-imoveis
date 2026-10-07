@@ -1,6 +1,6 @@
 // Admin app — auth gate + shell
 
-const ADM_VIEWS = { listings: "listings", newProp: "newProp", editProp: "editProp", leads: "leads", security: "security" };
+const ADM_VIEWS = { listings: "listings", newProp: "newProp", editProp: "editProp", leads: "leads", metrics: "metrics", security: "security" };
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_SECONDS = 60;
 
@@ -16,6 +16,7 @@ const IPlus   = () => <AIcon d="M12 5v14M5 12h14" />;
 const ILogout = () => <AIcon d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />;
 const IHome   = () => <AIcon d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10" />;
 const IInbox  = () => <AIcon d="M22 12h-6l-2 3h-4l-2-3H2M5 5h14l3 7v5a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-5z" />;
+const IChart  = () => <AIcon d="M3 3v18h18M7 15l4-4 3 3 5-6" />;
 const IShield = () => <AIcon d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />;
 
 /* ------ Cloudflare Turnstile ------ */
@@ -429,6 +430,7 @@ function Sidebar({ view, setView, onLogout }) {
     { id: ADM_VIEWS.listings, label: "Imóveis",     icon: <IList /> },
     { id: ADM_VIEWS.newProp,  label: "Novo imóvel", icon: <IPlus /> },
     { id: ADM_VIEWS.leads,    label: "Contatos",    icon: <IInbox /> },
+    { id: ADM_VIEWS.metrics,  label: "Métricas",    icon: <IChart /> },
     { id: ADM_VIEWS.security, label: "Segurança",   icon: <IShield /> },
   ];
   return (
@@ -565,6 +567,7 @@ function AdminApp() {
         {view === ADM_VIEWS.newProp  && <PropertyForm onSaved={handleSaved} />}
         {view === ADM_VIEWS.editProp && editProp && <PropertyForm prop={editProp} onSaved={handleSaved} />}
         {view === ADM_VIEWS.leads    && <LeadsView />}
+        {view === ADM_VIEWS.metrics  && <MetricsView />}
         {view === ADM_VIEWS.security && <SecurityView />}
       </main>
     </div>
