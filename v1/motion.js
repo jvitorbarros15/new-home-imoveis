@@ -135,7 +135,7 @@
 
     words(el) {
       SplitText.create(el, {
-        type: "words", autoSplit: true,
+        type: "words", aria: "none", autoSplit: true,
         onSplit: (split) => gsap.from(split.words, {
           opacity: 0, y: dist(14), duration: time(0.9), ease: "power3.out",
           stagger: (index) => Math.floor(index / 3) * 0.14,
