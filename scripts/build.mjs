@@ -15,13 +15,13 @@ const vendors = {
 };
 
 const entries = {
-  home: ["constants.js", "company.js", "analytics.js", "lead.js", "sections.jsx", "chat.jsx", "app.jsx"],
-  property: ["constants.js", "company.js", "analytics.js", "lead.js", "sections.jsx", "chat.jsx", "imovel-sections.jsx", "imovel-app.jsx"],
-  listings: ["constants.js", "company.js", "analytics.js", "lead.js", "sections.jsx", "chat.jsx", "listings-page.jsx"],
+  home: ["constants.js", "company.js", "analytics.js", "lead.js", "motion.js", "sections.jsx", "chat.jsx", "app.jsx"],
+  property: ["constants.js", "company.js", "analytics.js", "lead.js", "motion.js", "sections.jsx", "chat.jsx", "imovel-sections.jsx", "imovel-app.jsx"],
+  listings: ["constants.js", "company.js", "analytics.js", "lead.js", "motion.js", "sections.jsx", "chat.jsx", "listings-page.jsx"],
   favorites: ["constants.js", "company.js", "analytics.js", "lead.js", "sections.jsx", "chat.jsx", "favoritos-page.jsx"],
-  about: ["constants.js", "company.js", "analytics.js", "lead.js", "sections.jsx", "chat.jsx", "quem-somos-page.jsx"],
-  finance: ["constants.js", "company.js", "analytics.js", "lead.js", "sections.jsx", "chat.jsx", "financiamento-page.jsx"],
-  seller: ["constants.js", "company.js", "analytics.js", "lead.js", "sections.jsx", "chat.jsx", "anunciar-page.jsx"],
+  about: ["constants.js", "company.js", "analytics.js", "lead.js", "motion.js", "sections.jsx", "chat.jsx", "quem-somos-page.jsx"],
+  finance: ["constants.js", "company.js", "analytics.js", "lead.js", "motion.js", "sections.jsx", "chat.jsx", "financiamento-page.jsx"],
+  seller: ["constants.js", "company.js", "analytics.js", "lead.js", "motion.js", "sections.jsx", "chat.jsx", "anunciar-page.jsx"],
   privacy: ["constants.js", "company.js", "analytics.js", "lead.js", "sections.jsx", "chat.jsx", "privacidade-page.jsx"],
   admin: ["constants.js", "company.js", "admin-listings.jsx", "admin-leads.jsx", "admin-metrics.jsx", "admin-form.jsx", "admin-app.jsx"],
 };
