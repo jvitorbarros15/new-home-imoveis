@@ -118,6 +118,47 @@
       });
     },
 
+    count(el) {
+      const to = Number(el.dataset.to);
+      const suffix = el.dataset.suffix || "";
+      const format = (value) => Math.round(value).toLocaleString("pt-BR") + suffix;
+      el.style.display = "inline-block";
+      el.style.minWidth = `${el.offsetWidth}px`;
+      el.textContent = format(0);
+      const counter = { value: 0 };
+      gsap.to(counter, {
+        value: to, duration: time(1.8), ease: "power2.out",
+        onUpdate: () => { el.textContent = format(counter.value); },
+        scrollTrigger: enter(el, "top 90%"),
+      });
+    },
+
+    words(el) {
+      SplitText.create(el, {
+        type: "words", autoSplit: true,
+        onSplit: (split) => gsap.from(split.words, {
+          opacity: 0, y: dist(14), duration: time(0.9), ease: "power3.out",
+          stagger: (index) => Math.floor(index / 3) * 0.14,
+          scrollTrigger: enter(el, "top 85%"),
+        }),
+      });
+    },
+
+    parallax(el) {
+      const amount = Number(el.dataset.mAmount || 7) * (isMobile() ? 0.5 : 1);
+      gsap.fromTo(el, { yPercent: -amount }, {
+        yPercent: amount, ease: "none",
+        scrollTrigger: { trigger: el.parentElement, start: "top bottom", end: "bottom top", scrub: true },
+      });
+    },
+
+    scale(el) {
+      gsap.fromTo(el, { scale: 1.15 }, {
+        scale: 1, ease: "none",
+        scrollTrigger: { trigger: el.parentElement, start: "top bottom", end: "top 20%", scrub: true },
+      });
+    },
+
     progress(el) {
       gsap.to(el, { scaleX: 1, ease: "none", scrollTrigger: { start: 0, end: "max", scrub: true } });
     },

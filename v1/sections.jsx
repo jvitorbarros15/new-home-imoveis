@@ -83,7 +83,11 @@ function useReveal() {
 }
 
 function CountUp({ to, suffix = "" }) {
-  return <span>{to.toLocaleString("pt-BR")}{suffix}</span>;
+  const text = to.toLocaleString("pt-BR") + suffix;
+  return <>
+    <span aria-hidden="true" data-m="count" data-to={to} data-suffix={suffix}>{text}</span>
+    <span className="sr-only">{text}</span>
+  </>;
 }
 
 /* ------ Nav ------------------------------------------------------- */
@@ -474,7 +478,7 @@ function Bairros() {
 function Stats() {
   const years = new Date().getFullYear() - NH.foundedYear;
   return (
-    <section className="stats reveal" style={{ paddingTop: 96, paddingBottom: 96 }}>
+    <section className="stats" style={{ paddingTop: 96, paddingBottom: 96 }} data-m="stagger">
       <div className="stat">
         <div className="num"><CountUp to={years} /><em>anos</em></div>
         <div className="lbl">Atuação no mercado imobiliário desde 2010</div>
@@ -498,17 +502,21 @@ function Stats() {
 /* ------ Sobre ----------------------------------------------------- */
 function Sobre() {
   return (
-    <section id="sobre" className="sobre reveal">
-      <div className="sobre-img" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=1200&q=80&auto=format&fit=crop)" }} />
+    <section id="sobre" className="sobre">
+      <div className="sobre-img">
+        <div className="sobre-img-clip">
+          <div className="sobre-img-in" data-m="parallax" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=1200&q=80&auto=format&fit=crop)" }} />
+        </div>
+      </div>
       <div className="sobre-body">
         <span className="eyebrow">A New Home</span>
-        <h2 style={{ marginTop: 20 }}>Curadoria <em>imobiliária</em> com o tempo de quem mora aqui.</h2>
+        <h2 style={{ marginTop: 20 }} data-m="lines">Curadoria <em>imobiliária</em> com o tempo de quem mora aqui.</h2>
         <p>
           Desde 2010, a New Home Imóveis atua na intermediação de empreendimentos na Barra da Tijuca,
           Recreio e região. O trabalho combina atendimento diferenciado, estratégia de marketing digital
           e uma equipe preparada para aproximar imóveis e compradores qualificados.
         </p>
-        <div className="sobre-quote">
+        <div className="sobre-quote" data-m="words">
           Mais de R$ 600 milhões em vendas e milhares de clientes atendidos, segundo dados publicados pela empresa.
         </div>
         <div className="sobre-sig">
@@ -523,12 +531,12 @@ function Sobre() {
 /* ------ Depoimentos ----------------------------------------------- */
 function Depoimentos() {
   return (
-    <section id="depoimentos" className="reveal">
+    <section id="depoimentos">
       <div className="sec-head">
         <h2>Um processo <em>bem acompanhado</em></h2>
         <p>Da divulgação à documentação, a equipe atua para tornar a negociação mais clara e segura.</p>
       </div>
-      <div className="depo-track">
+      <div className="depo-track" data-m="stagger">
         {SERVICE_PILLARS.map((item, i) => (
           <div key={i} className="depo-card">
             <div className="depo-mark">{String(i + 1).padStart(2, "0")}</div>
@@ -581,15 +589,17 @@ function CTA() {
     if (saved) form.reset();
   };
   return (
-    <section id="contato" className="cta reveal" style={{ maxWidth: "100%" }}>
-      <div className="cta-bg" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=2000&q=80&auto=format&fit=crop)" }} />
+    <section id="contato" className="cta" style={{ maxWidth: "100%" }}>
+      <div className="cta-bg">
+        <div className="cta-bg-img" data-m="scale" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=2000&q=80&auto=format&fit=crop)" }} />
+      </div>
       <div className="cta-body">
         <span className="eyebrow">Atendimento personalizado</span>
-        <h2 style={{ marginTop: 20 }}>Vamos encontrar a <em>sua</em> nova casa.</h2>
+        <h2 style={{ marginTop: 20 }} data-m="lines">Vamos encontrar a <em>sua</em> nova casa.</h2>
         <p>Conte para nós o que procura — região, perfil, momento de vida. Um consultor da New Home retornará
           com uma seleção desenhada para você, em até um dia útil.</p>
       </div>
-      <form className="cta-form" onSubmit={submit}>
+      <form className="cta-form" onSubmit={submit} data-m="up">
         <h3>Fale com um consultor</h3>
         <label>Nome<input name="name" required autoComplete="name" placeholder="Como prefere ser chamado" /></label>
         <label>WhatsApp<input name="phone" type="tel" required autoComplete="tel" placeholder="(21) 99999-9999"
