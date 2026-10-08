@@ -203,6 +203,7 @@
         defaults: { ease: "none" },
         scrollTrigger: {
           id: "hero-pin",
+          refreshPriority: 10,
           trigger: hero,
           start: "top top",
           end: () => `+=${motion.heroPin()}`,
