@@ -28,6 +28,7 @@ function App() {
       <Hero />
       <Destaques />
       <Bairros />
+      <PorQue />
       <Stats />
       <Sobre />
       <Depoimentos />

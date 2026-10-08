@@ -532,7 +532,7 @@ function Sobre() {
 function Depoimentos() {
   return (
     <section id="depoimentos">
-      <div className="sec-head">
+      <div className="sec-head wide">
         <h2>Um processo <em>bem acompanhado</em></h2>
         <p>Da divulgação à documentação, a equipe atua para tornar a negociação mais clara e segura.</p>
       </div>
@@ -587,14 +587,21 @@ function CTA() {
     if (saved) form.reset();
   };
   return (
-    <section id="contato" className="cta" style={{ maxWidth: "100%" }}>
-      <div className="cta-bg">
-        <div className="cta-bg-img" data-m="scale" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=2000&q=80&auto=format&fit=crop)" }} />
-      </div>
+    <section id="contato" className="cta">
       <div className="cta-body">
-        <h2 data-m="lines">Vamos encontrar a <em>sua</em> nova casa.</h2>
-        <p>Conte para nós o que procura — região, perfil, momento de vida. Um consultor da New Home retornará
-          com uma seleção desenhada para você, em até um dia útil.</p>
+        <div className="cta-bg">
+          <div className="cta-bg-img" data-m="scale" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=2000&q=80&auto=format&fit=crop)" }} />
+        </div>
+        <div className="cta-copy">
+          <h2 data-m="lines">Vamos encontrar a <em>sua</em> nova casa.</h2>
+          <p>Conte para nós o que procura — região, perfil, momento de vida. Um consultor da New Home retornará
+            com uma seleção desenhada para você, em até um dia útil.</p>
+          <ul className="cta-contact">
+            <li><span>Telefone</span><a href={`tel:${NH.primaryPhone}`}>{NH.primaryPhoneDisplay}</a></li>
+            <li><span>E-mail</span><a href={`mailto:${NH.email}`}>{NH.email}</a></li>
+            <li><span>Escritório</span><a href={NH.mapUrl}>Av. Embaixador Abelardo Bueno, 3500 · Sala 1022</a></li>
+          </ul>
+        </div>
       </div>
       <form className="cta-form" onSubmit={submit} data-m="up">
         <h3>Fale com um consultor</h3>
@@ -693,11 +700,14 @@ function DemoNotice() {
 function Footer() {
   return (
     <footer>
-      <div className="ft-grid">
+      <div className="ft-top">
         <div className="ft-brand">
           <img src="assets/logo-gold.png" alt="New Home Imóveis" />
           <p>Desde 2010 intermediando imóveis na Barra da Tijuca, Recreio e Região Olímpica.</p>
         </div>
+        <a className="ft-cta" href={NH.listPropertyUrl}>Anuncie seu imóvel <IconArrow size={14} /></a>
+      </div>
+      <div className="ft-grid">
         <div className="ft-col">
           <h5>Navegue</h5>
           <ul>
@@ -748,4 +758,4 @@ function Footer() {
   );
 }
 
-Object.assign(window, { Nav, Hero, Destaques, Bairros, Stats, Sobre, Depoimentos, CTA, Footer, DemoNotice, ListingCard, useReveal, useTheme, SVG, BRL_FMT: (v) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }) });
+Object.assign(window, { Nav, Hero, Destaques, Bairros, PorQue, Stats, Sobre, Depoimentos, CTA, Footer, DemoNotice, ListingCard, useReveal, useTheme, SVG, BRL_FMT: (v) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }) });
