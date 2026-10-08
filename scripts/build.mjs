@@ -12,6 +12,7 @@ const vendors = {
   "vendor-react": "vendor-react.js",
   "vendor-supabase": "vendor-supabase.js",
   "vendor-motion": "vendor-motion.js",
+  "vendor-three": "vendor-three.js",
 };
 
 const entries = {
