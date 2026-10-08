@@ -458,6 +458,22 @@ await mobile.setViewportSize({ width: 390, height: 844 });
   await probe.close();
 }
 
+for (const reducedMotion of ["no-preference", "reduce"]) {
+  const vtContext = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "pt-BR", reducedMotion });
+  await mockBackend(vtContext);
+  await vtContext.addInitScript(() => {
+    window.addEventListener("pagereveal", (event) => { sessionStorage.setItem("nh-vt", event.viewTransition ? "1" : "0"); });
+  });
+  const vt = await vtContext.newPage();
+  await vt.goto(baseUrl, { waitUntil: "networkidle" });
+  await vt.locator(".nav-links a", { hasText: "Quem somos" }).click();
+  await vt.waitForURL("**/quem-somos");
+  await vt.waitForLoadState("networkidle");
+  const ran = await vt.evaluate(() => sessionStorage.getItem("nh-vt"));
+  checks[reducedMotion === "reduce" ? "viewTransitionOffUnderReducedMotion" : "viewTransitionRunsBetweenPages"] = reducedMotion === "reduce" ? ran !== "1" : ran === "1";
+  await vtContext.close();
+}
+
 {
   const reduced = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "pt-BR", reducedMotion: "reduce" });
   await mockBackend(reduced);
