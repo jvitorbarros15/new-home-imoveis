@@ -46,6 +46,7 @@ const I = {
   WA: (p) => <SVG {...p}><path d="M21 12a9 9 0 1 1-3.5-7.1L21 3l-1.4 4A9 9 0 0 1 21 12z"/><path d="M9 9c0 4 3 7 7 7l1.5-2-2.5-1-1 1c-1 0-3-2-3-3l1-1-1-2.5L9 9z"/></SVG>,
   Phone: (p) => <SVG {...p}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72"/></SVG>,
   Mail: (p) => <SVG {...p}><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></SVG>,
+  Pet: (p) => <SVG {...p}><circle cx="5" cy="10" r="1.6"/><circle cx="9.5" cy="5.5" r="1.6"/><circle cx="14.5" cy="5.5" r="1.6"/><circle cx="19" cy="10" r="1.6"/><path d="M12 11c-3 0-5.5 3.5-5.5 6 0 1.8 1.4 2.5 3 2.5 1 0 1.6-.5 2.5-.5s1.5.5 2.5.5c1.6 0 3-.7 3-2.5 0-2.5-2.5-6-5.5-6z"/></SVG>,
   Pin: (p) => <SVG {...p}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></SVG>,
   X: (p) => <SVG {...p}><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></SVG>,
 };
@@ -116,7 +117,7 @@ function GalleryHero({ prop, onOpen }) {
     {prop.images.length
       ? <button type="button" className="gal-main" onClick={() => onOpen(0)} aria-label="Abrir galeria de fotos"><img className="img" data-m="settle" src={prop.images[0].src} alt={`Foto 1 de ${prop.images.length} — ${prop.title}`} decoding="async"/></button>
       : <div className="gal-main gal-empty"><img src="assets/logo-gold.png" alt="" /><span>Fotos em breve</span><a href={propertyWhatsapp(prop, "Gostaria de receber as fotos deste imóvel.")} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click", { code: prop.code, detail: "pedir_fotos" })}>Pedir fotos pelo WhatsApp</a></div>}
-    {prop.images.length > 0 && <div className="gal-side">{prop.images.slice(1,5).map((image,index) => <button type="button" key={image.src} className="gal-thumb" onClick={() => onOpen(index + 1)} aria-label={`Abrir foto ${index + 2} de ${prop.images.length}`}><img className="img" src={image.src} alt={`Foto ${index + 2} de ${prop.images.length} — ${prop.title}`} loading="lazy" decoding="async"/></button>)}</div>}
+    {prop.images.length > 1 && <div className={`gal-side n-${Math.min(4, prop.images.length - 1)}`}>{prop.images.slice(1,5).map((image,index) => <button type="button" key={image.src} className="gal-thumb" onClick={() => onOpen(index + 1)} aria-label={`Abrir foto ${index + 2} de ${prop.images.length}`}><img className="img" src={image.src} alt={`Foto ${index + 2} de ${prop.images.length} — ${prop.title}`} loading="lazy" decoding="async"/></button>)}</div>}
     {prop.images.length > 0 && <button type="button" className="gal-all" onClick={() => onOpen(0)}><span className="gal-all-long">Ver galeria · {prop.images.length} {prop.images.length === 1 ? "imagem" : "imagens"}</span><span className="gal-all-short">{prop.images.length} {prop.images.length === 1 ? "foto" : "fotos"}</span></button>}
     <div className="gal-actions">
       <button type="button" className={`gal-action ${favorite ? "on" : ""}`} onClick={toggleFavorite} aria-pressed={favorite} aria-label={favorite ? "Remover dos favoritos" : "Salvar nos favoritos"}><I.Heart size={16}/></button>
@@ -127,21 +128,28 @@ function GalleryHero({ prop, onOpen }) {
   </div>;
 }
 
-function Identity({ prop }) {
+function PriceBlock({ prop, prefix }) {
   const rent = prop.purpose === "rent";
   const total = rentTotal(prop);
   const forSale = prop.purpose !== "rent" && prop.price > 0;
   const installment = forSale ? priceInstallment(prop.price * (1 - SIM_DEFAULTS.entrada), SIM_DEFAULTS.taxa, SIM_DEFAULTS.anos) : 0;
+  const fee = (value, label, unit = "") => isMoney(value) ? <span><i>{label}</i><b>{BRL(value)}{unit}</b></span> : <span><i>{label}</i><em>sob consulta</em></span>;
+  return <div className={`price-block ${prefix}-price-block`}>
+    <span className="price-label">{rent ? "Aluguel mensal" : "Valor anunciado"}</span>
+    <span className="price">{BRL(prop.price)}{rent && isMoney(prop.price) ? <small className="price-unit">/mês</small> : null}</span>
+    <div className="price-meta">{fee(prop.condominio, "Condomínio")}{fee(prop.iptu, "IPTU", "/mês")}{!rent && isMoney(prop.m2Value) && <span><i>Valor do m²</i><b>{BRL(prop.m2Value)}</b></span>}</div>
+    {total !== null && <div className="price-total"><i>Total mensal estimado</i><b>{BRL(total)}</b></div>}
+    {installment > 0 && <a className={`price-est ${prefix}-price-est`} href={`financiamento?valor=${Math.round(prop.price)}&codigo=${encodeURIComponent(prop.code)}#simulador`}><span>Parcela estimada a partir de <b>{BRL(installment)}/mês</b></span><small>Entrada de {SIM_DEFAULTS.entrada * 100}%, {SIM_DEFAULTS.anos} anos, {String(SIM_DEFAULTS.taxa).replace(".", ",")}% a.a. Simule →</small></a>}
+  </div>;
+}
+
+function Identity({ prop }) {
+  const sections = [["sobre", "Sobre"], prop.features && Object.keys(prop.features).length ? ["caracteristicas", "Características"] : null, ["localizacao", "Localização"], ["custos", "Custos"], ["visita", "Agendar visita"]].filter(Boolean);
   return <><div className="idn">
-    <div><div className="idn-tags"><span className="idn-tag accent">{prop.status}</span><span className="idn-tag">{prop.type}</span><span className="idn-tag">Cód. {prop.code}</span></div>
-      <h1 data-m="lines">{prop.title}</h1><div className="idn-loc"><I.Pin size={16}/>{prop.address}</div>
-      {prop.officialUrl && <a className="agent-btn ghost" href={prop.officialUrl} target="_blank" rel="noopener noreferrer" style={{marginTop:14}}>Ver anúncio e fotos oficiais ↗</a>}
-    </div>
-    <div className="idn-price-block" data-m="up"><span className="idn-price-label">{rent ? "Aluguel mensal" : "Valor anunciado"}</span><span className="idn-price">{BRL(prop.price)}{rent && isMoney(prop.price) ? <small className="idn-price-unit">/mês</small> : null}</span>
-      <div className="idn-price-meta"><span>{isMoney(prop.condominio) ? <>Cond. <b>{BRL(prop.condominio)}</b></> : "Cond. sob consulta"}</span><span>{isMoney(prop.iptu) ? <>IPTU <b>{BRL(prop.iptu)}/mês</b></> : "IPTU sob consulta"}</span>{!rent && <span>m² <b>{BRL(prop.m2Value)}</b></span>}</div>
-      {total !== null && <div className="idn-price-total">Total mensal estimado <b>{BRL(total)}</b></div>}
-      {installment > 0 && <a className="idn-price-est" href={`financiamento?valor=${Math.round(prop.price)}&codigo=${encodeURIComponent(prop.code)}#simulador`}><span>Parcela estimada a partir de <b>{BRL(installment)}/mês</b></span><small>Entrada de {SIM_DEFAULTS.entrada * 100}%, {SIM_DEFAULTS.anos} anos, {String(SIM_DEFAULTS.taxa).replace(".", ",")}% a.a. Simule →</small></a>}
-    </div>
+    <div className="idn-tags"><span className="idn-tag accent">{prop.status}</span><span className="idn-tag">{prop.type}</span><span className="idn-tag">Cód. {prop.code}</span></div>
+    <h1 data-m="lines">{prop.title}</h1><div className="idn-loc"><I.Pin size={16}/>{prop.address}</div>
+    {prop.officialUrl && <a className="agent-btn ghost" href={prop.officialUrl} target="_blank" rel="noopener noreferrer" style={{marginTop:14}}>Ver anúncio e fotos oficiais ↗</a>}
+    <PriceBlock prop={prop} prefix="idn"/>
   </div>
   <div className="specs" data-m="stagger">
     <div className="spec"><I.Area className="spec-icon"/><span className="spec-num">{prop.specs.areaUtil}<small>m²</small></span><span className="spec-lbl">Área útil</span></div>
@@ -149,8 +157,9 @@ function Identity({ prop }) {
     <div className="spec"><I.Suite className="spec-icon"/><span className="spec-num">{prop.specs.suites}</span><span className="spec-lbl">Suítes</span></div>
     <div className="spec"><I.Bath className="spec-icon"/><span className="spec-num">{prop.specs.banheiros}</span><span className="spec-lbl">Banheiros</span></div>
     <div className="spec"><I.Car className="spec-icon"/><span className="spec-num">{prop.specs.vagas}</span><span className="spec-lbl">Vagas</span></div>
-    <div className="spec"><span className="spec-num">{prop.specs.pet ? "Sim" : "Consulte"}</span><span className="spec-lbl">Aceita pet</span></div>
-  </div></>;
+    <div className="spec"><I.Pet className="spec-icon"/><span className="spec-num">{prop.specs.pet ? "Sim" : "Consulte"}</span><span className="spec-lbl">Aceita pet</span></div>
+  </div>
+  <nav className="anchors" aria-label="Seções do anúncio">{sections.map(([id, label]) => <a key={id} href={`#${id}`}>{label}</a>)}</nav></>;
 }
 
 function Description({ prop }) {
@@ -161,7 +170,7 @@ function Description({ prop }) {
     prop.specs.vagas !== "—" && `${prop.specs.vagas} vagas`,
   ].filter(Boolean).join(", ") + ".";
   const [showSummary, setShowSummary] = React.useState(false);
-  return <div className="blk"><div className="blk-head"><h2>Sobre o <em>imóvel</em></h2><div className="desc-tab">
+  return <div className="blk" id="sobre"><div className="blk-head"><h2>Sobre o <em>imóvel</em></h2><div className="desc-tab">
     <button type="button" className={!showSummary ? "on" : ""} onClick={() => setShowSummary(false)}>Descrição</button>
     <button type="button" className={showSummary ? "on" : ""} onClick={() => setShowSummary(true)}>Resumo</button>
   </div></div>
@@ -179,14 +188,14 @@ function Highlights({ prop }) {
 
 function Features({ prop }) {
   if (!prop.features || !Object.keys(prop.features).length) return null;
-  return <div className="blk"><div className="blk-head"><h2>Características</h2><span className="blk-aside">Informadas no anúncio</span></div>
+  return <div className="blk" id="caracteristicas"><div className="blk-head"><h2>Características</h2><span className="blk-aside">Informadas no anúncio</span></div>
     <div className="car-groups">{Object.entries(prop.features).map(([category,items]) => <div key={category} className="car-group"><h3>{category}</h3><div className="car-list">{items.map((item) => <div key={item} className="car-item"><span className="chk"><I.Check size={10}/></span>{item}</div>)}</div></div>)}</div>
   </div>;
 }
 
 function Localizacao({ prop }) {
   const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(prop.region + ", Rio de Janeiro")}`;
-  return <div className="blk"><div className="blk-head"><h2>Onde <em>fica</em></h2><span className="blk-aside">{prop.region}</span></div>
+  return <div className="blk" id="localizacao"><div className="blk-head"><h2>Onde <em>fica</em></h2><span className="blk-aside">{prop.region}</span></div>
     <div className="loc"><a className="loc-map" href={mapUrl} target="_blank" rel="noopener noreferrer" aria-label={`Abrir mapa de ${prop.region}`}><div className="loc-map-grid"/><div className="loc-pin-main"><div className="ripple"/><div className="glyph"><I.Pin size={16}/></div></div></a>
       <div className="loc-list"><h4>Localização aproximada</h4><p>Por segurança e privacidade, o endereço exato deve ser confirmado com a equipe New Home.</p><a className="agent-btn ghost" href={mapUrl} target="_blank" rel="noopener noreferrer">Abrir região no mapa ↗</a></div>
     </div>
@@ -195,7 +204,7 @@ function Localizacao({ prop }) {
 
 function Custos({ prop }) {
   const forSale = prop.purpose !== "rent" && prop.price > 0;
-  return <div className="blk"><div className="blk-head"><h2>Custos do <em>imóvel</em></h2><span className="blk-aside">Valores sujeitos a alteração</span></div>
+  return <div className="blk" id="custos"><div className="blk-head"><h2>Custos do <em>imóvel</em></h2><span className="blk-aside">Valores sujeitos a alteração</span></div>
     <div className="custos"><div className="custos-table">
       <div className="custos-row"><span className="l">{prop.purpose === "rent" ? "Aluguel mensal" : "Valor anunciado"}</span><span className="v">{BRL(prop.price)}</span></div>
       <div className="custos-row"><span className="l">Condomínio mensal</span><span className="v">{isMoney(prop.condominio) ? BRL(prop.condominio) : "Sob consulta"}</span></div>
@@ -210,7 +219,8 @@ function Custos({ prop }) {
 }
 
 function Sidebar({ prop }) {
-  return <aside className="side" data-m="stagger"><div className="agent-card">
+  return <aside className="side" data-m="stagger" data-lenis-prevent><div className="agent-card">
+    <PriceBlock prop={prop} prefix="side"/>
     <div className="agent-top"><div><div className="agent-name">{prop.agent.name}</div><div className="agent-meta">CRECI {prop.agent.creci}</div></div></div>
     <div className="agent-actions">
       <a className="agent-btn primary" href={propertyWhatsapp(prop)} target="_blank" rel="noopener noreferrer" onClick={() => track("whatsapp_click", { code: prop.code, detail: "sidebar" })}><I.WA size={16}/>Conversar no WhatsApp</a>
@@ -278,4 +288,4 @@ function Similar({ prop }) {
   </section>;
 }
 
-Object.assign(window, { PROP, StickyContact, GalleryHero, Lightbox, Identity, Description, Highlights, Features, Localizacao, Custos, Sidebar, Similar });
+Object.assign(window, { PROP, PriceBlock, StickyContact, GalleryHero, Lightbox, Identity, Description, Highlights, Features, Localizacao, Custos, Sidebar, Similar });

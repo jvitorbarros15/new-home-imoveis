@@ -119,8 +119,9 @@ function ImovelApp() {
   return <><div className="grain"/><Nav/><DemoNotice/>
     <main className="imovel-page" id="conteudo">
       <nav className="crumb" aria-label="Navegação estrutural"><a href="/">Home</a><span className="crumb-sep">›</span><a href={NH.listingsUrl}>Imóveis</a><span className="crumb-sep">›</span><span className="crumb-now">{prop.code}</span></nav>
-      <GalleryHero prop={prop} onOpen={openLightbox}/><Identity prop={prop}/>
+      <GalleryHero prop={prop} onOpen={openLightbox}/>
       <div className="body-grid"><div className="body-main">
+        <div className="identity"><Identity prop={prop}/></div>
         <div className="reveal"><Description prop={prop}/></div>
         <div className="reveal"><Highlights prop={prop}/></div>
         <div className="reveal"><Features prop={prop}/></div>
