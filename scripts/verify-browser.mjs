@@ -425,6 +425,17 @@ checks.clearFiltersSharesRow = await mobile.evaluate(() => {
   const clear = document.querySelector(".lst-clear").getBoundingClientRect();
   return Math.abs(clear.top - q.top) < q.height;
 });
+await mobile.goto(baseUrl + "/quem-somos", { waitUntil: "networkidle" });
+await mobile.locator(".nav-links a", { hasText: "Contato" }).click();
+await mobile.waitForURL("**/#contato");
+await mobile.waitForLoadState("networkidle");
+await mobile.waitForTimeout(4000);
+await settle(mobile);
+checks.crossPageContatoLandsBelowNav = await mobile.evaluate(() => {
+  const top = document.getElementById("contato").getBoundingClientRect().top;
+  const expected = document.querySelector(".nav").dataset.hidden === "true" ? 0 : 72;
+  return Math.abs(top - expected) <= 16;
+});
 await mobile.setViewportSize({ width: 390, height: 844 });
 
 {

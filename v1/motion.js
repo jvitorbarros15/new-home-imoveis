@@ -30,8 +30,19 @@
   gsap.ticker.add((time) => lenis.raf(time * 1000));
   gsap.ticker.lagSmoothing(0);
 
+  const navHideStart = () => (document.querySelector(".hero")?.offsetHeight ?? 240) - NAV_OFFSET;
+
+  // The nav auto-hides when scrolling down past the hero, so a downward landing needs no nav clearance.
+  const offsetFor = (el, arriving) => {
+    if (!el?.getBoundingClientRect) return -NAV_OFFSET;
+    const top = el.getBoundingClientRect().top + window.scrollY;
+    const hidesNav = (arriving || top > window.scrollY) && top > navHideStart() && !el.matches("#destaques");
+    return hidesNav ? 0 : -NAV_OFFSET;
+  };
+
   const scrollTo = (target, options) => {
-    lenis.scrollTo(target, { offset: -NAV_OFFSET, duration: 1.4, force: true, ...options });
+    const el = typeof target === "string" ? document.querySelector(target) : target;
+    lenis.scrollTo(target, { offset: offsetFor(el), duration: 1.4, force: true, ...options });
   };
 
   const NHMotion = {
@@ -75,7 +86,7 @@
     ["wheel", "touchstart", "keydown", "pointerdown"].forEach((name) => window.addEventListener(name, stopFollowing, { once: true, passive: true }));
     const follow = () => {
       const target = hashTarget(location.hash);
-      if (target) lenis.scrollTo(target, { offset: -NAV_OFFSET, immediate: true, force: true });
+      if (target) lenis.scrollTo(target, { offset: offsetFor(target, true), immediate: true, force: true });
       if (Date.now() < until) setTimeout(follow, 400);
     };
     window.addEventListener("load", follow, { once: true });
@@ -177,7 +188,7 @@
         end: "max",
         invalidateOnRefresh: true,
         onUpdate: (self) => {
-          if (self.direction === 1 && !el.matches(":focus-within")) el.setAttribute("data-hidden", "true");
+          if (self.direction === 1 && !el.querySelector(":focus-visible")) el.setAttribute("data-hidden", "true");
           else if (self.direction === -1) show();
         },
         onLeaveBack: show,
