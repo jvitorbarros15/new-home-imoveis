@@ -503,6 +503,23 @@ for (const reducedMotion of ["no-preference", "reduce"]) {
 }
 
 {
+  const navContext = await browser.newContext({ viewport: { width: 1440, height: 700 }, locale: "pt-BR" });
+  await mockBackend(navContext);
+  const nv = await navContext.newPage();
+  await nv.goto(baseUrl, { waitUntil: "networkidle" });
+  await settle(nv);
+  await nv.evaluate(() => window.NHMotion.scrollTo(300, { immediate: true }));
+  await settle(nv);
+  await nv.waitForTimeout(700);
+  checks.navKeepsBackgroundBelowTop = await nv.evaluate(() => {
+    const nav = document.querySelector(".nav");
+    const alpha = Number((getComputedStyle(nav).backgroundColor.match(/\/\s*([\d.]+)\)/) || [0, 1])[1]);
+    return nav.dataset.hidden === "true" || alpha >= 0.9;
+  });
+  await navContext.close();
+}
+
+{
   const printContext = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "pt-BR" });
   await mockBackend(printContext);
   const pr = await printContext.newPage();

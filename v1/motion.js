@@ -183,6 +183,7 @@
       const hero = document.querySelector(".hero");
       const show = () => el.removeAttribute("data-hidden");
       el.addEventListener("focusin", show);
+      ScrollTrigger.create({ start: 40, end: "max", onToggle: (self) => el.toggleAttribute("data-scrolled", self.isActive) });
       ScrollTrigger.create({
         start: () => (hero ? hero.offsetHeight : 240) - NAV_OFFSET,
         end: "max",
