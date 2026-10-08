@@ -536,6 +536,104 @@ for (const reducedMotion of ["no-preference", "reduce"]) {
   await printContext.close();
 }
 
+{
+  const inkPixels = (page, box) => page.screenshot({ clip: box }).then((buffer) => page.evaluate(async (base64) => {
+    const image = new Image();
+    image.src = `data:image/png;base64,${base64}`;
+    await image.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(image, 0, 0);
+    const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let bright = 0;
+    for (let i = 0; i < data.length; i += 4) if (data[i] + data[i + 1] + data[i + 2] > 450) bright += 1;
+    return bright / (data.length / 4);
+  }, buffer.toString("base64")));
+
+  const towerContext = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "pt-BR" });
+  await mockBackend(towerContext);
+  await towerContext.addInitScript(() => {
+    window.__lcp = null;
+    new PerformanceObserver((list) => { window.__lcp = list.getEntries().at(-1)?.element?.tagName || null; }).observe({ type: "largest-contentful-paint", buffered: true });
+  });
+  const tw = await towerContext.newPage();
+  await tw.goto(baseUrl, { waitUntil: "networkidle" });
+  await tw.waitForFunction(() => document.querySelector(".hero")?.dataset.tower === "live", null, { timeout: 15000 }).catch(() => {});
+  await settle(tw);
+  await tw.waitForTimeout(1500);
+  checks.towerLoadsAfterFirstPaint = await tw.evaluate(() => !!window.NHTower && performance.getEntriesByType("resource").some((entry) => entry.name.includes("vendor-three") && entry.startTime > performance.getEntriesByType("paint")[0].startTime));
+  checks.towerCanvasLive = (await tw.locator('.hero[data-tower="live"] .tower-stage canvas').count()) === 1;
+  checks.towerCanvasHidesFromAssistiveTech = (await tw.locator(".tower-stage").evaluate((el) => el.closest(".hero-scene").getAttribute("aria-hidden"))) === "true";
+  const sceneBox = await tw.locator(".tower-stage").boundingBox();
+  checks.towerCanvasRendersPixels = sceneBox ? (await inkPixels(tw, { x: sceneBox.x + sceneBox.width * 0.5, y: sceneBox.y + 120, width: sceneBox.width * 0.5, height: sceneBox.height - 240 })) > 0.01 : false;
+  checks.towerHeroPins = (await tw.locator(".pin-spacer").count()) >= 1;
+  checks.towerLabelsInDom = (await tw.locator(".tower-label").allInnerTexts()).join("|") === "Apartamentos|Coberturas|Lazer completo";
+  checks.towerLcpIsNotCanvas = (await tw.evaluate(() => window.__lcp)) !== "CANVAS";
+  checks.towerPinKeepsFocusFree = await tw.evaluate(() => !document.querySelector(".hero [tabindex]:not([tabindex='-1'])") && [...document.querySelectorAll(".tower-labels a, .tower-labels button")].length === 0);
+  const pinRange = await tw.evaluate(() => { const trigger = ScrollTrigger.getById("hero-pin"); return trigger ? [trigger.start, trigger.end] : [0, 0]; });
+  await tw.evaluate((y) => window.NHMotion.lenis.scrollTo(y, { immediate: true, force: true }), Math.round((pinRange[0] + pinRange[1]) / 2));
+  await tw.waitForTimeout(1200);
+  checks.towerLabelsAppearWhenExploded = await tw.evaluate(() => [...document.querySelectorAll(".tower-label")].every((el) => Number(getComputedStyle(el).opacity) > 0.9));
+  const explodedBox = await tw.locator(".tower-stage").boundingBox();
+  checks.towerExplodedStillRenders = explodedBox ? (await inkPixels(tw, { x: explodedBox.x + explodedBox.width * 0.3, y: 120, width: explodedBox.width * 0.4, height: 700 })) > 0.01 : false;
+  await tw.evaluate((y) => window.NHMotion.lenis.scrollTo(y, { immediate: true, force: true }), pinRange[1] + 5);
+  await tw.waitForTimeout(900);
+  checks.towerPinReleases = await tw.evaluate(() => document.querySelector("#destaques, #bairros")?.getBoundingClientRect().top < innerHeight * 1.5);
+  await towerContext.close();
+
+  const fallbackContext = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "pt-BR", reducedMotion: "reduce" });
+  await mockBackend(fallbackContext);
+  const fb = await fallbackContext.newPage();
+  await fb.goto(baseUrl, { waitUntil: "networkidle" });
+  await fb.waitForTimeout(1500);
+  checks.towerStaticUnderReducedMotion = await fb.evaluate(() => {
+    const still = document.querySelector(".tower-still");
+    const canvas = document.querySelector(".tower-stage canvas");
+    return document.querySelector(".hero").dataset.tower === "static" && !window.NHTower
+      && getComputedStyle(canvas).opacity === "0" && getComputedStyle(still).opacity === "1" && still.naturalWidth > 0
+      && !document.querySelector(".pin-spacer") && getComputedStyle(document.querySelector(".tower-labels")).display === "none";
+  });
+  await fallbackContext.close();
+
+  const offContext = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "pt-BR" });
+  await mockBackend(offContext);
+  await offContext.addInitScript(() => {
+    const force = () => { const el = document.documentElement; if (el && el.dataset.motion !== "off") el.dataset.motion = "off"; };
+    new MutationObserver(force).observe(document, { childList: true, subtree: true, attributes: true });
+  });
+  const off = await offContext.newPage();
+  await off.goto(baseUrl, { waitUntil: "networkidle" });
+  await off.waitForTimeout(3500);
+  checks.towerStaticWithMotionOff = await off.evaluate(() => document.querySelector(".hero").dataset.tower === "static" && !window.NHTower && !document.querySelector(".pin-spacer"));
+  await offContext.close();
+
+  const noGlContext = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "pt-BR" });
+  await mockBackend(noGlContext);
+  await noGlContext.addInitScript(() => {
+    const original = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (type, ...rest) { return /webgl/.test(type) ? null : original.call(this, type, ...rest); };
+  });
+  const ng = await noGlContext.newPage();
+  await ng.goto(baseUrl, { waitUntil: "networkidle" });
+  await ng.waitForTimeout(3500);
+  checks.towerFallsBackWithoutWebgl = await ng.evaluate(() => document.querySelector(".hero").dataset.tower === "static" && !document.querySelector(".pin-spacer")
+    && getComputedStyle(document.querySelector(".tower-still")).opacity === "1");
+  await noGlContext.close();
+
+  const phoneContext = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: "pt-BR" });
+  await mockBackend(phoneContext);
+  const ph = await phoneContext.newPage();
+  await ph.goto(baseUrl, { waitUntil: "networkidle" });
+  await ph.waitForFunction(() => document.querySelector(".hero")?.dataset.tower === "live", null, { timeout: 15000 }).catch(() => {});
+  await settle(ph);
+  checks.towerMobileHasNoPin = (await ph.locator(".pin-spacer").count()) === 0 && (await ph.locator('.hero[data-tower="live"]').count()) === 1;
+  const phoneStage = await ph.locator(".tower-stage").boundingBox();
+  checks.towerMobileCanvasIsSmall = !!phoneStage && phoneStage.height <= 360;
+  await phoneContext.close();
+}
+
 report.push({ page: "checks", ...checks });
 await interactionContext.close();
 await browser.close();
