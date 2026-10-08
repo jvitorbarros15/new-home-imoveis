@@ -234,7 +234,7 @@
     return intro;
   };
 
-  NHMotion.destaques = (section, { minItems = 3, onRail = () => {} } = {}) => {
+  NHMotion.destaques = (section, { minItems = 4, onRail = () => {} } = {}) => {
     const track = section.querySelector(".destaques");
     const cards = [...section.querySelectorAll(".dest-hero, .dest-card")];
     const media = gsap.matchMedia();
@@ -249,9 +249,15 @@
 
     media.add({ wide: "(min-width: 1100px)" }, ({ conditions }) => {
       const pad = () => parseFloat(getComputedStyle(section).paddingLeft);
-      const distance = () => Math.max(0, track.scrollWidth - (section.clientWidth - pad() * 2));
+      const natural = () => Math.max(0, track.scrollWidth - (section.clientWidth - pad() * 2));
+      // End on a card boundary so no card is left cut mid-text at the left edge when the pin releases.
+      const distance = () => {
+        const origin = track.getBoundingClientRect().left;
+        const edge = cards.map((card) => card.getBoundingClientRect().left - origin).find((left) => left >= natural() - 1);
+        return edge ?? natural();
+      };
       if (conditions.wide && cards.length >= minItems) section.classList.add("is-rail");
-      if (!section.classList.contains("is-rail") || distance() < 120) {
+      if (!section.classList.contains("is-rail") || natural() < (section.clientWidth - pad() * 2) * 0.4) {
         section.classList.remove("is-rail");
         stacked();
         return;

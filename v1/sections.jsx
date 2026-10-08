@@ -388,7 +388,7 @@ function Destaques() {
         </div>
       </div>
 
-      <div className="destaques" data-count={items.length}>
+      <div className="destaques-viewport"><div className="destaques" data-count={items.length}>
         <a className="dest-hero dest-hero-link" href={`/imovel?code=${encodeURIComponent(featured?.code || "")}`}
               onClick={() => track("listing_click", { code: featured?.code, detail: "hero" })}>
           <div className="img" style={{ backgroundImage: featured?.img ? `url("${featured.img}")` : undefined }} />
@@ -433,7 +433,7 @@ function Destaques() {
             </a>
           ))}
         </div>
-      </div>
+      </div></div>
     </section>
   );
 }
