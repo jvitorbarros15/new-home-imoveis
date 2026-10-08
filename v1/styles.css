@@ -1157,3 +1157,20 @@ footer {
   .lst-card:hover .lst-cover img, .lst-card:focus-visible .lst-cover img { transform: none; }
   .btn-primary::after, .hs-btn::after, .agent-btn.primary::after, .visit-cta::after { display: none; }
 }
+
+/* print: show everything the motion layer hides at runtime */
+@media print {
+  [style*="opacity"], [style*="transform"], [style*="clip-path"],
+  .m-mask, .m-mask *, .reveal, .lst-card, .dest-hero, .dest-card, .hero-slides, .hero-search, .cta-form {
+    opacity: 1 !important; transform: none !important; clip-path: none !important;
+  }
+  .m-mask { overflow: visible !important; }
+  .scroll-progress { display: none !important; }
+  .nav, .nav[data-hidden="true"] { position: static !important; transform: none !important; }
+  .pin-spacer { height: auto !important; padding: 0 !important; inset: auto !important; position: static !important; }
+  #destaques { position: static !important; width: auto !important; max-width: 100% !important; overflow: visible !important; }
+  .destaques-viewport { margin: 0 !important; padding: 0 !important; -webkit-mask-image: none !important; mask-image: none !important; }
+  .destaques { transform: none !important; width: auto !important; flex-wrap: wrap; }
+  [data-m="count"] { display: none !important; }
+  .stat .sr-only { position: static; width: auto; height: auto; margin: 0; clip: auto; overflow: visible; white-space: normal; }
+}

@@ -475,6 +475,23 @@ await mobile.setViewportSize({ width: 390, height: 844 });
   await reduced.close();
 }
 
+{
+  const printContext = await browser.newContext({ viewport: { width: 1440, height: 900 }, locale: "pt-BR" });
+  await mockBackend(printContext);
+  const pr = await printContext.newPage();
+  await pr.goto(baseUrl, { waitUntil: "networkidle" });
+  await settle(pr);
+  await pr.emulateMedia({ media: "print" });
+  checks.printShowsEverything = await pr.evaluate(() => {
+    const els = [...document.querySelectorAll("h1, h2, .dest-hero, .dest-card, .stat, .bairro, .cta-form, .depo-card")];
+    return scrollY === 0 && els.length > 8 && els.every((el) => {
+      const style = getComputedStyle(el);
+      return style.opacity === "1" && (style.transform === "none" || style.transform === "matrix(1, 0, 0, 1, 0, 0)") && style.clipPath === "none";
+    });
+  });
+  await printContext.close();
+}
+
 report.push({ page: "checks", ...checks });
 await interactionContext.close();
 await browser.close();
