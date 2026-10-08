@@ -238,7 +238,7 @@ function VisitScheduler({ prop }) {
     const message = `Gostaria de solicitar uma visita ${mode} ao imóvel ${prop.code} em ${slot}. Meu nome é ${name}. Aguardo confirmação de disponibilidade.`;
     window.open(propertyWhatsapp(prop, message), "_blank", "noopener,noreferrer");
     setState("sending");
-    const { saved } = await submitLead({ kind: "visit", name, phone, property_code: prop.code, interest: `Visita ${mode}`.slice(0, 60), message: slot });
+    const { saved } = await submitLead({ kind: "visit", name, phone, property_code: prop.code, interest: `Visita ${mode}`.slice(0, 60), message: slot }, event.currentTarget);
     track("visit_request", { code: prop.code, detail: mode });
     setState(saved ? "sent" : "unsaved");
   };
@@ -250,6 +250,7 @@ function VisitScheduler({ prop }) {
       <label>Nome<input name="name" required autoComplete="name" maxLength={120} /></label>
       <label>WhatsApp<input name="phone" type="tel" required autoComplete="tel" placeholder="(21) 99999-9999" aria-invalid={state === "badphone"} /></label>
     </div>
+    <LeadGuard />
     <label className="visit-consent"><input name="consent" type="checkbox" required /><span>Concordo com a <a href={NH.privacyUrl}>política de privacidade</a> e autorizo o contato da equipe.</span></label>
     {state === "badphone" && <p className="visit-status error" role="alert">Informe um telefone válido com DDD.</p>}
     {state === "sent" && <p className="visit-status ok" role="status">Pedido de visita enviado. Abrimos o WhatsApp para confirmar o horário.</p>}

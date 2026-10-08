@@ -571,7 +571,7 @@ function CTA() {
     window.open(NH.whatsapp(message), "_blank", "noopener,noreferrer");
 
     setState("sending");
-    const { saved } = await submitLead(lead);
+    const { saved } = await submitLead(lead, form);
     track("lead_submit", { detail: lead.interest });
     setState(saved ? "sent" : "unsaved");
     if (saved) form.reset();
@@ -600,6 +600,7 @@ function CTA() {
             <option>Investir</option>
           </select>
         </label>
+        <LeadGuard />
         <label className="cta-consent">
           <input name="consent" type="checkbox" required />
           <span>Concordo com a <a href={NH.privacyUrl}>política de privacidade</a> e autorizo o contato da equipe.</span>

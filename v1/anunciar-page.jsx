@@ -22,7 +22,7 @@ function SellerPage() {
     const details = `${type} em ${region}${price ? `, valor esperado ${price}` : ""}`;
     window.open(NH.whatsapp(`Olá! Gostaria de anunciar meu imóvel para ${purpose.toLowerCase()}. ${details}. Meu nome é ${name}.`), "_blank", "noopener,noreferrer");
     setState("sending");
-    const { saved } = await submitLead({ kind: "seller", name, phone, email: emailValue || null, interest: `Anunciar para ${purpose.toLowerCase()}`.slice(0, 60), message: details.slice(0, 2000) });
+    const { saved } = await submitLead({ kind: "seller", name, phone, email: emailValue || null, interest: `Anunciar para ${purpose.toLowerCase()}`.slice(0, 60), message: details.slice(0, 2000) }, form);
     track("seller_lead", { detail: purpose });
     setState(saved ? "sent" : "unsaved");
     if (saved) form.reset();
@@ -83,6 +83,7 @@ function SellerPage() {
             <label htmlFor="s-price">Valor esperado (opcional)</label>
             <input id="s-price" name="price" inputMode="numeric" autoComplete="off" maxLength={40} placeholder="R$ 1.200.000" onInput={e => { e.currentTarget.value = formatBRLInput(e.currentTarget.value); }} />
           </div>
+          <LeadGuard />
           <label className="seller-consent">
             <input name="consent" type="checkbox" required />
             <span>Concordo com a <a href={NH.privacyUrl}>política de privacidade</a> e autorizo o contato da equipe.</span>
