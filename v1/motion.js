@@ -30,7 +30,8 @@
   gsap.ticker.add((time) => lenis.raf(time * 1000));
   gsap.ticker.lagSmoothing(0);
 
-  const navHideStart = () => (document.querySelector(".hero")?.offsetHeight ?? 240) - NAV_OFFSET;
+  const heroExtent = () => (document.querySelector(".hero")?.offsetHeight ?? 240) + (window.NHMotion.heroPinActive ? window.NHMotion.heroPin() : 0);
+  const navHideStart = () => heroExtent() - NAV_OFFSET;
 
   // The nav auto-hides when scrolling down past the hero, so a downward landing needs no nav clearance.
   const offsetFor = (el, arriving) => {
@@ -52,7 +53,10 @@
     start: () => lenis.start(),
     refresh: () => ScrollTrigger.refresh(),
     scrollTo,
-    idle: () => !gsap.globalTimeline.getChildren(false, true, false)
+    pending: 0,
+    heroPinActive: false,
+    heroPin: () => (window.matchMedia("(max-width: 720px)").matches ? 0 : Math.round(window.innerHeight * 1.75)),
+    idle: () => !NHMotion.pending && !gsap.globalTimeline.getChildren(false, true, false)
       .some((anim) => !anim.paused() && anim.progress() < 1 && !anim.scrollTrigger?.vars.scrub),
   };
   window.NHMotion = NHMotion;
@@ -185,7 +189,7 @@
       el.addEventListener("focusin", show);
       ScrollTrigger.create({ start: 40, end: "max", onToggle: (self) => el.toggleAttribute("data-scrolled", self.isActive) });
       ScrollTrigger.create({
-        start: () => (hero ? hero.offsetHeight : 240) - NAV_OFFSET,
+        start: () => (hero ? heroExtent() : 240) - NAV_OFFSET,
         end: "max",
         invalidateOnRefresh: true,
         onUpdate: (self) => {
@@ -212,24 +216,18 @@
 
     hero(el) {
       const h1 = el.querySelector("h1");
-      const eyebrow = el.querySelector(".hero-eyebrow");
       const sub = el.querySelector(".hero-sub");
       const search = el.querySelector(".hero-search");
-      const slides = el.querySelector(".hero-slides");
+      const stage = el.querySelector(".tower-stage");
       const fade = (target, delay, offset, duration) => {
         animating(target);
         gsap.from(target, { opacity: 0, y: dist(offset), duration: time(duration), delay, ease: "power3.out", clearProps: "transform,opacity", onComplete: settled(target) });
       };
       splitLines(h1, (lines) => gsap.from(lines, { yPercent: 110, duration: time(1.1), ease: "power3.out", stagger: 0.1 }));
-      fade(eyebrow, 0.35, 24, 0.9);
       if (sub) fade(sub, 0.45, 24, 0.9);
       fade(search, 0.6, 56, 1.1);
-
-      gsap.fromTo(slides, { scale: 1.1 }, { scale: 1, duration: 1.8, ease: "power2.out" });
-      gsap.to(slides, {
-        yPercent: isMobile() ? 6 : 12, ease: "none",
-        scrollTrigger: { trigger: el, start: "top top", end: "bottom top", scrub: true },
-      });
+      gsap.fromTo(stage, { opacity: 0 }, { opacity: 1, duration: 1.4, ease: "power2.out", clearProps: "opacity" });
+      window.NHHeroTower?.mount(el);
     },
   };
 

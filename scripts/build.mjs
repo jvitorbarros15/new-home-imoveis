@@ -16,7 +16,7 @@ const vendors = {
 };
 
 const entries = {
-  home: ["constants.js", "company.js", "analytics.js", "lead.js", "motion.js", "sections.jsx", "chat.jsx", "app.jsx"],
+  home: ["constants.js", "company.js", "analytics.js", "lead.js", "motion.js", "hero-tower.js", "sections.jsx", "chat.jsx", "app.jsx"],
   property: ["constants.js", "company.js", "analytics.js", "lead.js", "motion.js", "sections.jsx", "chat.jsx", "imovel-sections.jsx", "imovel-app.jsx"],
   listings: ["constants.js", "company.js", "analytics.js", "lead.js", "motion.js", "sections.jsx", "chat.jsx", "listings-page.jsx"],
   favorites: ["constants.js", "company.js", "analytics.js", "lead.js", "sections.jsx", "chat.jsx", "favoritos-page.jsx"],

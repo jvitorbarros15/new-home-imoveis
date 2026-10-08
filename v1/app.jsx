@@ -25,7 +25,7 @@ function App() {
       <div className="grain" />
       <Nav />
       <DemoNotice />
-      <Hero motion={t.motion} />
+      <Hero />
       <Destaques />
       <Bairros />
       <Stats />

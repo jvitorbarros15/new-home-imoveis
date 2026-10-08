@@ -21,14 +21,11 @@ const IconFB     = (p) => <SVG {...p} size={14}><path d="M18 2h-3a5 5 0 0 0-5 5v
 const IconWA     = (p) => <SVG {...p} size={14}><path d="M21 12a9 9 0 1 1-3.5-7.1L21 3l-1.4 4A9 9 0 0 1 21 12z" /><path d="M9 9c0 4 3 7 7 7l1.5-2-2.5-1-1 1c-1 0-3-2-3-3l1-1-1-2.5L9 9z" /></SVG>;
 const IconMoon   = (p) => <SVG {...p}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></SVG>;
 const IconSun    = (p) => <SVG {...p}><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></SVG>;
+const IconClock  = (p) => <SVG {...p}><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15.5 14" /></SVG>;
+const IconDoc    = (p) => <SVG {...p}><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><polyline points="14 3 14 8 19 8" /><line x1="9" y1="13" x2="15" y2="13" /><line x1="9" y1="17" x2="13" y2="17" /></SVG>;
+const IconBank   = (p) => <SVG {...p}><path d="M3 10l9-6 9 6" /><line x1="5" y1="10" x2="19" y2="10" /><line x1="6" y1="10" x2="6" y2="18" /><line x1="10" y1="10" x2="10" y2="18" /><line x1="14" y1="10" x2="14" y2="18" /><line x1="18" y1="10" x2="18" y2="18" /><line x1="3" y1="20" x2="21" y2="20" /></SVG>;
 const IconMenu   = (p) => <SVG {...p}><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></SVG>;
 const IconX      = (p) => <SVG {...p}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></SVG>;
-
-const HERO_IMAGES = [
-  "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1600&q=72&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1600&q=72&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1600&q=72&auto=format&fit=crop",
-];
 
 const BAIRROS = [
   { name: "Barra da Tijuca", img: "https://images.unsplash.com/photo-1518391846015-55a9cc003b25?w=720&q=68&auto=format&fit=crop" },
@@ -39,6 +36,13 @@ const BAIRROS = [
   { name: "Lagoa", img: "https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=720&q=68&auto=format&fit=crop" },
   { name: "Rio 2", img: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=720&q=68&auto=format&fit=crop" },
 ].map((item) => ({ ...item, url: `${NH.listingsUrl}?q=${encodeURIComponent(item.name)}` }));
+
+const VALUE_POINTS = [
+  { Icon: IconClock, title: "Desde 2010 no mercado", text: "Intermediação de imóveis e empreendimentos no Rio de Janeiro com atuação contínua desde 2010." },
+  { Icon: IconPin, title: "Foco na Barra e região", text: "Atuação concentrada na Barra da Tijuca, no Recreio dos Bandeirantes e na Região Olímpica." },
+  { Icon: IconDoc, title: "Da listagem à escritura", text: "Acompanhamento em cada etapa do negócio, com apoio em contratos, documentação e assessoria jurídica quando necessário." },
+  { Icon: IconBank, title: "Apoio no financiamento", text: "Orientação para simular e planejar o financiamento do imóvel, com simulador disponível no site.", href: "/financiamento", cta: "Simular financiamento" },
+];
 
 const SERVICE_PILLARS = [
   { title: "Atendimento exclusivo", text: "Uma equipe preparada para entender o perfil do cliente e conduzir cada etapa com atenção." },
@@ -215,40 +219,16 @@ function Nav() {
 }
 
 /* ------ Hero ------------------------------------------------------ */
-function Hero({ motion }) {
-  const [idx, setIdx] = React.useState(0);
-  const [loadedSlides, setLoadedSlides] = React.useState(() => new Set([0]));
+const TOWER_LABELS = [
+  { name: "apartamentos", text: "Apartamentos", side: "left" },
+  { name: "coberturas", text: "Coberturas", side: "right" },
+  { name: "lazer", text: "Lazer completo", side: "right" },
+];
+
+function Hero() {
   const [pretensao, setPretensao] = React.useState("Comprar");
   const [tipo, setTipo] = React.useState("");
   const [busca, setBusca] = React.useState("");
-
-  React.useEffect(() => {
-    if (motion === "off") return;
-    const id = setInterval(() => setIdx(i => (i + 1) % HERO_IMAGES.length), 5500);
-    return () => clearInterval(id);
-  }, [motion]);
-
-  React.useEffect(() => {
-    const targets = [idx, (idx + 1) % HERO_IMAGES.length];
-    const images = [];
-    const load = () => {
-      targets.forEach((target) => {
-        if (loadedSlides.has(target)) return;
-        const image = new Image();
-        image.decoding = "async";
-        image.onload = () => setLoadedSlides((current) => new Set([...current, target]));
-        image.src = HERO_IMAGES[target];
-        images.push(image);
-      });
-    };
-    const schedule = window.requestIdleCallback || ((callback) => window.setTimeout(callback, 600));
-    const cancel = window.cancelIdleCallback || window.clearTimeout;
-    const handle = schedule(load);
-    return () => {
-      cancel(handle);
-      images.forEach((image) => { image.onload = null; });
-    };
-  }, [idx]);
 
   const PRETENSOES = ["Comprar", "Alugar"];
   const TIPOS = ["", ...PROPERTY_TYPES];
@@ -258,26 +238,27 @@ function Hero({ motion }) {
   };
 
   return (
-    <header className="hero" data-m="hero">
-      <div className="hero-slides">
-        {HERO_IMAGES.map((src, i) => (
-          <div key={i} className={`hero-slide ${i === idx ? "active" : ""}`}
-               style={{ backgroundImage: loadedSlides.has(i) ? `url(${src})` : "none" }} />
-        ))}
-        <div className="hero-veil" />
+    <header className="hero" data-m="hero" data-tower="static">
+      <div className="hero-scene" aria-hidden="true">
+        <div className="tower-stage">
+          <img className="tower-still" src="assets/tower-still.webp" alt="" width="1200" height="1200" decoding="async" />
+          <canvas />
+        </div>
       </div>
 
-      <div className="hero-side">
-        {HERO_IMAGES.map((_, i) => (
-          <button key={i} type="button" className={`hero-dot ${i === idx ? "on" : ""}`} onClick={() => setIdx(i)} aria-label={`Mostrar imagem ${i + 1}`} aria-pressed={i === idx} />
+      <ul className="tower-labels" aria-label="Estrutura do empreendimento">
+        {TOWER_LABELS.map(({ name, text, side }) => (
+          <li key={name} className={`tower-label tl-${side}`} data-name={name} data-side={side}>
+            <span className="tl-dot" aria-hidden="true" />
+            <span className="tl-rule" aria-hidden="true" />
+            <span className="tl-text">{text}</span>
+          </li>
         ))}
-        <div className="hero-counter">{String(idx + 1).padStart(2, "0")} / {String(HERO_IMAGES.length).padStart(2, "0")}</div>
-      </div>
+      </ul>
 
       <div className="hero-content">
         <div className="hero-headline">
-          <div className="hero-eyebrow"><span className="eyebrow">New Home · Imóveis selecionados</span></div>
-          <h1>Imóveis escolhidos para quem <br />busca <em>qualidade de vida.</em></h1>
+          <h1>Imóveis escolhidos para quem busca <em>qualidade de vida.</em></h1>
           <p className="hero-sub">
             Desde 2010 no Rio de Janeiro, conectando compradores e proprietários com atendimento exclusivo,
             estratégia digital e acompanhamento em cada etapa do negócio.
@@ -314,8 +295,6 @@ function Hero({ motion }) {
           <button type="submit" className="hs-btn">Encontrar <IconArrow size={14} /></button>
         </form>
       </div>
-
-      <div className="hero-scroll">Role para descobrir</div>
     </header>
   );
 }
@@ -474,6 +453,28 @@ function Bairros() {
   );
 }
 
+/* ------ Por que a New Home ---------------------------------------- */
+function PorQue() {
+  return (
+    <section id="por-que" className="porque">
+      <div className="porque-head">
+        <h2 data-m="lines">Por que a <em>New Home</em></h2>
+        <p>Uma imobiliária da Barra da Tijuca que acompanha compradores, locatários e proprietários do primeiro contato à escritura.</p>
+      </div>
+      <ul className="porque-grid" data-m="stagger">
+        {VALUE_POINTS.map(({ Icon, title, text, href, cta }) => (
+          <li key={title} className="porque-item">
+            <Icon size={28} className="porque-icon" />
+            <h3>{title}</h3>
+            <p>{text}</p>
+            {href && <a className="porque-link" href={href}>{cta} <IconArrow size={14} /></a>}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 /* ------ Stats ----------------------------------------------------- */
 function Stats() {
   const years = new Date().getFullYear() - NH.foundedYear;
@@ -509,8 +510,7 @@ function Sobre() {
         </div>
       </div>
       <div className="sobre-body">
-        <span className="eyebrow">A New Home</span>
-        <h2 style={{ marginTop: 20 }} data-m="lines">Curadoria <em>imobiliária</em> com o tempo de quem mora aqui.</h2>
+        <h2 data-m="lines">Curadoria <em>imobiliária</em> com o tempo de quem mora aqui.</h2>
         <p>
           Desde 2010, a New Home Imóveis atua na intermediação de empreendimentos na Barra da Tijuca,
           Recreio e região. O trabalho combina atendimento diferenciado, estratégia de marketing digital
@@ -539,11 +539,9 @@ function Depoimentos() {
       <div className="depo-track" data-m="stagger">
         {SERVICE_PILLARS.map((item, i) => (
           <div key={i} className="depo-card">
-            <div className="depo-mark">{String(i + 1).padStart(2, "0")}</div>
             <div className="depo-quote">{item.text}</div>
             <div className="depo-by">
               <span className="depo-name">{item.title}</span>
-              <span className="depo-place">New Home Imóveis</span>
             </div>
           </div>
         ))}
@@ -594,8 +592,7 @@ function CTA() {
         <div className="cta-bg-img" data-m="scale" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=2000&q=80&auto=format&fit=crop)" }} />
       </div>
       <div className="cta-body">
-        <span className="eyebrow">Atendimento personalizado</span>
-        <h2 style={{ marginTop: 20 }} data-m="lines">Vamos encontrar a <em>sua</em> nova casa.</h2>
+        <h2 data-m="lines">Vamos encontrar a <em>sua</em> nova casa.</h2>
         <p>Conte para nós o que procura — região, perfil, momento de vida. Um consultor da New Home retornará
           com uma seleção desenhada para você, em até um dia útil.</p>
       </div>
