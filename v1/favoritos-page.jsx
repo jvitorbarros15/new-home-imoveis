@@ -55,7 +55,6 @@ function FavoritesPage() {
     <>
       <div className="grain" />
       <Nav />
-      <DemoNotice />
       <main className="page" id="conteudo">
         <header className="page-head">
           <span className="eyebrow">Sua seleção</span>
