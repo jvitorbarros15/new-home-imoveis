@@ -100,7 +100,6 @@ function ListingsPage() {
     <>
       <div className="grain" />
       <Nav />
-      <DemoNotice />
       <main className="page" id="conteudo">
         <header className="page-head">
           <span className="eyebrow">Busca</span>

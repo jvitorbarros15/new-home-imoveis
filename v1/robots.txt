@@ -1,4 +1,3 @@
-# Portfolio deployment. Kept out of search results so it does not compete with
-# the real company's website.
 User-agent: *
-Disallow: /
+Allow: /
+Disallow: /admin

@@ -6,7 +6,6 @@ function PrivacyPage() {
     <>
       <div className="grain" />
       <Nav />
-      <DemoNotice />
       <main className="page page-prose" id="conteudo">
         <header className="page-head">
           <span className="eyebrow">LGPD · Lei 13.709/2018</span>
@@ -17,9 +16,8 @@ function PrivacyPage() {
         <section className="blk reveal">
           <h2>Quem opera este site</h2>
           <p>
-            Este endereço hospeda um projeto de portfólio, criado para demonstrar desenvolvimento web.
-            Ele não é operado pela empresa cujo nome e identidade visual serviram de referência, nem
-            possui vínculo, afiliação ou endosso dela. Os dados de contato exibidos são ilustrativos.
+            Este site é operado pela {NH.legalName} (CRECI {NH.creci}), com sede em {NH.address}. Para falar sobre
+            seus dados, escreva para {NH.email}.
           </p>
         </section>
 

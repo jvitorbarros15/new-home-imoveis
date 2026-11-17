@@ -683,18 +683,6 @@ function ListingCard({ item }) {
   );
 }
 
-/* ------ Demo disclosure ------------------------------------------- */
-function DemoNotice() {
-  if (!NH.isDemo) return null;
-  return (
-    <div className="demo-notice" role="note">
-      <strong>Projeto de portfólio.</strong> Site demonstrativo criado para fins de estudo, sem
-      vínculo, afiliação ou endosso da empresa de mesmo nome. Para atendimento real, use o{" "}
-      <a href={NH.officialSite} target="_blank" rel="noopener noreferrer">site oficial</a>.
-    </div>
-  );
-}
-
 /* ------ Footer ---------------------------------------------------- */
 function Footer() {
   return (
@@ -732,13 +720,8 @@ function Footer() {
           </ul>
         </div>
       </div>
-      <div className="ft-demo">
-        Projeto de portfólio, sem vínculo com a empresa de mesmo nome. Dados de contato e imóveis
-        são ilustrativos. <a href={NH.officialSite} target="_blank" rel="noopener noreferrer">Site oficial</a>
-        {" · "}<a href={NH.privacyUrl}>Privacidade e LGPD</a>
-      </div>
       <div className="ft-bot">
-        <span>© {new Date().getFullYear()} New Home Imóveis · projeto demonstrativo</span>
+        <span>© {new Date().getFullYear()} New Home Imóveis</span>
         <div className="ft-social">
           <a href={NH.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram"><IconIG /></a>
           <a href={NH.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook"><IconFB /></a>
@@ -749,4 +732,4 @@ function Footer() {
   );
 }
 
-Object.assign(window, { Nav, Hero, Destaques, Bairros, Stats, Sobre, Depoimentos, CTA, Footer, DemoNotice, ListingCard, useReveal, useTheme, SVG, BRL_FMT: (v) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }) });
+Object.assign(window, { Nav, Hero, Destaques, Bairros, Stats, Sobre, Depoimentos, CTA, Footer, ListingCard, useReveal, useTheme, SVG, BRL_FMT: (v) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }) });

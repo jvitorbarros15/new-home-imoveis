@@ -137,7 +137,7 @@ function FinanciamentoApp() {
     document.documentElement.setAttribute("data-motion", theme.motion);
   }, [theme.motion]);
   useReveal();
-  return <><div className="grain"/><Nav/><DemoNotice/>
+  return <><div className="grain"/><Nav/>
     <main className="page">
       <section className="ph-hero">
         <div><span className="eyebrow ph-hero-eyebrow">Planejamento financeiro</span><h1>Entenda os números<br/>antes das <em>chaves</em>.</h1><p>Faça uma estimativa inicial, compare propostas oficiais e avalie o custo total antes de contratar um financiamento.</p></div>

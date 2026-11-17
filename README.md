@@ -2,9 +2,7 @@
 
 Responsive Portuguese-language real-estate website: public property search, property detail pages, WhatsApp conversion flows, a financing estimator and a Supabase-backed administration area.
 
-[Portfolio deployment](https://new-home-imoveis.vercel.app)
-
-> **Portfolio project.** This is an independent demonstration build. It is not operated by, affiliated with or endorsed by the company whose name and visual identity it takes as a reference. Contact details shown in the interface are illustrative. The deployment is `noindex`/`Disallow` so it never competes with the real company in search results.
+[Live site](https://new-home-imoveis.vercel.app)
 
 ## What is included
 
